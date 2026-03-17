@@ -10,6 +10,8 @@ import FollowButton from '@/components/social/FollowButton';
 import CheckInButton from '@/components/social/CheckInButton';
 import CommentThread from '@/components/social/CommentThread';
 
+export const revalidate = 3600; // Static revalidation every hour
+
 /**
  * Pagina profilo venue con dati reali da Supabase.
  */

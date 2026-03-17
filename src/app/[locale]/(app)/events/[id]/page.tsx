@@ -7,6 +7,9 @@ import { Avatar } from '@/components/ui/Avatar';
 import Link from 'next/link';
 import RSVPButton from '@/components/events/RSVPButton';
 import CheckInButton from '@/components/social/CheckInButton';
+import CommentThread from '@/components/social/CommentThread';
+
+export const revalidate = 3600; // Static revalidation every hour
 
 /**
  * Pagina dettaglio evento con dati reali da Supabase.
