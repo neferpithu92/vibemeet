@@ -191,6 +191,20 @@
     "billingAnnual": "Fatturazione annuale",
     "billingMonthly": "Fatturazione mensile"
   },
+  "social": {
+    "comments": "Commenti",
+    "reply": "Rispondi",
+    "replies": "Risposte",
+    "writeComment": "Scrivi un commento...",
+    "post": "Pubblica",
+    "delete": "Elimina",
+    "loading": "Caricamento commenti...",
+    "noComments": "Ancora nessun commento. Inizia la conversazione!",
+    "error": "Errore caricamento commenti",
+    "replyingTo": "In risposta a",
+    "seeMore": "Vedi altri",
+    "hideReplies": "Nascondi risposte"
+  },
   "errors": {
     "generic": "Qualcosa è andato storto. Riprova più tardi.",
     "notFound": "Pagina non trovata",

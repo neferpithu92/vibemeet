@@ -8,6 +8,7 @@ import Link from 'next/link';
 
 import FollowButton from '@/components/social/FollowButton';
 import CheckInButton from '@/components/social/CheckInButton';
+import CommentThread from '@/components/social/CommentThread';
 
 /**
  * Pagina profilo venue con dati reali da Supabase.
@@ -157,6 +158,11 @@ async function VenueDetailRender({ venue, user }: { venue: any, user: any }) {
                   <p className="text-sm text-vibe-text-secondary text-center py-4">Nessun evento in programma.</p>
                 )}
               </div>
+            </Card>
+
+            {/* Sezione Commenti Live */}
+            <Card>
+              <CommentThread entityType="venue" entityId={venue.id} />
             </Card>
           </div>
 

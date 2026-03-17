@@ -20,14 +20,12 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Coordinate mancanti' }, { status: 400 });
     }
 
-    // Aggiorna last_location (PostGIS) e last_seen_at
+    // Aggiorna last_location (PostGIS) via RPC per massima coerenza
     const { error } = await supabase
-      .from('users')
-      .update({
-        last_location: `POINT(${longitude} ${latitude})`,
-        last_seen_at: new Date().toISOString()
-      })
-      .eq('id', user.id);
+      .rpc('update_user_location', {
+        lon: longitude,
+        lat: latitude
+      });
 
     if (error) throw error;
 

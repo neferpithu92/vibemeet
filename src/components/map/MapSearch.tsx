@@ -6,13 +6,16 @@ import { useMap } from 'react-map-gl/mapbox';
 
 /**
  * Componente per la ricerca sulla mappa.
- * Permette di cercare venue ed eventi e spostare la mappa sul risultato.
+ * Riceve l'istanza della mappa come prop per evitare crash se caricato fuori dal provider.
  */
-export default function MapSearch() {
+interface MapSearchProps {
+  map?: any;
+}
+
+export default function MapSearch({ map }: MapSearchProps) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
-  const { current: map } = useMap();
 
   useEffect(() => {
     if (query.length < 2) {

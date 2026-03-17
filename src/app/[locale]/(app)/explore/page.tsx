@@ -30,10 +30,10 @@ export default async function ExplorePage() {
     .from('events')
     .select(`
       *,
-      venues (*)
+      venue:venues (*)
     `)
-    .gte('end_time', new Date().toISOString())
-    .order('start_time', { ascending: true })
+    .gte('ends_at', new Date().toISOString())
+    .order('starts_at', { ascending: true })
     .limit(3);
 
   return (

@@ -1,6 +1,9 @@
 import PricingSection from '@/components/social/PricingSection';
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
+import { Badge } from '@/components/ui/Badge';
+import { Button } from '@/components/ui/Button';
+import { Link } from '@/lib/i18n/navigation';
 
 /**
  * Pagina di Pricing pubblica (ma autenticata).
@@ -46,18 +49,3 @@ export default async function PricingPage() {
   );
 }
 
-function Badge({ children, variant }: { children: React.ReactNode; variant: string }) {
-  return (
-    <span className="bg-vibe-purple text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-widest animate-pulse">
-      {children}
-    </span>
-  );
-}
-
-function Button({ children, variant }: { children: React.ReactNode; variant: string }) {
-  return (
-    <button className="px-6 py-2 rounded-xl bg-white/5 hover:bg-white/10 transition-all text-sm font-medium border border-white/10">
-      {children}
-    </button>
-  );
-}

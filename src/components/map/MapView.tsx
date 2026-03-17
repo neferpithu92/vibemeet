@@ -12,6 +12,7 @@ interface MapViewProps {
   };
   children?: React.ReactNode;
   onBoundsChange?: (bounds: { sw: [number, number]; ne: [number, number] }) => void;
+  onMapLoad?: (map: MapRef) => void;
 }
 
 /**
@@ -25,10 +26,18 @@ export function MapView({
     zoom: 13
   },
   children,
-  onBoundsChange
+  onBoundsChange,
+  onMapLoad
 }: MapViewProps) {
   const mapRef = useRef<MapRef>(null);
   const [isLoaded, setIsLoaded] = useState(false);
+
+  const handleMapLoad = useCallback((e: any) => {
+    setIsLoaded(true);
+    if (onMapLoad) {
+      onMapLoad(e.target);
+    }
+  }, [onMapLoad]);
 
   const handleMoveEnd = useCallback(() => {
     if (!mapRef.current || !onBoundsChange) return;
@@ -78,7 +87,7 @@ export function MapView({
         mapStyle="mapbox://styles/mapbox/dark-v11"
         mapboxAccessToken={token}
         onMoveEnd={handleMoveEnd}
-        onLoad={() => setIsLoaded(true)}
+        onLoad={handleMapLoad}
         style={{ width: '100%', height: '100%' }}
       >
         <NavigationControl position="top-right" />

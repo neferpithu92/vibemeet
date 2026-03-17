@@ -123,24 +123,9 @@ export default async function EventDetailPage({ params }: { params: { id: string
               </div>
             </Card>
 
-            {/* Commenti placeholder */}
+            {/* Sezione Commenti Live */}
             <Card>
-              <h2 className="font-display font-bold text-lg mb-4">💬 Commenti</h2>
-              <div className="space-y-3">
-                {[1, 2, 3].map(i => (
-                  <div key={i} className="flex gap-3 p-3 rounded-xl bg-white/5">
-                    <Avatar size="sm" fallback={`U${i}`} />
-                    <div>
-                      <p className="text-sm font-semibold">Utente {i}</p>
-                      <p className="text-xs text-vibe-text-secondary mt-1">Non vedo l&apos;ora! 🔥🎶</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <div className="flex gap-2 mt-4">
-                <input placeholder="Scrivi un commento..." className="input-field flex-1 py-2 text-sm" />
-                <Button variant="primary" size="sm">Invia</Button>
-              </div>
+              <CommentThread entityType="event" entityId={event.id} />
             </Card>
           </div>
 

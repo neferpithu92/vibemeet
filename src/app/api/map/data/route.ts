@@ -15,60 +15,35 @@ export async function GET(request: Request) {
 
   const supabase = await createClient();
 
-  // Recupera venue
-  const { data: venues, error: venuesError } = await supabase
-    .from('venues')
-    .select('*')
-    .gte('longitude', sw[0])
-    .lte('longitude', ne[0])
-    .gte('latitude', sw[1])
-    .lte('latitude', ne[1]);
+  // Recupera dati mappa consolidati via PostGIS RPC (Venues, Events, Stories)
+  const { data: mapData, error: mapError } = await supabase.rpc('get_map_data', {
+    sw_lon: sw[0],
+    sw_lat: sw[1],
+    ne_lon: ne[0],
+    ne_lat: ne[1],
+    last_24h_stories: true
+  });
 
-  // Recupera eventi
-  const { data: events, error: eventsError } = await supabase
-    .from('events')
-    .select(`
-      *,
-      venue:venues!inner(*)
-    `)
-    .gte('venues.longitude', sw[0])
-    .lte('venues.longitude', ne[0])
-    .gte('venues.latitude', sw[1])
-    .lte('venues.latitude', ne[1])
-    .gte('end_time', new Date().toISOString());
-
-  // Recupera storie (create nelle ultime 24h)
-  const yesterday = new Date();
-  yesterday.setHours(yesterday.getHours() - 24);
-
-  const { data: stories, error: storiesError } = await supabase
-    .from('stories')
-    .select(`
-      *,
-      profiles:users (*)
-    `)
-    .gte('created_at', yesterday.toISOString())
-    .not('location', 'is', null);
-
-  // Recupera Utenti Vicini (Nearby People)
+  // Recupera Utenti Vicini (Nearby People) separatamente
   const centerLon = (sw[0] + ne[0]) / 2;
   const centerLat = (sw[1] + ne[1]) / 2;
-  // Calcola un raggio approssimativo basato sulla larghezza dei bounds
   const radius = Math.sqrt(Math.pow(ne[0] - sw[0], 2) + Math.pow(ne[1] - sw[1], 2)) * 50000;
 
   const { data: users, error: usersError } = await supabase
     .rpc('get_nearby_users', {
       lon: centerLon,
       lat: centerLat,
-      radius_meters: Math.min(radius, 10000) // max 10km
+      radius_meters: Math.min(radius, 10000)
     });
 
-  if (venuesError || eventsError || storiesError || usersError) {
+  if (mapError || usersError) {
     return NextResponse.json({ 
       error: 'Errore fetching dati',
-      details: venuesError || eventsError || storiesError || usersError
+      details: mapError || usersError
     }, { status: 500 });
   }
+
+  const { venues, events, stories } = mapData as any;
 
   return NextResponse.json({ venues, events, stories, users });
 }

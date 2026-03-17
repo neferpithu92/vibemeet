@@ -1,7 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { Link } from '@/lib/i18n/navigation';
+import { Link, usePathname, useRouter } from '@/lib/i18n/navigation';
 import { useState, useEffect, useRef } from 'react';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
@@ -10,6 +10,7 @@ import { Avatar } from '@/components/ui/Avatar';
 import { MapView } from '@/components/map/MapView';
 import { VenueMarker, EventMarker, StoryMarker, PresenceMarker } from '@/components/map/Markers';
 import MapSearch from '@/components/map/MapSearch';
+import ActivityFeed from '@/components/social/ActivityFeed';
 
 import { useMapRealtime } from '@/lib/supabase/useMapRealtime';
 import { useUserLocation } from '@/hooks/useUserLocation';
@@ -38,6 +39,7 @@ export default function MapPage() {
   const [activeLayers, setActiveLayers] = useState(layers);
   const [selectedItem, setSelectedItem] = useState<any>(null);
   const [showFilters, setShowFilters] = useState(false);
+  const [showActivity, setShowActivity] = useState(false);
   const [isFollowing, setIsFollowing] = useState(false);
   
   const [venues, setVenues] = useState<any[]>([]);
@@ -120,10 +122,12 @@ export default function MapPage() {
 
   const isLayerActive = (id: string) => activeLayers.find(l => l.id === id)?.active;
 
+  const [mapInstance, setMapInstance] = useState<any>(null);
+
   return (
     <div className="relative h-[calc(100vh-64px)] md:h-[calc(100vh-64px)] w-full overflow-hidden bg-vibe-dark">
       {/* MAPPA REALE */}
-      <MapView onBoundsChange={handleBoundsChange}>
+      <MapView onBoundsChange={handleBoundsChange} onMapLoad={setMapInstance}>
         {/* Indicatore di caricamento asincrono */}
         {isLoading && (
           <div className="absolute top-20 right-4 z-50 flex flex-col gap-2">
@@ -132,7 +136,7 @@ export default function MapPage() {
         )}
         {/* Barra di ricerca Mappa */}
         <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 w-full max-w-xs px-2 pointer-events-auto">
-          <MapSearch />
+          <MapSearch map={mapInstance} />
         </div>
 
         {/* Render markers per Venues */}
@@ -215,7 +219,30 @@ export default function MapPage() {
         >
           🔍 {t('filters')}
         </Button>
+
+        {/* Tasto Attività */}
+        <Button 
+          variant="secondary" 
+          size="sm" 
+          onClick={() => setShowActivity(!showActivity)}
+          className="shadow-xl"
+        >
+          ⚡ {t('activity') || 'Live'}
+        </Button>
       </div>
+
+      {/* Pannello Attività Live (Left Sidebar) */}
+      {showActivity && (
+        <Card className="absolute top-4 left-4 md:left-24 z-30 w-full max-w-[320px] p-0 animate-slide-in-left overflow-hidden bg-vibe-dark/95 backdrop-blur-2xl border-white/10 h-[70vh] flex flex-col">
+          <div className="p-4 border-b border-white/5 flex items-center justify-between">
+            <h3 className="font-display font-bold text-lg">⚡ Live Activity</h3>
+            <button onClick={() => setShowActivity(false)} className="text-vibe-text-secondary hover:text-white transition-colors">✕</button>
+          </div>
+          <div className="flex-1 overflow-y-auto">
+            <ActivityFeed />
+          </div>
+        </Card>
+      )}
 
       {/* Pannello Filtri (Left Sidebar) */}
       {showFilters && (
