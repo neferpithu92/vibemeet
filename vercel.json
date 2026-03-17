@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "framework": "nextjs",
+  "buildCommand": "next build",
+  "installCommand": "npm install",
+  "regions": ["arn1"],
+  "env": {
+    "NEXT_PUBLIC_APP_URL": "https://vibemeet.vercel.app"
+  }
+}
