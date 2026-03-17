@@ -1,7 +1,8 @@
 'use client';
 
-import Link from 'next/link';
-import { useState, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
+import { Link } from '@/lib/i18n/navigation';
+import { useState, useEffect, useRef } from 'react';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
@@ -10,7 +11,6 @@ import { MapView } from '@/components/map/MapView';
 import { VenueMarker, EventMarker, StoryMarker, PresenceMarker } from '@/components/map/Markers';
 import MapSearch from '@/components/map/MapSearch';
 
-import { useRef } from 'react';
 import { useMapRealtime } from '@/lib/supabase/useMapRealtime';
 import { useUserLocation } from '@/hooks/useUserLocation';
 import { createClient } from '@/lib/supabase/client';
@@ -18,18 +18,23 @@ import { ListSkeleton, Skeleton } from '@/components/ui/Skeleton';
 import CheckInButton from '@/components/social/CheckInButton';
 import FollowButton from '@/components/social/FollowButton';
 
-const layers = [
-  { id: 'heatmap', label: 'Heatmap', icon: '🔥', active: false },
-  { id: 'venues', label: 'Locali', icon: '🏢', active: true },
-  { id: 'events', label: 'Eventi', icon: '🎉', active: true },
-  { id: 'stories', label: 'Storie', icon: '📱', active: true },
-  { id: 'people', label: 'Gente', icon: '👥', active: true },
-];
-
 /**
  * Pagina Mappa Interattiva — visualizza Mapbox con dati reali e real-time da Supabase.
  */
 export default function MapPage() {
+  const t = useTranslations('map');
+  const te = useTranslations('events');
+  const tv = useTranslations('venues');
+  const tc = useTranslations('common');
+  
+  const layers = [
+    { id: 'heatmap', label: t('heatmap'), icon: '🔥', active: false },
+    { id: 'venues', label: t('venues'), icon: '🏢', active: true },
+    { id: 'events', label: t('events'), icon: '🎉', active: true },
+    { id: 'stories', label: t('stories'), icon: '📱', active: true },
+    { id: 'people', label: t('friends'), icon: '👥', active: true },
+  ];
+
   const [activeLayers, setActiveLayers] = useState(layers);
   const [selectedItem, setSelectedItem] = useState<any>(null);
   const [showFilters, setShowFilters] = useState(false);
@@ -208,7 +213,7 @@ export default function MapPage() {
           onClick={() => setShowFilters(!showFilters)}
           className="shadow-xl"
         >
-          🔍 Filtri
+          🔍 {t('filters')}
         </Button>
       </div>
 
@@ -216,27 +221,25 @@ export default function MapPage() {
       {showFilters && (
         <Card className="absolute top-4 left-32 z-20 w-72 p-6 animate-slide-in-left">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="font-display font-bold text-lg">Filtra Esperienze</h3>
+            <h3 className="font-display font-bold text-lg">{t('filters')}</h3>
             <button onClick={() => setShowFilters(false)} className="text-vibe-text-secondary">✕</button>
           </div>
           
           <div className="space-y-6">
             <div>
-              <label className="block text-xs font-bold text-vibe-text-secondary uppercase mb-3">Genere Musicale</label>
-              <div className="flex flex-wrap gap-2">
+              <label className="block text-xs font-bold text-vibe-text-secondary uppercase mb-3 text-left">{te('filters.genre')}</label>
+              <div className="flex flex-wrap gap-2 text-left">
                 {['Techno', 'House', 'Jazz', 'Hip-Hop', 'Pop'].map(g => (
                   <Badge key={g} className="cursor-pointer hover:bg-vibe-purple/20">{g}</Badge>
                 ))}
               </div>
             </div>
             
-            <div>
-              <label className="block text-xs font-bold text-vibe-text-secondary uppercase mb-3">Quando</label>
+            <div className="text-left">
+              <label className="block text-xs font-bold text-vibe-text-secondary uppercase mb-3">{te('filters.date')}</label>
               <div className="grid grid-cols-2 gap-2">
-                <Button variant="ghost" size="sm" className="text-xs">Stasera</Button>
-                <Button variant="ghost" size="sm" className="text-xs">Domani</Button>
-                <Button variant="ghost" size="sm" className="text-xs">Weekend</Button>
-                <Button variant="ghost" size="sm" className="text-xs">Scegli data</Button>
+                <Button variant="ghost" size="sm" className="text-xs">{te('today')}</Button>
+                <Button variant="ghost" size="sm" className="text-xs">{te('upcoming')}</Button>
               </div>
             </div>
           </div>
@@ -245,7 +248,7 @@ export default function MapPage() {
 
       {/* Pannello Dettaglio (Right Sidebar / Bottom Mobile) */}
       {selectedItem && (
-        <Card className="absolute bottom-6 left-6 right-6 md:top-4 md:bottom-4 md:right-4 md:left-auto md:w-96 z-20 p-6 animate-slide-in-right overflow-y-auto max-h-[80vh] md:max-h-none">
+        <Card className="absolute bottom-6 left-6 right-6 md:top-4 md:bottom-4 md:right-4 md:left-auto md:w-96 z-20 p-6 animate-slide-in-right overflow-y-auto max-h-[80vh] md:max-h-none text-left">
           <button 
             onClick={() => setSelectedItem(null)}
             className="absolute top-4 right-4 text-vibe-text-secondary hover:text-white"
@@ -267,10 +270,9 @@ export default function MapPage() {
                 </div>
               </div>
               <div className="space-y-4 p-2">
-                <p className="text-sm leading-relaxed text-vibe-text">{selectedItem.caption || 'Live dalla scena! ✨'}</p>
+                <p className="text-sm leading-relaxed text-vibe-text">{selectedItem.caption || 'Live! ✨'}</p>
                 <div className="flex items-center justify-between p-3 rounded-xl bg-white/5">
-                  <span className="text-[10px] uppercase font-bold tracking-widest text-vibe-pink">Live Story</span>
-                  <span className="text-[10px] text-vibe-text-secondary">Scade tra 24 ore</span>
+                  <span className="text-[10px] uppercase font-bold tracking-widest text-vibe-pink">{t('stories')}</span>
                 </div>
               </div>
             </div>
@@ -281,12 +283,12 @@ export default function MapPage() {
                   <div className="absolute inset-0 flex items-center justify-center text-4xl">
                     {selectedItem.type === 'venue' ? '🏢' : '🎉'}
                   </div>
-                  <Badge variant="live" className="absolute top-3 right-3 animate-pulse">LIVE ORA</Badge>
+                  <Badge variant="live" className="absolute top-3 right-3 animate-pulse">LIVE</Badge>
                 </div>
                 
                 <h2 className="font-display text-2xl font-bold mb-1">{selectedItem.name || selectedItem.title}</h2>
                 <p className="text-vibe-text-secondary text-sm flex items-center gap-2">
-                   📍 {selectedItem.address || selectedItem.venue?.address || 'Indirizzo non disponibile'}
+                   📍 {selectedItem.address || selectedItem.venue?.address || '—'}
                 </p>
               </div>
 
@@ -297,15 +299,15 @@ export default function MapPage() {
                     <p className="text-lg font-bold text-vibe-pink">9.8/10</p>
                   </div>
                   <div className="flex-1 p-3 rounded-2xl bg-white/5 text-center">
-                    <p className="text-[10px] text-vibe-text-secondary uppercase font-bold">Affollamento</p>
+                    <p className="text-[10px] text-vibe-text-secondary uppercase font-bold">{t('crowd')}</p>
                     <p className="text-lg font-bold text-vibe-cyan">75%</p>
                   </div>
                 </div>
 
                 <div>
-                  <h3 className="font-bold text-sm mb-3">Informazioni</h3>
+                  <h3 className="font-bold text-sm mb-3">{te('details')}</h3>
                   <p className="text-sm text-vibe-text-secondary leading-relaxed">
-                    {selectedItem.description || 'Nessuna descrizione disponibile per questo locale.'}
+                    {selectedItem.description || '—'}
                   </p>
                 </div>
 
@@ -315,7 +317,7 @@ export default function MapPage() {
                     className="flex-1"
                   >
                     <Button variant="primary" className="w-full">
-                      {selectedItem.type === 'venue' ? 'Vedi Locale' : 'Vedi Evento'}
+                      {selectedItem.type === 'venue' ? tv('title') : te('title')}
                     </Button>
                   </Link>
                   {selectedItem.type === 'venue' && (
@@ -341,7 +343,7 @@ export default function MapPage() {
       {isLoading && (
         <div className="absolute bottom-10 left-1/2 -translate-x-1/2 z-30 bg-vibe-dark/80 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 flex items-center gap-3 animate-fade-in">
           <div className="w-4 h-4 border-2 border-vibe-purple border-t-transparent rounded-full animate-spin" />
-          <span className="text-xs font-medium">Aggiornamento mappa...</span>
+          <span className="text-xs font-medium">{tc('loading')}</span>
         </div>
       )}
     </div>

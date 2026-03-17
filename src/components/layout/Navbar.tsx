@@ -1,24 +1,18 @@
 'use client';
 
-import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
+import { Link, usePathname, useRouter } from '@/lib/i18n/navigation';
 import { useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
 import { createClient } from '@/lib/supabase/client';
 import type { User } from '@supabase/supabase-js';
-
-const navLinks = [
-  { href: '/map', label: 'Mappa', icon: '🗺️' },
-  { href: '/feed', label: 'Feed', icon: '▶️' },
-  { href: '/explore', label: 'Scopri', icon: '🔍' },
-  { href: '/events', label: 'Eventi', icon: '🎉' },
-];
 
 /**
  * Navbar superiore per desktop — logo VIBE, link navigazione, ricerca, avatar utente.
  * Mostra i dati dell'utente autenticato da Supabase.
  */
 export function Navbar() {
+  const t = useTranslations('nav');
   const pathname = usePathname();
   const router = useRouter();
   const supabase = createClient();
@@ -64,6 +58,13 @@ export function Navbar() {
     router.refresh();
   };
 
+  const navLinks = [
+    { href: '/map', label: t('map'), icon: '🗺️' },
+    { href: '/feed', label: t('feed'), icon: '▶️' },
+    { href: '/explore', label: t('explore'), icon: '🔍' },
+    { href: '/events', label: t('events'), icon: '🎉' },
+  ];
+
   /** Iniziali per avatar */
   const initials = displayName
     .split(' ')
@@ -91,7 +92,7 @@ export function Navbar() {
           return (
             <Link
               key={link.href}
-              href={link.href}
+              href={link.href as any}
               className={cn(
                 'flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-300',
                 isActive
@@ -111,7 +112,7 @@ export function Navbar() {
         <div className="relative">
           <input
             type="text"
-            placeholder="Cerca eventi, venue, artisti..."
+            placeholder={t('search')}
             className="input-field w-64 pl-10 py-2 text-sm"
           />
           <svg
@@ -150,21 +151,21 @@ export function Navbar() {
                 onClick={() => setShowMenu(false)}
                 className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-vibe-text hover:bg-white/10 transition-all"
               >
-                👤 Profilo
+                👤 {t('profile')}
               </Link>
               <Link
                 href="/dashboard"
                 onClick={() => setShowMenu(false)}
                 className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-vibe-text hover:bg-white/10 transition-all"
               >
-                📊 Dashboard
+                📊 {t('dashboard')}
               </Link>
               <div className="border-t border-white/5 my-1" />
               <button
                 onClick={handleLogout}
                 className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-red-400 hover:bg-red-500/10 transition-all"
               >
-                🚪 Esci
+                🚪 {t('logout')}
               </button>
             </div>
           )}

@@ -1,8 +1,11 @@
+'use client';
+
 import { useEffect, useState } from 'react';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Avatar } from '@/components/ui/Avatar';
-import Link from 'next/link';
+import { Link } from '@/lib/i18n/navigation';
+import { useTranslations } from 'next-intl';
 
 interface DiscoveryClientProps {
   venues: any[];
@@ -15,8 +18,12 @@ interface SearchResults {
   venues: any[];
   artists: any[];
 }
-
 export default function DiscoveryClient({ venues, events, categories }: DiscoveryClientProps) {
+  const t = useTranslations('explore');
+  const tc = useTranslations('common');
+  const te = useTranslations('events');
+  const tv = useTranslations('venues');
+
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState('all');
   const [searchResults, setSearchResults] = useState<SearchResults | null>(null);
@@ -51,14 +58,14 @@ export default function DiscoveryClient({ venues, events, categories }: Discover
   );
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-4">
+    <div className="max-w-4xl mx-auto px-4 py-4 text-left">
       {/* Header + Ricerca */}
       <div className="mb-6">
-        <h1 className="font-display text-2xl font-bold vibe-gradient-text mb-4">Scopri</h1>
+        <h1 className="font-display text-2xl font-bold vibe-gradient-text mb-4 text-left">{t('title')}</h1>
         <div className="relative">
           <input
             type="text"
-            placeholder="Cerca eventi, venue, artisti..."
+            placeholder={t('searchPlaceholder')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="input-field pl-12 py-4 text-base"
@@ -79,13 +86,13 @@ export default function DiscoveryClient({ venues, events, categories }: Discover
         <div className="mb-12 space-y-8 animate-fade-in">
           {searchResults.events.length > 0 && (
             <section>
-              <h2 className="section-title mb-4">Eventi trovati</h2>
+              <h2 className="section-title mb-4 text-left">{te('title')}</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {searchResults.events.map(event => (
                   <Link key={event.id} href={`/events/${event.id}`}>
                     <Card hover className="p-4 flex gap-4 items-center">
                       <div className="w-12 h-12 rounded-xl bg-vibe-purple/10 flex items-center justify-center text-xl">🎉</div>
-                      <div>
+                      <div className="text-left">
                         <h4 className="font-semibold text-sm">{event.title}</h4>
                         <p className="text-xs text-vibe-text-secondary">{event.venue?.name || 'VIBE Venue'}</p>
                       </div>
@@ -98,15 +105,15 @@ export default function DiscoveryClient({ venues, events, categories }: Discover
 
           {searchResults.venues.length > 0 && (
             <section>
-              <h2 className="section-title mb-4">Locali trovati</h2>
+              <h2 className="section-title mb-4 text-left">{tv('title')}</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {searchResults.venues.map(v => (
                   <Link key={v.id} href={`/venues/${v.slug || v.id}`}>
                     <Card hover className="p-4 flex gap-4 items-center">
                       <div className="w-12 h-12 rounded-xl bg-vibe-cyan/10 flex items-center justify-center text-xl">🏢</div>
-                      <div>
+                      <div className="text-left">
                         <h4 className="font-semibold text-sm">{v.name}</h4>
-                        <p className="text-xs text-vibe-text-secondary">{v.type || 'Locale'}</p>
+                        <p className="text-xs text-vibe-text-secondary">{v.type || tv('title')}</p>
                       </div>
                     </Card>
                   </Link>
@@ -115,25 +122,8 @@ export default function DiscoveryClient({ venues, events, categories }: Discover
             </section>
           )}
 
-          {searchResults.artists.length > 0 && (
-            <section>
-              <h2 className="section-title mb-4">Artisti trovati</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {searchResults.artists.map(a => (
-                  <Card key={a.id} hover className="p-4 flex gap-4 items-center">
-                    <Avatar size="md" src={a.avatar_url} fallback={a.name} />
-                    <div>
-                      <h4 className="font-semibold text-sm">{a.name}</h4>
-                      <p className="text-xs text-vibe-text-secondary">Artista</p>
-                    </div>
-                  </Card>
-                ))}
-              </div>
-            </section>
-          )}
-
-          {searchResults.events.length === 0 && searchResults.venues.length === 0 && searchResults.artists.length === 0 && (
-            <p className="text-center py-12 text-vibe-text-secondary">Nessun risultato trovato per "{searchQuery}"</p>
+          {searchResults.events.length === 0 && searchResults.venues.length === 0 && (
+            <p className="text-center py-12 text-vibe-text-secondary">{tc('noContent')}</p>
           )}
         </div>
       )}
@@ -154,7 +144,7 @@ export default function DiscoveryClient({ venues, events, categories }: Discover
             }`}
           >
             <span>{cat.icon}</span>
-            <span>{cat.label}</span>
+            <span>{t(`categories.${cat.id}`)}</span>
           </button>
         ))}
       </div>
@@ -162,15 +152,15 @@ export default function DiscoveryClient({ venues, events, categories }: Discover
       {/* Trending Events */}
       <section className="mb-8">
         <div className="section-header">
-          <h2 className="section-title flex items-center gap-2">
-            <span>🔥</span> In tendenza
+          <h2 className="section-title flex items-center gap-2 text-left">
+            <span>🔥</span> {t('trending')}
           </h2>
-          <Link href="/events" className="text-sm text-vibe-purple font-medium">Vedi tutto</Link>
+          <Link href="/events" className="text-sm text-vibe-purple font-medium">{tc('seeAll')}</Link>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {events.slice(0, 3).map((event) => (
             <Link key={event.id} href={`/events/${event.id}`}>
-              <Card hover padding="none" className="overflow-hidden group cursor-pointer h-full">
+              <Card hover padding="none" className="overflow-hidden group cursor-pointer h-full text-left">
                 <div className="h-32 bg-vibe-gradient-subtle relative">
                   <div className="absolute inset-0 bg-gradient-to-t from-vibe-surface to-transparent" />
                   {new Date(event.end_time) > new Date() && new Date(event.start_time) < new Date() && (
@@ -189,7 +179,7 @@ export default function DiscoveryClient({ venues, events, categories }: Discover
           ))}
           {events.length === 0 && (
             <p className="text-sm text-vibe-text-secondary col-span-3 text-center py-8 bg-white/5 rounded-2xl">
-              Nessun evento in tendenza al momento.
+              {te('noEvents')}
             </p>
           )}
         </div>
@@ -198,15 +188,15 @@ export default function DiscoveryClient({ venues, events, categories }: Discover
       {/* Venue Vicine */}
       <section className="mb-8">
         <div className="section-header">
-          <h2 className="section-title flex items-center gap-2">
-            <span>📍</span> Venue vicine
+          <h2 className="section-title flex items-center gap-2 text-left">
+            <span>📍</span> {t('nearbyVenues')}
           </h2>
-          <Link href="/map" className="text-sm text-vibe-purple font-medium">Mappa</Link>
+          <Link href="/map" className="text-sm text-vibe-purple font-medium">{t('title')}</Link>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {filteredVenues.map((venue) => (
             <Link key={venue.id} href={`/venues/${venue.slug || venue.id}`}>
-              <Card hover className="p-4 cursor-pointer h-full">
+              <Card hover className="p-4 cursor-pointer h-full text-left">
                 <div className="flex items-start gap-3">
                   <div className="w-12 h-12 rounded-xl bg-vibe-gradient/20 flex items-center justify-center text-xl flex-shrink-0">
                     🎵
@@ -216,10 +206,10 @@ export default function DiscoveryClient({ venues, events, categories }: Discover
                       <h3 className="font-semibold text-sm truncate">{venue.name}</h3>
                       <Badge variant="verified" className="text-[8px] px-1.5">✓</Badge>
                     </div>
-                    <p className="text-xs text-vibe-text-secondary truncate">Locale · {venue.address || 'Zurigo'}</p>
+                    <p className="text-xs text-vibe-text-secondary truncate">{tv('title')} · {venue.address || 'Zurigo'}</p>
                     <div className="flex items-center gap-2 mt-2">
                       <span className="text-xs text-amber-400">⭐ {venue.vibe_score || '9.0'}</span>
-                      <span className="text-xs text-green-400">● Aperto</span>
+                      <span className="text-xs text-green-400">● {tv('open')}</span>
                     </div>
                   </div>
                 </div>
@@ -228,7 +218,7 @@ export default function DiscoveryClient({ venues, events, categories }: Discover
           ))}
           {filteredVenues.length === 0 && (
             <p className="text-sm text-vibe-text-secondary col-span-full text-center py-8 bg-white/5 rounded-2xl">
-              Nessuna venue trovata.
+              {tv('noVenues')}
             </p>
           )}
         </div>

@@ -133,7 +133,16 @@
     "trending": "In tendenza",
     "nearbyVenues": "Venue vicine",
     "popularArtists": "Artisti popolari",
-    "categories": "Categorie",
+    "categories": {
+      "all": "Tutto",
+      "club": "Club",
+      "bar": "Bar",
+      "festival": "Festival",
+      "outdoor": "All'aperto",
+      "restaurant": "Cibo",
+      "art": "Arte",
+      "sport": "Sport"
+    },
     "recommended": "Consigliati per te",
     "newInArea": "Novità nella tua zona"
   },

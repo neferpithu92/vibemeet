@@ -1,14 +1,23 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
+import createIntlMiddleware from 'next-intl/middleware';
+import { locales, defaultLocale } from './lib/i18n/config';
 
 /**
- * Middleware — protegge le route (app) e gestisce il refresh dei token di sessione.
+ * Middleware — protegge le route (app), gestisce i locale e il refresh dei token di sessione.
  */
 export async function middleware(request: NextRequest) {
-  let supabaseResponse = NextResponse.next({
-    request,
+  // 1. Inizializza il middleware di next-intl
+  const handleI18nRouting = createIntlMiddleware({
+    locales,
+    defaultLocale,
+    localeDetection: true
   });
 
+  // 2. Ottieni la risposta dal middleware i18n
+  let response = handleI18nRouting(request);
+
+  // 3. Inizializza Supabase Client integrato con la risposta i18n
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -21,57 +30,52 @@ export async function middleware(request: NextRequest) {
           cookiesToSet.forEach(({ name, value, options }) =>
             request.cookies.set(name, value)
           );
-          supabaseResponse = NextResponse.next({
-            request,
-          });
+          // Aggiorna la risposta esistente per includere i nuovi cookie di Supabase
           cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
+            response.cookies.set(name, value, options)
           );
         },
       },
     }
   );
 
-  // IMPORTANT: Non usare getSession() — getUser() verifica il token con il server
+  // 4. Verifica autenticazione (getUser è più sicuro di getSession)
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
   const { pathname } = request.nextUrl;
 
+  // Rimuovi il prefisso locale dal pathname per il check delle route
+  const pathnameWithoutLocale = pathname.replace(/^\/(?:it|en|de|fr|rm)/, '') || '/';
+
   // Route pubbliche che NON richiedono autenticazione
   const isPublicRoute =
-    pathname.startsWith('/login') ||
-    pathname.startsWith('/register') ||
-    pathname === '/' ||
-    pathname.startsWith('/auth/callback');
+    pathnameWithoutLocale.startsWith('/login') ||
+    pathnameWithoutLocale.startsWith('/register') ||
+    pathnameWithoutLocale === '/' ||
+    pathnameWithoutLocale.startsWith('/auth/callback');
 
   // Se l'utente non è autenticato e tenta di accedere a route protette
   if (!user && !isPublicRoute) {
     const url = request.nextUrl.clone();
-    url.pathname = '/login';
+    url.pathname = '/login'; // Il middleware i18n aggiungerà il locale automaticamente
     return NextResponse.redirect(url);
   }
 
   // Se l'utente è autenticato e tenta di accedere a login/register
-  if (user && (pathname.startsWith('/login') || pathname.startsWith('/register'))) {
+  if (user && (pathnameWithoutLocale.startsWith('/login') || pathnameWithoutLocale.startsWith('/register'))) {
     const url = request.nextUrl.clone();
     url.pathname = '/map';
     return NextResponse.redirect(url);
   }
 
-  return supabaseResponse;
+  return response;
 }
 
 export const config = {
   matcher: [
-    /*
-     * Applica il middleware a tutte le route tranne:
-     * - _next/static (file statici)
-     * - _next/image (ottimizzazione immagini)
-     * - favicon.ico (favicon)
-     * - File pubblici con estensioni comuni
-     */
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    // Applica a tutte le route tranne asset e API interne
+    '/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)'
   ],
 };

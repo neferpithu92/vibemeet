@@ -28,24 +28,41 @@ export const metadata: Metadata = {
   },
 };
 
+import { NextIntlClientProvider } from 'next-intl';
+import { getMessages } from 'next-intl/server';
+import { notFound } from 'next/navigation';
+import { locales } from '@/lib/i18n/config';
 import { ToastProvider } from '@/components/ui/ToastProvider';
 import RealtimeObserver from '@/components/layout/RealtimeObserver';
 import PageTransition from '@/components/layout/PageTransition';
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
+  params: { locale },
 }: {
   children: React.ReactNode;
+  params: { locale: string };
 }) {
+  // Validate that the incoming `locale` parameter is valid
+  if (!locales.includes(locale as any)) {
+    notFound();
+  }
+
+  // Providing all messages to the client
+  // side is the easiest way to get started
+  const messages = await getMessages();
+
   return (
-    <html lang="it" className={`${inter.variable} ${outfit.variable}`}>
+    <html lang={locale} className={`${inter.variable} ${outfit.variable}`}>
       <body className="bg-vibe-dark text-vibe-text font-sans antialiased">
-        <ToastProvider>
-          <PageTransition>
-            {children}
-          </PageTransition>
-          <RealtimeObserver />
-        </ToastProvider>
+        <NextIntlClientProvider locale={locale} messages={messages}>
+          <ToastProvider>
+            <PageTransition>
+              {children}
+            </PageTransition>
+            <RealtimeObserver />
+          </ToastProvider>
+        </NextIntlClientProvider>
       </body>
     </html>
   );
