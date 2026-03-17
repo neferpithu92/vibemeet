@@ -10,6 +10,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { formatDistanceToNow } from 'date-fns';
 import { it, enUS, de, fr } from 'date-fns/locale';
 import { useLocale } from 'next-intl';
+import Link from 'next/link';
 
 interface Comment {
   id: string;
@@ -227,7 +228,9 @@ export default function CommentThread({ entityType, entityId }: CommentThreadPro
              <p className="text-sm text-vibe-text-secondary mb-3">
                Effettua il login per commentare questa esperienza
              </p>
-             <Button variant="secondary" size="sm" href="/login">Accedi</Button>
+             <Link href="/login">
+               <Button variant="secondary" size="sm">Accedi</Button>
+             </Link>
           </Card>
         )}
       </div>

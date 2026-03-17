@@ -14,7 +14,8 @@ export const revalidate = 3600; // Static revalidation every hour
 /**
  * Pagina dettaglio evento con dati reali da Supabase.
  */
-export default async function EventDetailPage({ params }: { params: { id: string } }) {
+export default async function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
@@ -25,7 +26,7 @@ export default async function EventDetailPage({ params }: { params: { id: string
       *,
       venue:venues (*)
     `)
-    .eq('id', params.id)
+    .eq('id', id)
     .single();
 
   if (error || !event) {
@@ -41,7 +42,7 @@ export default async function EventDetailPage({ params }: { params: { id: string
       .match({ 
         user_id: user.id, 
         entity_type: 'event', 
-        entity_id: params.id 
+        entity_id: id 
       })
       .single();
     isAttending = !!rsvp;
@@ -65,7 +66,7 @@ export default async function EventDetailPage({ params }: { params: { id: string
         <div className="relative h-64 md:h-80 rounded-2xl overflow-hidden mb-6 bg-vibe-gradient-subtle">
           <div className="absolute inset-0 bg-gradient-to-t from-vibe-dark via-vibe-dark/50 to-transparent" />
           <div className="absolute top-4 left-4 flex gap-2">
-            {new Date(event.end_time) > new Date() && new Date(event.start_time) < new Date() && (
+            {new Date(event.ends_at) > new Date() && new Date(event.starts_at) < new Date() && (
               <Badge variant="live">🔴 LIVE ORA</Badge>
             )}
             <Badge variant="premium">⚡ In evidenza</Badge>
@@ -170,10 +171,10 @@ export default async function EventDetailPage({ params }: { params: { id: string
                   <span className="text-lg">📅</span>
                   <div>
                     <p className="text-sm font-semibold">
-                      {new Date(event.start_time).toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' })}
+                      {new Date(event.starts_at).toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' })}
                     </p>
                     <p className="text-xs text-vibe-text-secondary">
-                      {new Date(event.start_time).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })}
+                      {new Date(event.starts_at).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })}
                     </p>
                   </div>
                 </div>

@@ -15,7 +15,8 @@ export const revalidate = 3600; // Static revalidation every hour
 /**
  * Pagina profilo venue con dati reali da Supabase.
  */
-export default async function VenueDetailPage({ params }: { params: { slug: string } }) {
+export default async function VenueDetailPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
@@ -23,7 +24,7 @@ export default async function VenueDetailPage({ params }: { params: { slug: stri
   const { data: venue, error } = await supabase
     .from('venues')
     .select('*')
-    .eq('slug', params.slug)
+    .eq('slug', slug)
     .single();
 
   if (error || !venue) {
@@ -31,7 +32,7 @@ export default async function VenueDetailPage({ params }: { params: { slug: stri
     const { data: venueById } = await supabase
       .from('venues')
       .select('*')
-      .eq('id', params.slug)
+      .eq('id', slug)
       .single();
     
     if (!venueById) return notFound();
@@ -68,8 +69,8 @@ async function VenueDetailRender({ venue, user }: { venue: any, user: any }) {
     .from('events')
     .select('*')
     .eq('venue_id', venue.id)
-    .gte('end_time', new Date().toISOString())
-    .order('start_time', { ascending: true });
+    .gte('ends_at', new Date().toISOString())
+    .order('starts_at', { ascending: true });
 
   return (
     <div className="page-container">
@@ -150,7 +151,7 @@ async function VenueDetailRender({ venue, user }: { venue: any, user: any }) {
                     <div className="flex-1">
                       <p className="font-semibold text-sm">{event.title}</p>
                       <p className="text-xs text-vibe-text-secondary">
-                        {new Date(event.start_time).toLocaleDateString('it-IT')}
+                        {new Date(event.starts_at).toLocaleDateString('it-IT')}
                       </p>
                     </div>
                     <Badge variant="default">{event.category || 'Event'}</Badge>

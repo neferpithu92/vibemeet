@@ -61,22 +61,22 @@ export default function ActivityFeed() {
 
     const merged: ActivityItem[] = [];
 
-    checkins?.forEach(c => {
+    checkins?.forEach((c: any) => {
       merged.push({
         id: c.id,
         type: 'check_in',
-        user: c.user as any,
+        user: c.user,
         target_name: c.venue?.name || c.event?.title || 'VIBE',
         target_url: c.venue ? `/venues/${c.venue.slug || c.venue.id}` : `/events/${c.event?.id}`,
         created_at: c.created_at
       });
     });
 
-    followers?.forEach(f => {
+    followers?.forEach((f: any) => {
       merged.push({
         id: Math.random().toString(), // No unique ID in followers PK
         type: f.venue ? 'follow' : 'follow', // simplified
-        user: f.user as any,
+        user: f.user,
         target_name: f.venue?.name || f.following_user?.username || 'User',
         target_url: f.venue ? `/venues/${f.venue.slug || f.venue.id}` : `/profile/${f.following_user?.id}`,
         created_at: f.created_at
