@@ -1,6 +1,7 @@
 import { stripe } from '@/lib/stripe';
 import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
+import { PLAN_LIMITS } from '@/lib/plans';
 
 /**
  * API per creare una sessione di checkout Stripe.
@@ -21,12 +22,11 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Parametri mancanti' }, { status: 400 });
     }
 
-    // Definizione dei prezzi (Test Mode)
-    // In produzione questi ID verrebbero da Stripe Dashboard
+    // Definizione dei prezzi dinamica da PLAN_LIMITS
     const plans: Record<string, { amount: number; name: string }> = {
-      starter: { amount: 2900, name: 'VIBE Starter' }, // 29.00 CHF
-      pro: { amount: 7900, name: 'VIBE Pro' },       // 79.00 CHF
-      enterprise: { amount: 19900, name: 'VIBE Enterprise' },
+      basic: { amount: PLAN_LIMITS.basic.price_chf * 100, name: 'VIBE Basic' },
+      pro: { amount: PLAN_LIMITS.pro.price_chf * 100, name: 'VIBE Pro' },
+      enterprise: { amount: PLAN_LIMITS.premium.price_chf * 100, name: 'VIBE Enterprise' },
     };
 
     const selectedPlan = plans[planId.toLowerCase()];

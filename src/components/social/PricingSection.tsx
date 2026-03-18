@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { PLAN_LIMITS } from '@/lib/plans';
+import { PLAN_LIMITS } from '../../lib/plans';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
