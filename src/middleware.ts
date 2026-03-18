@@ -46,17 +46,20 @@ export async function middleware(request: NextRequest) {
 
   const { pathname } = request.nextUrl;
 
-  // Rimuovi il prefisso locale dal pathname per il check delle route
-  const pathnameWithoutLocale = pathname.replace(/^\/(?:it|en|de|fr|rm)/, '') || '/';
-
+  // Rimuovi il prefisso locale dal pathname per il check delle route (preserva lo slash iniziale)
+  const pathnameWithoutLocale = pathname.replace(/^\/(it|en|de|fr|rm)/, '') || '/';
+  
   // Route pubbliche che NON richiedono autenticazione
+  // Usiamo startsWith con slash per sicurezza
+  const normalizedPath = pathnameWithoutLocale.startsWith('/') ? pathnameWithoutLocale : `/${pathnameWithoutLocale}`;
+
   const isPublicRoute =
-    pathnameWithoutLocale.startsWith('/login') ||
-    pathnameWithoutLocale.startsWith('/register') ||
-    pathnameWithoutLocale === '/' ||
-    pathnameWithoutLocale.startsWith('/privacy') ||
-    pathnameWithoutLocale.startsWith('/termini') ||
-    pathnameWithoutLocale.startsWith('/auth/callback');
+    normalizedPath === '/' ||
+    normalizedPath.startsWith('/login') ||
+    normalizedPath.startsWith('/register') ||
+    normalizedPath.startsWith('/privacy') ||
+    normalizedPath.startsWith('/termini') ||
+    normalizedPath.startsWith('/auth/callback');
 
   // Se l'utente non è autenticato e tenta di accedere a route protette
   if (!user && !isPublicRoute) {

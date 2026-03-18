@@ -6,9 +6,9 @@ import { Badge } from '@/components/ui/Badge';
 
 const plans = [
   {
-    id: 'starter',
-    name: 'Starter',
-    price: PLAN_LIMITS.starter.price_chf.toString(),
+    id: 'basic',
+    name: 'Basic',
+    price: PLAN_LIMITS.basic.price_chf.toString(),
     description: 'Perfetto per piccoli locali o artisti emergenti.',
     features: ['Visibilità mappa prioritaria', 'Analitiche base', '1 Post in evidenza / mese', 'Supporto email'],
     color: 'vibe-cyan',

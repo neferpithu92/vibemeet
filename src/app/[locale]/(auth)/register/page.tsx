@@ -97,6 +97,12 @@ export default function RegisterPage() {
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email: formData.email,
       password: formData.password,
+      options: {
+        data: {
+          username: formData.username.toLowerCase().replace(/\s/g, '_'),
+          display_name: formData.displayName,
+        }
+      }
     });
 
     if (authError) {
@@ -105,21 +111,9 @@ export default function RegisterPage() {
       return;
     }
 
-    // 2. Inserisci profilo nella tabella users
-    if (authData.user) {
-      const { error: profileError } = await supabase.from('users').insert({
-        id: authData.user.id,
-        email: formData.email,
-        username: formData.username.toLowerCase().replace(/\s/g, '_'),
-        display_name: formData.displayName,
-      });
-
-      if (profileError) {
-        setError(profileError.message);
-        setIsLoading(false);
-        return;
-      }
-    }
+    // 2. Redirect a /map
+    // Il profilo viene creato automaticamente dal trigger database
+    router.push('/map');
 
     // 3. Redirect a /map
     router.push('/map');
