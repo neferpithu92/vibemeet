@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useRef, useState, useCallback } from 'react';
-import { Map, NavigationControl, GeolocateControl, MapProvider, type MapRef } from 'react-map-gl/mapbox';
+import { useEffect, useRef, useState, useCallback, forwardRef, useImperativeHandle } from 'react';
+import { Map, NavigationControl, GeolocateControl, Marker, MapProvider, type MapRef } from 'react-map-gl/mapbox';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
 interface MapViewProps {
@@ -12,44 +12,75 @@ interface MapViewProps {
   };
   children?: React.ReactNode;
   onBoundsChange?: (bounds: { sw: [number, number]; ne: [number, number] }) => void;
-  onMapLoad?: (map: MapRef) => void;
+}
+
+interface MapContent {
+  id: string;
+  type: string;
+  thumbnail_url: string;
+  lat: number;
+  lng: number;
+  venue_name?: string;
+  like_count: number;
+  author_username: string;
 }
 
 /**
- * Componente Mappa Core — visualizza la mappa Mapbox.
- * Gestisce il caricamento, lo stile dark e i cambiamenti di vista.
+ * Componente Mappa Core — visualizza la mappa Mapbox e i contenuti degli utenti (Vibes/Foto).
  */
-export function MapView({ 
+export const MapView = forwardRef<MapRef, MapViewProps>(({ 
   initialViewState = {
     longitude: 8.5417, // Zurigo
     latitude: 47.3769,
     zoom: 13
   },
   children,
-  onBoundsChange,
-  onMapLoad
-}: MapViewProps) {
+  onBoundsChange
+}, ref) => {
   const mapRef = useRef<MapRef>(null);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [contentPins, setContentPins] = useState<MapContent[]>([]);
+  const [center, setCenter] = useState({ lat: initialViewState.latitude, lng: initialViewState.longitude });
+
+  // Expose the internal mapRef to parent via standard ref
+  useImperativeHandle(ref, () => mapRef.current as MapRef, [isLoaded]);
+
+  // Fetch content pins in the current area
+  const fetchMapContent = useCallback(async (lat: number, lng: number) => {
+    try {
+      // In production, this would call our Supabase RPC get_map_content via an API route
+      const res = await fetch(`/api/map/content?lat=${lat}&lng=${lng}&radius=5`);
+      if (res.ok) {
+        const data = await res.json();
+        setContentPins(data.content || []);
+      }
+    } catch (err) {
+      console.error('Failed to fetch map content pins', err);
+    }
+  }, []);
 
   const handleMapLoad = useCallback((e: any) => {
     setIsLoaded(true);
-    if (onMapLoad) {
-      onMapLoad(e.target);
-    }
-  }, [onMapLoad]);
+    // Initial fetch
+    fetchMapContent(initialViewState.latitude, initialViewState.longitude);
+  }, [initialViewState, fetchMapContent]);
 
-  const handleMoveEnd = useCallback(() => {
-    if (!mapRef.current || !onBoundsChange) return;
+  const handleMoveEnd = useCallback((e: any) => {
+    if (!mapRef.current) return;
     
     const bounds = mapRef.current.getBounds();
-    if (bounds) {
+    const newCenter = mapRef.current.getCenter();
+    
+    setCenter({ lat: newCenter.lat, lng: newCenter.lng });
+    fetchMapContent(newCenter.lat, newCenter.lng);
+
+    if (onBoundsChange && bounds) {
       onBoundsChange({
         sw: [bounds.getWest(), bounds.getSouth()],
         ne: [bounds.getEast(), bounds.getNorth()]
       });
     }
-  }, [onBoundsChange]);
+  }, [onBoundsChange, fetchMapContent]);
 
   const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
 
@@ -80,25 +111,48 @@ export function MapView({
 
   return (
     <div className="w-full h-full relative rounded-2xl overflow-hidden border border-white/10 shadow-2xl">
-    <MapProvider>
-      <Map
-        ref={mapRef}
-        initialViewState={initialViewState}
-        mapStyle="mapbox://styles/mapbox/dark-v11"
-        mapboxAccessToken={token}
-        onMoveEnd={handleMoveEnd}
-        onLoad={handleMapLoad}
-        style={{ width: '100%', height: '100%' }}
-      >
-        <NavigationControl position="top-right" />
-        <GeolocateControl 
-          position="top-right" 
-          trackUserLocation 
-          showUserHeading
-        />
-        {isLoaded && children}
-      </Map>
-    </MapProvider>
+      <MapProvider>
+        <Map
+          ref={mapRef}
+          initialViewState={initialViewState}
+          mapStyle="mapbox://styles/mapbox/dark-v11"
+          mapboxAccessToken={token}
+          onMoveEnd={handleMoveEnd}
+          onLoad={handleMapLoad}
+          style={{ width: '100%', height: '100%' }}
+        >
+          <NavigationControl position="top-right" />
+          <GeolocateControl 
+            position="top-right" 
+            trackUserLocation 
+            showUserHeading
+          />
+          
+          {/* Content Pins (Vibes/Photos) dynamically loaded based on center */}
+          {isLoaded && contentPins.map((pin) => (
+            <Marker key={pin.id} latitude={pin.lat} longitude={pin.lng} anchor="bottom">
+              <div className="group relative cursor-pointer transform hover:scale-110 transition-transform duration-200">
+                <div className="w-12 h-14 bg-vibe-dark border-2 border-vibe-purple rounded-xl p-1 shadow-lg flex items-center justify-center overflow-hidden">
+                  {pin.thumbnail_url ? (
+                    <img src={pin.thumbnail_url} alt={pin.author_username} className="w-full h-full object-cover rounded-lg" />
+                  ) : (
+                    <span className="text-xl">{pin.type === 'video' ? '🎬' : '📷'}</span>
+                  )}
+                </div>
+                {/* Tooltip */}
+                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-32 bg-white text-black p-2 rounded-lg text-xs font-medium opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-xl">
+                  <p className="truncate">@{pin.author_username}</p>
+                  {pin.venue_name && <p className="truncate text-vibe-purple font-bold text-[10px]">{pin.venue_name}</p>}
+                </div>
+                {/* Pointer tip */}
+                <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 w-0 h-0 border-l-[6px] border-r-[6px] border-t-[8px] border-l-transparent border-r-transparent border-t-vibe-purple"></div>
+              </div>
+            </Marker>
+          ))}
+
+          {isLoaded && children}
+        </Map>
+      </MapProvider>
 
       {/* Overlay caricamento */}
       {!isLoaded && (
@@ -108,4 +162,6 @@ export function MapView({
       )}
     </div>
   );
-}
+});
+
+MapView.displayName = 'MapView';

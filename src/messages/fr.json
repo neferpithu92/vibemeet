@@ -189,5 +189,43 @@
     "locationDenied": "Activez la localisation pour voir les événements à proximité",
     "networkError": "Erreur de connexion. Vérifiez votre réseau.",
     "serverError": "Erreur serveur. Veuillez réessayer dans quelques minutes."
+  },
+  "Legal": {
+    "privacy": {
+      "title": "Politique de Confidentialité",
+      "updated": "Dernière mise à jour : 2024",
+      "section1": {
+        "title": "1. Collecte des Données",
+        "description": "Nous collectons des informations pour vous fournir les meilleurs services possibles. Cela inclut les données du compte, la position GPS lorsque Safe Home est actif ou lors du chargement de contenu, et les intérêts personnels pour le flux."
+      },
+      "section2": {
+        "title": "2. Utilisation des Données (RGPD)",
+        "description": "Toutes les procédures sont conformes aux réglementations suisses et européennes sur la protection des données. Les données de Safe Home sont conservées temporairement et cryptées."
+      },
+      "section3": {
+        "title": "3. Système de Parrainage et Safe Home",
+        "description": "Lorsque vous activez Safe Home, vous acceptez de partager votre géolocalisation en temps réel avec vos contacts de confiance et potentiellement les autorités compétentes en cas de SOS."
+      },
+      "section4": {
+        "title": "4. Droits de l'Utilisateur",
+        "description": "Vous pouvez demander la suppression totale de votre compte ou l'extraction de vos données directement dans l'application sous Paramètres > Sécurité."
+      }
+    },
+    "termini": {
+      "title": "Conditions Générales",
+      "updated": "Dernière mise à jour : 2024",
+      "section1": {
+        "title": "1. Acceptation des Conditions",
+        "description": "En utilisant VIBE, vous acceptez de respecter ces conditions d'utilisation."
+      },
+      "section2": {
+        "title": "2. Comportement de l'Utilisateur",
+        "description": "Il est interdit de publier du contenu illégal, offensant ou violant le droit d'auteur. Nous nous réservons le droit de suspendre le compte en cas de violation."
+      },
+      "section3": {
+        "title": "3. Propriété Intellectuelle",
+        "description": "Tous les contenus générés par les utilisateurs restent leur propriété, mais vous accordez à VIBE une licence d'utilisation pour l'affichage sur la plateforme."
+      }
+    }
   }
 }

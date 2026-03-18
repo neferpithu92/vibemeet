@@ -189,5 +189,43 @@
     "locationDenied": "Activar la posiziun per vesair eveniments dastrusch",
     "networkError": "Errur da connexiun. Controllai Vossa rait.",
     "serverError": "Errur dal server. Empruvai en intgins minuts anc ina giada."
+  },
+  "Legal": {
+    "privacy": {
+      "title": "Informativa davart la Protecziun da Datas",
+      "updated": "Ultim update: 2024",
+      "section1": {
+        "title": "1. Datas Rimnadas",
+        "description": "Nus rimnain infurmaziuns per porscher ils megliers servetschs pussaivels. Quai includa las datas dal conto, la posiziun GPS cura che Safe Home è activ u cura che ti chargias contiunid e interess persunals per il feed."
+      },
+      "section2": {
+        "title": "2. Diever da las Datas (RGPD)",
+        "description": "Tuts ils process èn confurms a las normas svizras ed europeicas davart la protecziun da datas. Las datas per Safe Home vegnan tegnidas temporarmain e criptadas."
+      },
+      "section3": {
+        "title": "3. Buddy System e Safe Home",
+        "description": "Cura che ti activeschas Safe Home, acceptas ti da parter tia geoposiziun en temp real cun tes contacts da fiduzanza e potenzialmain las autoritads cumpetentas en cas da SOS."
+      },
+      "section4": {
+        "title": "4. Dretgs da l'Utilisader",
+        "description": "Ti pos richieder la stizzada totala da tes quint u l'extracziun da tias datas directamain en l'app sut Settings > Segirezza."
+      }
+    },
+    "termini": {
+      "title": "Termins e Condiziuns",
+      "updated": "Ultim update: 2024",
+      "section1": {
+        "title": "1. Acceptanza dals Termins",
+        "description": "Cun duvrar VIBE, acceptas ti da respectar quests termins da servetsch."
+      },
+      "section2": {
+        "title": "2. Cumportament da l'Utilisader",
+        "description": "I n'è betg lubì da publicar material illegal, offensiv u che violescha il copyright. Nus ans reservain il dretg da suspender il quint en cas da violaziuns."
+      },
+      "section3": {
+        "title": "3. Proprietad Intellectuala",
+        "description": "Tuts ils cuntignids generads dals utilisaders restan proprietad dals medems, ma ti concedas a VIBE ina licenza d'utilisaziun per la visualisaziun sin la plattafurma."
+      }
+    }
   }
 }

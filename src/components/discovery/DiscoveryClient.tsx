@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Avatar } from '@/components/ui/Avatar';
+import { HashtagBadge } from '@/components/ui/HashtagBadge';
 import { Link } from '@/lib/i18n/navigation';
 import { useTranslations } from 'next-intl';
 
@@ -18,6 +19,13 @@ interface SearchResults {
   venues: any[];
   artists: any[];
 }
+
+interface TrendingHashtag {
+  tag: string;
+  post_count: number;
+  score?: number;
+}
+
 export default function DiscoveryClient({ venues, events, categories }: DiscoveryClientProps) {
   const t = useTranslations('explore');
   const tc = useTranslations('common');
@@ -28,6 +36,23 @@ export default function DiscoveryClient({ venues, events, categories }: Discover
   const [activeCategory, setActiveCategory] = useState('all');
   const [searchResults, setSearchResults] = useState<SearchResults | null>(null);
   const [isSearching, setIsSearching] = useState(false);
+  const [trendingHashtags, setTrendingHashtags] = useState<TrendingHashtag[]>([]);
+
+  // Fetch trending hashtags on mount
+  useEffect(() => {
+    async function fetchTrending() {
+      try {
+        const res = await fetch('/api/hashtags/trending?city=global&period=24h&limit=10');
+        if (res.ok) {
+          const data = await res.json();
+          setTrendingHashtags(data.hashtags || []);
+        }
+      } catch {
+        // Silently fail — trending section will just be empty
+      }
+    }
+    fetchTrending();
+  }, []);
 
   // Debounced search logic
   useEffect(() => {

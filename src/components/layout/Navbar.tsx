@@ -7,6 +7,8 @@ import { cn } from '@/lib/utils';
 import { createClient } from '@/lib/supabase/client';
 import type { User } from '@supabase/supabase-js';
 
+import { LanguageSwitcher } from './LanguageSwitcher';
+
 /**
  * Navbar superiore per desktop — logo VIBE, link navigazione, ricerca, avatar utente.
  * Mostra i dati dell'utente autenticato da Supabase.
@@ -50,7 +52,7 @@ export function Navbar() {
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [supabase.auth]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -109,6 +111,8 @@ export function Navbar() {
 
       {/* Ricerca + Avatar */}
       <div className="flex items-center gap-4">
+        <LanguageSwitcher />
+        
         <div className="relative">
           <input
             type="text"

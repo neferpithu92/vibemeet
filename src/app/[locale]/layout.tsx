@@ -35,6 +35,8 @@ import { locales } from '@/lib/i18n/config';
 import { ToastProvider } from '@/components/ui/ToastProvider';
 import RealtimeObserver from '@/components/layout/RealtimeObserver';
 import PageTransition from '@/components/layout/PageTransition';
+import SafeHomeWidget from '@/components/safety/SafeHomeWidget';
+import CookieBanner from '@/components/legal/CookieBanner';
 
 export default async function RootLayout({
   children,
@@ -62,6 +64,8 @@ export default async function RootLayout({
               {children}
             </PageTransition>
             <RealtimeObserver />
+            <SafeHomeWidget />
+            <CookieBanner />
           </ToastProvider>
         </NextIntlClientProvider>
       </body>

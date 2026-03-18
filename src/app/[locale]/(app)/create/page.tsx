@@ -5,18 +5,20 @@ import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import CreateStory from '@/components/feed/CreateStory';
 import CreatePost from '@/components/feed/CreatePost';
+import CreateEvent from '@/components/events/CreateEvent';
 import { useRouter } from 'next/navigation';
 
 /**
- * Pagina di creazione hub per iniziare una Storia o un Post.
+ * Pagina di creazione hub per iniziare una Storia, un Post o un Evento.
  */
 export default function CreateHubPage() {
   const [isStoryOpen, setIsStoryOpen] = useState(false);
   const [isPostOpen, setIsPostOpen] = useState(false);
+  const [isEventOpen, setIsEventOpen] = useState(false);
   const router = useRouter();
 
   const handleSuccess = () => {
-    // Dopo il successo, reindirizziamo al feed per vedere il contenuto
+    // Dopo il successo, reindirizziamo al feed o dashboard
     router.push('/feed');
   };
 
@@ -60,6 +62,22 @@ export default function CreateHubPage() {
               </div>
             </div>
           </Card>
+
+          <Card 
+            hover 
+            className="p-6 cursor-pointer group"
+            onClick={() => setIsEventOpen(true)}
+          >
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 rounded-2xl bg-vibe-pink/20 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">
+                🎉
+              </div>
+              <div className="flex-1">
+                <h2 className="font-bold text-lg">Nuovo Evento</h2>
+                <p className="text-xs text-vibe-text-secondary text-balance">Organizza un party, un concerto o una serata speciale.</p>
+              </div>
+            </div>
+          </Card>
         </div>
 
         <Button 
@@ -81,6 +99,13 @@ export default function CreateHubPage() {
         isOpen={isPostOpen} 
         onClose={() => setIsPostOpen(false)} 
         onSuccess={handleSuccess}
+      />
+
+      <CreateEvent
+        isOpen={isEventOpen}
+        onClose={() => setIsEventOpen(false)}
+        onSuccess={() => router.push('/dashboard')}
+        venueId="pending" // TODO: Add logic to select venue if multi-venue owner
       />
     </div>
   );

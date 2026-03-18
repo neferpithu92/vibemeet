@@ -212,5 +212,43 @@
     "locationDenied": "Abilita la posizione per vedere eventi vicini",
     "networkError": "Errore di connessione. Controlla la tua rete.",
     "serverError": "Errore del server. Riprova tra qualche minuto."
+  },
+  "Legal": {
+    "privacy": {
+      "title": "Informativa sulla Privacy",
+      "updated": "Ultimo aggiornamento: 2024",
+      "section1": {
+        "title": "1. Dati Raccolti",
+        "description": "Raccogliamo informazioni per fornirti i migliori servizi possibili. Questo include i dati dell'account, posizione GPS quando attivi Safe Home o carichi contenuti e interessi personali per il feed."
+      },
+      "section2": {
+        "title": "2. Uso dei Dati (GDPR)",
+        "description": "Tutti i processi sono conformi alle normative svizzere ed europee sulla privacy. I dati per Safe Home sono conservati temporaneamente e crittografati."
+      },
+      "section3": {
+        "title": "3. Buddy System e Safe Home",
+        "description": "Quando abiliti Safe Home, accetti di condividere la tua geolocalizzazione in tempo reale con i tuoi contatti fidati e potenzialmente le autorità competenti in caso di SOS."
+      },
+      "section4": {
+        "title": "4. Diritti dell'Utente",
+        "description": "Puoi richiedere la cancellazione totale del tuo account o l'estrazione dei tuoi dati direttamente nell'app alla sezione Settings > Sicurezza."
+      }
+    },
+    "termini": {
+      "title": "Termini e Condizioni",
+      "updated": "Ultimo aggiornamento: 2024",
+      "section1": {
+        "title": "1. Accettazione dei Termini",
+        "description": "Utilizzando VIBE, accetti di rispettare questi termini di servizio."
+      },
+      "section2": {
+        "title": "2. Comportamento dell'Utente",
+        "description": "Non è consentito pubblicare materiale illegale, offensivo o che violi il copyright. Ci riserviamo il diritto di sospendere l'account in caso di violazioni."
+      },
+      "section3": {
+        "title": "3. Proprietà Intellettuale",
+        "description": "Tutti i contenuti generati dagli utenti rimangono di proprietà degli stessi, ma concedi a VIBE una licenza d'uso per la visualizzazione sulla piattaforma."
+      }
+    }
   }
 }

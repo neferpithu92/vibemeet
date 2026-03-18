@@ -54,6 +54,8 @@ export async function middleware(request: NextRequest) {
     pathnameWithoutLocale.startsWith('/login') ||
     pathnameWithoutLocale.startsWith('/register') ||
     pathnameWithoutLocale === '/' ||
+    pathnameWithoutLocale.startsWith('/privacy') ||
+    pathnameWithoutLocale.startsWith('/termini') ||
     pathnameWithoutLocale.startsWith('/auth/callback');
 
   // Se l'utente non è autenticato e tenta di accedere a route protette

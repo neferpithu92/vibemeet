@@ -98,7 +98,7 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
               </Card>
               <Card className="p-3 text-center">
                 <p className="text-2xl">☁️</p>
-                <p className="text-xs text-vibe-text-secondary">8°C</p>
+                <p className="text-xs text-vibe-text-secondary">{event.weather_cache?.temp_c ?? '--'}°C</p>
               </Card>
             </div>
 

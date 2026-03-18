@@ -189,5 +189,43 @@
     "locationDenied": "Standort aktivieren, um Events in der Nähe zu sehen",
     "networkError": "Verbindungsfehler. Überprüfe dein Netzwerk.",
     "serverError": "Serverfehler. Bitte versuche es in einigen Minuten erneut."
+  },
+  "Legal": {
+    "privacy": {
+      "title": "Datenschutzerklärung",
+      "updated": "Zuletzt aktualisiert: 2024",
+      "section1": {
+        "title": "1. Datenerhebung",
+        "description": "Wir sammeln Informationen, um Ihnen den bestmöglichen Service zu bieten. Dazu gehören Kontodaten, GPS-Standort, wenn Safe Home aktiv ist oder Inhalte hochgeladen werden, und persönliche Interessen für den Feed."
+      },
+      "section2": {
+        "title": "2. Datennutzung (DSGVO)",
+        "description": "Alle Prozesse entsprechen den schweizerischen und europäischen Datenschutzbestimmungen. Safe Home-Daten werden vorübergehend gespeichert und verschlüsselt."
+      },
+      "section3": {
+        "title": "3. Buddy-System und Safe Home",
+        "description": "Wenn Sie Safe Home aktivieren, erklären Sie sich damit einverstanden, Ihren Echtzeit-Standort mit Ihren vertrauenswürdigen Kontakten und im SOS-Fall mit den zuständigen Behörden zu teilen."
+      },
+      "section4": {
+        "title": "4. Nutzerrechte",
+        "description": "Sie können die vollständige Löschung Ihres Kontos oder den Export Ihrer Daten direkt in der App unter Einstellungen > Sicherheit anfordern."
+      }
+    },
+    "termini": {
+      "title": "Allgemeine Geschäftsbedingungen",
+      "updated": "Zuletzt aktualisiert: 2024",
+      "section1": {
+        "title": "1. Annahme der Bedingungen",
+        "description": "Durch die Nutzung von VIBE erklären Sie sich mit diesen Nutzungsbedingungen einverstanden."
+      },
+      "section2": {
+        "title": "2. Nutzerverhalten",
+        "description": "Illegales, beleidigendes oder urheberrechtsverletzendes Material ist nicht gestattet. Wir behalten uns das Recht vor, Konten bei Verstößen zu sperren."
+      },
+      "section3": {
+        "title": "3. Geistiges Eigentum",
+        "description": "Alle nutzergenerierten Inhalte bleiben Eigentum der Nutzer, aber Sie gewähren VIBE eine Lizenz zur Nutzung für die Anzeige auf der Plattform."
+      }
+    }
   }
 }

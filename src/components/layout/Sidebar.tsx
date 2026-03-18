@@ -4,20 +4,25 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 
-const sidebarLinks = [
-  { href: '/dashboard', label: 'Dashboard', icon: '📊' },
-  { href: '/dashboard/events', label: 'I miei eventi', icon: '🎉' },
-  { href: '/dashboard/analytics', label: 'Analytics', icon: '📈' },
-  { href: '/dashboard/media', label: 'Media', icon: '🎬' },
-  { href: '/dashboard/subscription', label: 'Abbonamento', icon: '💎' },
-  { href: '/dashboard/settings', label: 'Impostazioni', icon: '⚙️' },
-];
+
+
+import { useTranslations } from 'next-intl';
 
 /**
  * Sidebar desktop per sezione Dashboard / Business.
  */
 export function Sidebar() {
   const pathname = usePathname();
+  const t = useTranslations('nav');
+
+  const sidebarLinks = [
+    { href: '/dashboard', label: t('dashboard'), icon: '📊' },
+    { href: '/dashboard/events', label: t('events'), icon: '🎉' },
+    { href: '/dashboard/analytics', label: t('analytics'), icon: '📈' },
+    { href: '/dashboard/media', label: t('media'), icon: '🎬' },
+    { href: '/dashboard/subscription', label: t('subscription'), icon: '💎' },
+    { href: '/dashboard/settings', label: t('settings'), icon: '⚙️' },
+  ];
 
   return (
     <aside className="hidden lg:flex flex-col w-64 min-h-screen bg-vibe-surface border-r border-white/5 pt-20 px-4">

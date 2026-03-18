@@ -94,7 +94,9 @@ export default function DashboardPage() {
         </div>
         <div className="flex gap-2">
           <Button variant="secondary" size="sm">Scarica Report</Button>
-          <Button variant="primary" size="sm">+ Nuovo Evento</Button>
+          <Link href="/create">
+            <Button variant="primary" size="sm">+ Nuovo Evento</Button>
+          </Link>
         </div>
       </header>
 

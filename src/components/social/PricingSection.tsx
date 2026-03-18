@@ -1,6 +1,5 @@
-'use client';
-
 import { useState } from 'react';
+import { PLAN_LIMITS } from '@/lib/plans';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
@@ -9,7 +8,7 @@ const plans = [
   {
     id: 'starter',
     name: 'Starter',
-    price: '29',
+    price: PLAN_LIMITS.starter.price_chf.toString(),
     description: 'Perfetto per piccoli locali o artisti emergenti.',
     features: ['Visibilità mappa prioritaria', 'Analitiche base', '1 Post in evidenza / mese', 'Supporto email'],
     color: 'vibe-cyan',
@@ -17,7 +16,7 @@ const plans = [
   {
     id: 'pro',
     name: 'Pro',
-    price: '79',
+    price: PLAN_LIMITS.pro.price_chf.toString(),
     description: 'La scelta migliore per locali attivi e organizzatori.',
     features: [
       'Tutto dello Starter',
@@ -32,7 +31,7 @@ const plans = [
   {
     id: 'enterprise',
     name: 'Enterprise',
-    price: '199',
+    price: PLAN_LIMITS.premium.price_chf.toString(),
     description: 'Gestione completa per festival e grandi eventi.',
     features: [
       'Tutto del Pro',
@@ -109,7 +108,7 @@ export default function PricingSection({ entityId, entityType }: PricingProps) {
             <div className="mb-8">
               <h3 className="text-xl font-bold mb-2">{plan.name}</h3>
               <div className="flex items-baseline gap-1">
-                <span className="text-4xl font-bold">CHF {plan.price}</span>
+                <span className="text-4xl font-bold">{plan.price} CHF</span>
                 <span className="text-vibe-text-secondary">/mese</span>
               </div>
               <p className="text-sm text-vibe-text-secondary mt-4">{plan.description}</p>

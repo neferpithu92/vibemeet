@@ -4,15 +4,8 @@ import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/Card';
 import { useMap } from 'react-map-gl/mapbox';
 
-/**
- * Componente per la ricerca sulla mappa.
- * Riceve l'istanza della mappa come prop per evitare crash se caricato fuori dal provider.
- */
-interface MapSearchProps {
-  map?: any;
-}
-
-export default function MapSearch({ map }: MapSearchProps) {
+export default function MapSearch() {
+  const { current: map } = useMap();
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);

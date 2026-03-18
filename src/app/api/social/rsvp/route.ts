@@ -16,43 +16,36 @@ export async function POST(request: Request) {
   }
 
   if (action === 'rsvp') {
-    // Aggiungi un like/rsvp
-    const { error } = await supabase
-      .from('likes')
-      .upsert({
-        user_id: user.id,
-        entity_type: 'event',
-        entity_id: eventId,
-      });
-
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+    // Controlla se esiste già
+    const existing = await supabase.from('event_rsvps')
+      .select('id').eq('event_id', eventId).eq('user_id', user.id).single();
+    
+    if (!existing.data) {
+      const { error } = await supabase
+        .from('event_rsvps')
+        .insert({ event_id: eventId, user_id: user.id, status: 'going' });
+        
+      if (error) {
+        return NextResponse.json({ error: error.message }, { status: 500 });
+      }
+      return NextResponse.json({ success: true, message: 'RSVP registrato' });
     }
-
-    // Incrementa rsvp_count nell'evento (opzionale, se gestito via trigger nel DB è meglio)
-    // Qui lo facciamo manualmente se non c'è trigger
-    await supabase.rpc('increment_rsvp', { row_id: eventId });
-
-    return NextResponse.json({ success: true, message: 'RSVP registrato' });
   } else if (action === 'unrsvp') {
-    // Rimuovi il like/rsvp
-    const { error } = await supabase
-      .from('likes')
-      .delete()
-      .match({
-        user_id: user.id,
-        entity_type: 'event',
-        entity_id: eventId,
-      });
-
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+    // Rimuovi RSVP
+    const existing = await supabase.from('event_rsvps')
+      .select('id').eq('event_id', eventId).eq('user_id', user.id).single();
+    
+    if (existing.data) {
+      const { error } = await supabase
+        .from('event_rsvps')
+        .delete()
+        .eq('id', existing.data.id);
+        
+      if (error) {
+        return NextResponse.json({ error: error.message }, { status: 500 });
+      }
+      return NextResponse.json({ success: true, message: 'RSVP rimosso' });
     }
-
-    // Decrementa rsvp_count
-    await supabase.rpc('decrement_rsvp', { row_id: eventId });
-
-    return NextResponse.json({ success: true, message: 'RSVP rimosso' });
   }
 
   return NextResponse.json({ error: 'Azione non valida' }, { status: 400 });

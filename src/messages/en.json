@@ -189,5 +189,43 @@
     "locationDenied": "Enable location to see nearby events",
     "networkError": "Connection error. Check your network.",
     "serverError": "Server error. Please try again in a few minutes."
+  },
+  "Legal": {
+    "privacy": {
+      "title": "Privacy Policy",
+      "updated": "Last updated: 2024",
+      "section1": {
+        "title": "1. Data Collection",
+        "description": "We collect information to provide you with the best services. This includes account data, GPS location when Safe Home is active or when uploading content, and personal interests for the feed."
+      },
+      "section2": {
+        "title": "2. Data Usage (GDPR)",
+        "description": "All processes comply with Swiss and European privacy regulations. Safe Home data is temporarily stored and encrypted."
+      },
+      "section3": {
+        "title": "3. Buddy System and Safe Home",
+        "description": "When you enable Safe Home, you agree to share your real-time geolocation with your trusted contacts and potentially competent authorities in case of SOS."
+      },
+      "section4": {
+        "title": "4. User Rights",
+        "description": "You can request full deletion of your account or data extraction directly in the app under Settings > security."
+      }
+    },
+    "termini": {
+      "title": "Terms and Conditions",
+      "updated": "Last updated: 2024",
+      "section1": {
+        "title": "1. Acceptance of Terms",
+        "description": "By using VIBE, you agree to abide by these terms of service."
+      },
+      "section2": {
+        "title": "2. User Conduct",
+        "description": "Illegal, offensive, or copyright-violating material is not permitted. We reserve the right to suspend accounts for violations."
+      },
+      "section3": {
+        "title": "3. Intellectual Property",
+        "description": "All user-generated content remains the property of the users, but you grant VIBE a license to use it for display on the platform."
+      }
+    }
   }
 }

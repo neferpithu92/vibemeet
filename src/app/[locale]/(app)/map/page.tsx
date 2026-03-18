@@ -122,12 +122,12 @@ export default function MapPage() {
 
   const isLayerActive = (id: string) => activeLayers.find(l => l.id === id)?.active;
 
-  const [mapInstance, setMapInstance] = useState<any>(null);
+  const mapRef = useRef<any>(null);
 
   return (
     <div className="relative h-[calc(100vh-64px)] md:h-[calc(100vh-64px)] w-full overflow-hidden bg-vibe-dark">
       {/* MAPPA REALE */}
-      <MapView onBoundsChange={handleBoundsChange} onMapLoad={setMapInstance}>
+      <MapView onBoundsChange={handleBoundsChange} ref={mapRef}>
         {/* Indicatore di caricamento asincrono */}
         {isLoading && (
           <div className="absolute top-20 right-4 z-50 flex flex-col gap-2">
@@ -136,7 +136,7 @@ export default function MapPage() {
         )}
         {/* Barra di ricerca Mappa */}
         <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 w-full max-w-xs px-2 pointer-events-auto">
-          <MapSearch map={mapInstance} />
+          <MapSearch />
         </div>
 
         {/* Render markers per Venues */}
@@ -220,15 +220,16 @@ export default function MapPage() {
           🔍 {t('filters')}
         </Button>
 
-        {/* Tasto Attività */}
-        <Button 
-          variant="secondary" 
-          size="sm" 
-          onClick={() => setShowActivity(!showActivity)}
-          className="shadow-xl"
-        >
-          ⚡ {t('activity') || 'Live'}
-        </Button>
+        {/* Tasto Eventi Salvi */}
+        <Link href="/saved">
+          <Button 
+            variant="secondary" 
+            size="sm" 
+            className="shadow-xl"
+          >
+            🔖 {t('saved') || 'Eventi Salvi'}
+          </Button>
+        </Link>
       </div>
 
       {/* Pannello Attività Live (Left Sidebar) */}
