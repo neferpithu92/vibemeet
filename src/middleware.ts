@@ -7,6 +7,11 @@ import { locales, defaultLocale } from './lib/i18n/config';
  * Middleware — protegge le route (app), gestisce i locale e il refresh dei token di sessione.
  */
 export async function middleware(request: NextRequest) {
+  // Debug: Verifica URL Supabase in produzione
+  if (process.env.NODE_ENV === 'production') {
+    console.log('Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL);
+  }
+
   // 1. Inizializza il middleware di next-intl
   const handleI18nRouting = createIntlMiddleware({
     locales,
