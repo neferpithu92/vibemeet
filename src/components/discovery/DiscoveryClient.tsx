@@ -8,16 +8,40 @@ import { HashtagBadge } from '@/components/ui/HashtagBadge';
 import { Link } from '@/lib/i18n/navigation';
 import { useTranslations } from 'next-intl';
 
+interface DiscoveryVenue {
+  id: string;
+  name: string;
+  type?: string;
+  slug?: string;
+  address?: string;
+  vibe_score?: number;
+}
+
+interface DiscoveryEvent {
+  id: string;
+  title: string;
+  category?: string;
+  start_time: string;
+  end_time: string;
+  venues?: { name: string };
+  venue?: { name: string };
+}
+
+interface DiscoveryCategory {
+  id: string;
+  icon: string;
+}
+
 interface DiscoveryClientProps {
-  venues: any[];
-  events: any[];
-  categories: any[];
+  venues: DiscoveryVenue[];
+  events: DiscoveryEvent[];
+  categories: DiscoveryCategory[];
 }
 
 interface SearchResults {
-  events: any[];
-  venues: any[];
-  artists: any[];
+  events: DiscoveryEvent[];
+  venues: DiscoveryVenue[];
+  artists: { id: string; name: string }[];
 }
 
 interface TrendingHashtag {

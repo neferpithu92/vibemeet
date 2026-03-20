@@ -6,11 +6,14 @@ import { Button } from '@/components/ui/Button';
 
 import { createClient } from '@/lib/supabase/client';
 
-interface EventStats {
+interface MappedEvent {
+  id: string;
   title: string;
+  date: string;
   views: number;
-  clicks: number;
+  rsvps: number;
   tickets: number;
+  revenue: number;
 }
 
 export default function AnalyticsDashboard() {
@@ -21,7 +24,7 @@ export default function AnalyticsDashboard() {
     totalTicketsSold: number,
     revenue: number,
     profileViews: number,
-    recentEvents: EventStats[]
+    recentEvents: MappedEvent[]
   } | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -42,7 +45,7 @@ export default function AnalyticsDashboard() {
         const { data: events } = await supabase
           .from('events')
           .select(`
-            id, title,
+            id, title, created_at,
             event_analytics ( views, clicks, tickets_sold, revenue )
           `)
           .eq('owner_id', user.id)
@@ -51,11 +54,16 @@ export default function AnalyticsDashboard() {
 
         let totalRevenue = 0;
         let totalTickets = 0;
-        let mappedEvents: EventStats[] = [];
+        let mappedEvents: MappedEvent[] = [];
 
         if (events) {
-          events.forEach(ev => {
-            const analytics = (ev.event_analytics as any[]) || [];
+          events.forEach((ev: {
+            id: string;
+            title: string;
+            created_at: string;
+            event_analytics: Array<{ views: number; clicks: number; tickets_sold: number; revenue: number }> | null;
+          }) => {
+            const analytics = ev.event_analytics || [];
             const sumViews = analytics.reduce((a: number, b: any) => a + (b.views || 0), 0);
             const sumClicks = analytics.reduce((a: number, b: any) => a + (b.clicks || 0), 0);
             const sumTickets = analytics.reduce((a: number, b: any) => a + (b.tickets_sold || 0), 0);
@@ -64,10 +72,13 @@ export default function AnalyticsDashboard() {
             totalTickets += sumTickets;
             totalRevenue += sumRev;
             mappedEvents.push({
+              id: ev.id,
               title: ev.title,
+              date: (ev as any).created_at,
               views: sumViews,
-              clicks: sumClicks,
-              tickets: sumTickets
+              rsvps: sumTickets, // Using tickets as proxy or 0
+              tickets: sumTickets,
+              revenue: sumRev
             });
           });
         }

@@ -4,9 +4,24 @@ import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { Card } from '@/components/ui/Card';
 
+interface CalendarEvent {
+  id: string;
+  title: string;
+  start_time: string;
+  location_name: string;
+  cover_image: string | null;
+}
+
+interface CalendarTicket {
+  id: string;
+  qr_code: string;
+  status: string;
+  events: CalendarEvent | null;
+}
+
 export default function CalendarPage() {
   const supabase = createClient();
-  const [tickets, setTickets] = useState<any[]>([]);
+  const [tickets, setTickets] = useState<CalendarTicket[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -42,7 +57,7 @@ export default function CalendarPage() {
         </div>
       ) : (
         <div className="space-y-4">
-          {tickets.map((t: any) => (
+          {tickets.map((t) => (
             <Card key={t.id} className="p-4 flex flex-col md:flex-row gap-4 bg-white/5 hover:bg-white/10 transition-colors border-white/10">
                {t.events?.cover_image ? (
                  <img src={t.events.cover_image} alt="Event" className="w-full md:w-32 h-32 object-cover rounded-lg" />

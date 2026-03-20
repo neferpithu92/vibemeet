@@ -7,9 +7,30 @@ import { Badge } from '@/components/ui/Badge';
 import Link from 'next/link';
 import CreateStory from './CreateStory';
 
+interface FeedPost {
+  id: string;
+  caption?: string;
+  content?: string;
+  url?: string;
+  profiles?: {
+    username: string;
+    display_name?: string;
+    avatar_url?: string;
+  };
+}
+
+interface FeedStory {
+  id: string;
+  media_url: string;
+  profiles?: {
+    username: string;
+    avatar_url?: string;
+  };
+}
+
 interface FeedClientProps {
-  initialPosts: any[];
-  stories: any[];
+  initialPosts: FeedPost[];
+  stories: FeedStory[];
 }
 
 export default function FeedClient({ initialPosts, stories }: FeedClientProps) {

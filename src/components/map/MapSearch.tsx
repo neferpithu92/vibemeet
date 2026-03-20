@@ -4,10 +4,24 @@ import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/Card';
 import { useMap } from 'react-map-gl/mapbox';
 
+interface MapSearchResult {
+  id: string;
+  name?: string;
+  title?: string;
+  longitude?: number;
+  latitude?: number;
+  venue?: {
+    name: string;
+    longitude: number;
+    latitude: number;
+  };
+  type?: string;
+}
+
 export default function MapSearch() {
   const { current: map } = useMap();
   const [query, setQuery] = useState('');
-  const [results, setResults] = useState<any[]>([]);
+  const [results, setResults] = useState<MapSearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
 
   useEffect(() => {

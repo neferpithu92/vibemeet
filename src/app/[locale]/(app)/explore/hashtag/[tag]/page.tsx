@@ -1,6 +1,17 @@
 import { createClient } from '@/lib/supabase/server';
 import { HashtagBadge } from '@/components/ui/HashtagBadge';
 
+interface HashtagMedia {
+  id: string;
+  type: string;
+  url: string;
+  thumbnail_url?: string;
+  caption?: string;
+  like_count?: number;
+  view_count?: number;
+  created_at: string;
+}
+
 /**
  * Explore Hashtag Page — Shows all content tagged with a specific hashtag.
  */
@@ -21,7 +32,7 @@ export default async function HashtagExplorePage({
     .single();
 
   // Fetch linked media content
-  let media: any[] = [];
+  let media: HashtagMedia[] = [];
   if (hashtag) {
     const { data: links } = await supabase
       .from('post_hashtags')

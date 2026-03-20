@@ -28,6 +28,26 @@ interface UserProfile {
   is_verified: boolean;
 }
 
+interface UserPost {
+  id: string;
+  media_url: string;
+  likes_count?: number;
+  venue?: { name: string };
+}
+
+interface UserStory {
+  id: string;
+  media_url: string;
+  created_at: string;
+}
+
+interface UserCheckIn {
+  id: string;
+  created_at: string;
+  venue?: { name: string; address: string };
+  event?: { title: string };
+}
+
 /**
  * Pagina Profilo utente — carica dati reali da Supabase.
  */
@@ -37,9 +57,9 @@ export default function ProfilePage() {
 
   const [activeTab, setActiveTab] = useState<typeof tabs[number]>('Post');
   const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [posts, setPosts] = useState<any[]>([]);
-  const [stories, setStories] = useState<any[]>([]);
-  const [checkIns, setCheckIns] = useState<any[]>([]);
+  const [posts, setPosts] = useState<UserPost[]>([]);
+  const [stories, setStories] = useState<UserStory[]>([]);
+  const [checkIns, setCheckIns] = useState<UserCheckIn[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [followerCount, setFollowerCount] = useState(0);
   const [followingCount, setFollowingCount] = useState(0);

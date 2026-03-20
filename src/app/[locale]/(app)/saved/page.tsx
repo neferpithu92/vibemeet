@@ -4,9 +4,17 @@ import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { Card } from '@/components/ui/Card';
 
+interface SavedMedia {
+  id: string;
+  url: string;
+  thumbnail_url?: string;
+  type: string;
+  caption: string;
+}
+
 export default function SavedPage() {
   const supabase = createClient();
-  const [savedMedia, setSavedMedia] = useState<any[]>([]);
+  const [savedMedia, setSavedMedia] = useState<SavedMedia[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -44,7 +52,7 @@ export default function SavedPage() {
         </div>
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-          {savedMedia.map((m: any, idx) => (
+          {savedMedia.map((m, idx) => (
             <Card key={idx} className="aspect-[3/4] overflow-hidden relative group">
                {m.type === 'video' ? (
                  <video src={m.url} className="w-full h-full object-cover" />

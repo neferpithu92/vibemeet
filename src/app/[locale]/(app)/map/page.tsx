@@ -19,6 +19,51 @@ import { ListSkeleton, Skeleton } from '@/components/ui/Skeleton';
 import CheckInButton from '@/components/social/CheckInButton';
 import FollowButton from '@/components/social/FollowButton';
 
+interface MapVenue {
+  id: string;
+  name: string;
+  latitude: number;
+  longitude: number;
+  address?: string;
+  slug?: string;
+  description?: string;
+}
+
+interface MapEvent {
+  id: string;
+  title: string;
+  latitude?: number;
+  longitude?: number;
+  venue?: {
+    latitude: number;
+    longitude: number;
+    name: string;
+    address: string;
+  };
+  description?: string;
+}
+
+interface MapStory {
+  id: string;
+  media_url: string;
+  caption?: string;
+  location?: {
+    coordinates: [number, number];
+  };
+  profiles?: {
+    username: string;
+    avatar_url: string;
+  };
+}
+
+interface MapUser {
+  id: string;
+  username: string;
+  avatar_url: string;
+  latitude: number;
+  longitude: number;
+}
+
 /**
  * Pagina Mappa Interattiva — visualizza Mapbox con dati reali e real-time da Supabase.
  */
@@ -42,10 +87,10 @@ export default function MapPage() {
   const [showActivity, setShowActivity] = useState(false);
   const [isFollowing, setIsFollowing] = useState(false);
   
-  const [venues, setVenues] = useState<any[]>([]);
-  const [events, setEvents] = useState<any[]>([]);
-  const [stories, setStories] = useState<any[]>([]);
-  const [users, setUsers] = useState<any[]>([]);
+  const [venues, setVenues] = useState<MapVenue[]>([]);
+  const [events, setEvents] = useState<MapEvent[]>([]);
+  const [stories, setStories] = useState<MapStory[]>([]);
+  const [users, setUsers] = useState<MapUser[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   
   const supabaseClient = createClient();

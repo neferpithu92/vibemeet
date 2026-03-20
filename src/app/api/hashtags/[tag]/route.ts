@@ -3,6 +3,24 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export const dynamic = 'force-dynamic';
 
+interface HashtagLink {
+  post_id: string;
+  post_type: string;
+  created_at: string;
+}
+
+interface HashtagContent {
+  id: string;
+  type: string;
+  url: string;
+  thumbnail_url?: string;
+  caption?: string;
+  like_count?: number;
+  view_count?: number;
+  created_at: string;
+  author_id: string;
+}
+
 /**
  * GET /api/hashtags/[tag]
  * Returns hashtag details and paginated content tagged with it.
@@ -43,11 +61,11 @@ export async function GET(
   }
 
   // Fetch media content for display
-  const mediaIds = (links || [])
-    .filter((l: any) => l.post_type === 'media' || l.post_type === 'vibe')
-    .map((l: any) => l.post_id);
+  const mediaIds = (links as HashtagLink[] || [])
+    .filter((l) => l.post_type === 'media' || l.post_type === 'vibe')
+    .map((l) => l.post_id);
 
-  let media: any[] = [];
+  let media: HashtagContent[] = [];
   if (mediaIds.length > 0) {
     const { data } = await supabase
       .from('media')

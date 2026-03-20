@@ -9,10 +9,17 @@ interface LocationPickerProps {
   required?: boolean;
 }
 
+interface NearbyVenue {
+  id: string;
+  name: string;
+  lat: number;
+  lng: number;
+}
+
 export function LocationPicker({ value, onChange, required = false }: LocationPickerProps) {
   const supabase = createClient();
   const [isSearching, setIsSearching] = useState(false);
-  const [nearbyVenues, setNearbyVenues] = useState<any[]>([]);
+  const [nearbyVenues, setNearbyVenues] = useState<NearbyVenue[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [error, setError] = useState<string | null>(null);
 
