@@ -32,7 +32,10 @@ export default function SavedPage() {
         .order('created_at', { ascending: false });
       
       if (data) {
-        setSavedMedia(data.map(d => d.media).filter(Boolean));
+        setSavedMedia(data.map(d => {
+          const m = Array.isArray(d.media) ? d.media[0] : d.media;
+          return m;
+        }).filter(Boolean));
       }
       setLoading(false);
     }

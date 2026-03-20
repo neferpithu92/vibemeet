@@ -32,7 +32,7 @@ interface UserPost {
   id: string;
   media_url: string;
   likes_count?: number;
-  venue?: { name: string };
+  venue?: any;
 }
 
 interface UserStory {
@@ -44,8 +44,8 @@ interface UserStory {
 interface UserCheckIn {
   id: string;
   created_at: string;
-  venue?: { name: string; address: string };
-  event?: { title: string };
+  venue?: any;
+  event?: any;
 }
 
 /**
@@ -261,7 +261,7 @@ export default function ProfilePage() {
                 </div>
                 <div className="absolute bottom-2 left-2 truncate max-w-[80%]">
                   <span className="text-[9px] text-white/70 bg-black/30 px-1.5 py-0.5 rounded backdrop-blur-sm">
-                    {post.venue?.name || 'Vibe Location'}
+                    {(Array.isArray(post.venue) ? post.venue[0]?.name : post.venue?.name) || 'Vibe Location'}
                   </span>
                 </div>
               </div>
@@ -273,18 +273,22 @@ export default function ProfilePage() {
           </div>
         ) : activeTab === 'Eventi' ? (
           <div className="space-y-3">
-            {checkIns.length > 0 ? checkIns.map((ci) => (
-              <Card key={ci.id} className="p-4 flex items-center justify-between hover:bg-white/10 transition-all cursor-pointer">
-                <div>
-                  <h4 className="font-bold text-sm">{ci.venue?.name || ci.event?.title || 'Check-in'}</h4>
-                  <p className="text-xs text-vibe-text-secondary">{ci.venue?.address || 'Posizione registrata'}</p>
-                  <p className="text-[10px] text-vibe-purple mt-1 font-medium">
-                    {new Date(ci.created_at).toLocaleDateString('it-CH', { day: 'numeric', month: 'long' })}
-                  </p>
-                </div>
-                <Badge variant="live">CHECK-IN</Badge>
-              </Card>
-            )) : (
+            {checkIns.length > 0 ? checkIns.map((ci) => {
+              const v = Array.isArray(ci.venue) ? ci.venue[0] : ci.venue;
+              const e = Array.isArray(ci.event) ? ci.event[0] : ci.event;
+              return (
+                <Card key={ci.id} className="p-4 flex items-center justify-between hover:bg-white/10 transition-all cursor-pointer">
+                  <div>
+                    <h4 className="font-bold text-sm">{v?.name || e?.title || 'Check-in'}</h4>
+                    <p className="text-xs text-vibe-text-secondary">{v?.address || 'Posizione registrata'}</p>
+                    <p className="text-[10px] text-vibe-purple mt-1 font-medium">
+                      {new Date(ci.created_at).toLocaleDateString('it-CH', { day: 'numeric', month: 'long' })}
+                    </p>
+                  </div>
+                  <Badge variant="live">CHECK-IN</Badge>
+                </Card>
+              );
+            }) : (
               <div className="py-20 text-center glass-card border-dashed">
                 <p className="text-vibe-text-secondary text-sm">Nessun evento o check-in recente 📍</p>
               </div>

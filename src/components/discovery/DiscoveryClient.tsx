@@ -23,8 +23,7 @@ interface DiscoveryEvent {
   category?: string;
   start_time: string;
   end_time: string;
-  venues?: { name: string };
-  venue?: { name: string };
+  venue?: any;
 }
 
 interface DiscoveryCategory {
@@ -137,17 +136,20 @@ export default function DiscoveryClient({ venues, events, categories }: Discover
             <section>
               <h2 className="section-title mb-4 text-left">{te('title')}</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {searchResults.events.map(event => (
-                  <Link key={event.id} href={`/events/${event.id}`}>
-                    <Card hover className="p-4 flex gap-4 items-center">
-                      <div className="w-12 h-12 rounded-xl bg-vibe-purple/10 flex items-center justify-center text-xl">🎉</div>
-                      <div className="text-left">
-                        <h4 className="font-semibold text-sm">{event.title}</h4>
-                        <p className="text-xs text-vibe-text-secondary">{event.venue?.name || 'VIBE Venue'}</p>
-                      </div>
-                    </Card>
-                  </Link>
-                ))}
+                {searchResults.events.map(event => {
+                  const v = Array.isArray(event.venue) ? event.venue[0] : event.venue;
+                  return (
+                    <Link key={event.id} href={`/events/${event.id}`}>
+                      <Card hover className="p-4 flex gap-4 items-center">
+                        <div className="w-12 h-12 rounded-xl bg-vibe-purple/10 flex items-center justify-center text-xl">🎉</div>
+                        <div className="text-left">
+                          <h4 className="font-semibold text-sm">{event.title}</h4>
+                          <p className="text-xs text-vibe-text-secondary">{v?.name || 'VIBE Venue'}</p>
+                        </div>
+                      </Card>
+                    </Link>
+                  );
+                })}
               </div>
             </section>
           )}
@@ -220,7 +222,9 @@ export default function DiscoveryClient({ venues, events, categories }: Discover
                 </div>
                 <div className="p-3">
                   <h3 className="font-semibold text-sm mb-1 group-hover:text-vibe-purple transition-colors truncate">{event.title}</h3>
-                  <p className="text-xs text-vibe-text-secondary truncate">{event.venues?.name || 'Venue'}</p>
+                  <p className="text-xs text-vibe-text-secondary truncate">
+                    {(Array.isArray(event.venue) ? event.venue[0]?.name : event.venue?.name) || 'Venue'}
+                  </p>
                   <Badge variant="default" className="mt-2">{event.category || 'Event'}</Badge>
                 </div>
               </Card>
