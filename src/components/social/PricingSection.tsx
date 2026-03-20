@@ -1,3 +1,5 @@
+'use client';
+
 import { useState } from 'react';
 import { PLAN_LIMITS } from '../../lib/plans';
 import { Card } from '@/components/ui/Card';
