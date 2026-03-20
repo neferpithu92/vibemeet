@@ -6,6 +6,13 @@ import { Button } from '@/components/ui/Button';
 
 import { createClient } from '@/lib/supabase/client';
 
+interface EventStats {
+  title: string;
+  views: number;
+  clicks: number;
+  tickets: number;
+}
+
 export default function AnalyticsDashboard() {
   const supabase = createClient();
   const [data, setData] = useState<{
@@ -14,7 +21,7 @@ export default function AnalyticsDashboard() {
     totalTicketsSold: number,
     revenue: number,
     profileViews: number,
-    recentEvents: any[]
+    recentEvents: EventStats[]
   } | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -48,10 +55,11 @@ export default function AnalyticsDashboard() {
 
         if (events) {
           events.forEach(ev => {
-            const sumViews = ev.event_analytics?.reduce((a: number, b: any) => a + (b.views || 0), 0) || 0;
-            const sumClicks = ev.event_analytics?.reduce((a: number, b: any) => a + (b.clicks || 0), 0) || 0;
-            const sumTickets = ev.event_analytics?.reduce((a: number, b: any) => a + (b.tickets_sold || 0), 0) || 0;
-            const sumRev = ev.event_analytics?.reduce((a: number, b: any) => a + (b.revenue || 0), 0) || 0;
+            const analytics = (ev.event_analytics as any[]) || [];
+            const sumViews = analytics.reduce((a: number, b: any) => a + (b.views || 0), 0);
+            const sumClicks = analytics.reduce((a: number, b: any) => a + (b.clicks || 0), 0);
+            const sumTickets = analytics.reduce((a: number, b: any) => a + (b.tickets_sold || 0), 0);
+            const sumRev = analytics.reduce((a: number, b: any) => a + (b.revenue || 0), 0);
             
             totalTickets += sumTickets;
             totalRevenue += sumRev;

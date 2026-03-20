@@ -5,33 +5,60 @@ import { Button } from '@/components/ui/Button';
 import { createClient } from '@/lib/supabase/client';
 import MediaUpload from '@/components/ui/MediaUpload';
 
-const MOCK_INTERESTS = [
-// ... (keep MOCK_INTERESTS)
+interface Interest {
+  id: string;
+  label: string;
+  icon: string;
+  category: string;
+}
+
+const MOCK_INTERESTS: Interest[] = [
+  { id: 'techno', label: 'Techno', icon: '🎵', category: 'music' },
+  { id: 'house', label: 'House', icon: '🎶', category: 'music' },
+  { id: 'hiphop', label: 'Hip Hop', icon: '🎤', category: 'music' },
+  { id: 'rnb', label: 'R&B', icon: '🎸', category: 'music' },
+  { id: 'jazz', label: 'Jazz', icon: '🎷', category: 'music' },
+  { id: 'rock', label: 'Rock', icon: '🤘', category: 'music' },
+  { id: 'clubbing', label: 'Clubbing', icon: '🪩', category: 'lifestyle' },
+  { id: 'outdoor', label: 'Outdoor', icon: '🌿', category: 'lifestyle' },
+  { id: 'food', label: 'Food', icon: '🍴', category: 'lifestyle' },
+  { id: 'art', label: 'Arte', icon: '🎨', category: 'lifestyle' },
+  { id: 'sport', label: 'Sport', icon: '⚽', category: 'lifestyle' },
+  { id: 'festival', label: 'Festival', icon: '🎪', category: 'events' },
+  { id: 'concert', label: 'Concerti', icon: '🎸', category: 'events' },
+  { id: 'aperitivo', label: 'Aperitivo', icon: '🍹', category: 'events' },
 ];
+
+interface OnboardingFormData {
+  dob: string;
+  gender: string;
+  selectedInterests: string[];
+  avatarUrl: string;
+}
 
 export default function UserOnboardingPage() {
   const supabase = createClient();
   const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => setUserId(data.user?.id || null));
+    supabase.auth.getUser().then(({ data }: { data: any }) => setUserId(data.user?.id || null));
   }, [supabase]);
 
   const [step, setStep] = useState(1);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<OnboardingFormData>({
     dob: '',
     gender: '', // male, female, non-binary, prefer-not
-    selectedInterests: [] as string[],
+    selectedInterests: [],
     avatarUrl: '',
   });
 
   const [loading, setLoading] = useState(false);
 
   const toggleInterest = (id: string) => {
-    setFormData(prev => ({
+    setFormData((prev: OnboardingFormData) => ({
       ...prev,
       selectedInterests: prev.selectedInterests.includes(id)
-        ? prev.selectedInterests.filter(i => i !== id)
+        ? prev.selectedInterests.filter((i: string) => i !== id)
         : [...prev.selectedInterests, id]
     }));
   };
@@ -65,9 +92,9 @@ export default function UserOnboardingPage() {
       setLoading(true);
       
       // 1. Salva Interessi
-      const interestsToSave = formData.selectedInterests.map(id => ({
+      const interestsToSave = formData.selectedInterests.map((id: string) => ({
         user_id: userId,
-        category: MOCK_INTERESTS.find(i => i.id === id)?.name || id,
+        category: MOCK_INTERESTS.find((i: Interest) => i.id === id)?.label || id,
       }));
       
       const { error: interestsError } = await supabase
@@ -215,7 +242,7 @@ export default function UserOnboardingPage() {
                     }`}
                   >
                     <span className="text-xl">{interest.icon}</span>
-                    <span>{interest.name}</span>
+                    <span>{interest.label}</span>
                   </button>
                 ))}
               </div>

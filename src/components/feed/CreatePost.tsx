@@ -81,9 +81,9 @@ export default function CreatePost({ isOpen, onClose, onSuccess }: CreatePostPro
       setLocation(null);
       if (onSuccess) onSuccess();
       onClose();
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
-      showToast('Errore durante la pubblicazione', 'error');
+      showToast(e instanceof Error ? e.message : 'Errore durante la pubblicazione', 'error');
     }
   };
 

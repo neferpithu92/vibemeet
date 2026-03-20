@@ -14,11 +14,16 @@ interface CreateEventProps {
   venueId?: string;
 }
 
+interface VenueOption {
+  id: string;
+  name: string;
+}
+
 export default function CreateEvent({ isOpen, onClose, onSuccess, venueId: initialVenueId }: CreateEventProps) {
   const supabase = createClient();
   const { showToast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
-  const [userVenues, setUserVenues] = useState<any[]>([]);
+  const [userVenues, setUserVenues] = useState<VenueOption[]>([]);
   const [selectedVenueId, setSelectedVenueId] = useState<string | null>(initialVenueId || null);
 
   const [formData, setFormData] = useState({
@@ -82,7 +87,7 @@ export default function CreateEvent({ isOpen, onClose, onSuccess, venueId: initi
       if (onSuccess) onSuccess();
       onClose();
     } catch (err: any) {
-      showToast(err.message, 'error');
+      showToast(err instanceof Error ? err.message : 'Errore imprevisto', 'error');
     } finally {
       setIsLoading(false);
     }

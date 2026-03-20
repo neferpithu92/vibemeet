@@ -8,14 +8,26 @@ import { Button } from '@/components/ui/Button';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 
+interface Venue {
+  id: string;
+  name: string;
+  address: string;
+}
+
+interface DashboardStats {
+  checkIns: number;
+  rsvps: number;
+  venuesCount: number;
+}
+
 /**
  * Dashboard per i Proprietari di Venue — Statistiche e gestione.
  */
 export default function DashboardPage() {
   const supabase = createClient();
   const router = useRouter();
-  const [stats, setStats] = useState<any>(null);
-  const [venues, setVenues] = useState<any[]>([]);
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [venues, setVenues] = useState<Venue[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -33,8 +45,8 @@ export default function DashboardPage() {
         .eq('owner_id', user.id);
 
       if (userVenues && userVenues.length > 0) {
-        setVenues(userVenues);
-        const venueIds = userVenues.map(v => v.id);
+        setVenues(userVenues as Venue[]);
+        const venueIds = userVenues.map((v: any) => v.id);
 
         // 2. Carica statistiche aggregate
         // Check-ins totali
@@ -131,7 +143,7 @@ export default function DashboardPage() {
       <section className="space-y-4">
         <h2 className="text-xl font-bold">Le tue Venue</h2>
         <div className="grid grid-cols-1 gap-4">
-          {venues.map(venue => (
+          {venues.map((venue: Venue) => (
             <Card key={venue.id} className="p-4 flex flex-col md:flex-row items-center justify-between gap-4 hover:border-vibe-purple/30 transition-colors">
               <div className="flex items-center gap-4">
                 <div className="w-16 h-16 rounded-2xl bg-vibe-surface border border-white/10 flex items-center justify-center text-3xl">
