@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import { useToast } from '@/components/ui/ToastProvider';
@@ -14,10 +14,13 @@ interface CreateEventProps {
   venueId?: string;
 }
 
-export default function CreateEvent({ isOpen, onClose, onSuccess, venueId }: CreateEventProps) {
+export default function CreateEvent({ isOpen, onClose, onSuccess, venueId: initialVenueId }: CreateEventProps) {
   const supabase = createClient();
   const { showToast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const [userVenues, setUserVenues] = useState<any[]>([]);
+  const [selectedVenueId, setSelectedVenueId] = useState<string | null>(initialVenueId || null);
+
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -29,22 +32,51 @@ export default function CreateEvent({ isOpen, onClose, onSuccess, venueId }: Cre
     ticketLimit: 100
   });
 
+  // Carica le venue dell'utente se non è passata una venueId
+  useEffect(() => {
+    if (isOpen && !initialVenueId) {
+      const fetchVenues = async () => {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        const { data: venues } = await supabase
+          .from('venues')
+          .select('id, name')
+          .eq('owner_id', user.id);
+        
+        if (venues) {
+          setUserVenues(venues);
+          if (venues.length === 1) setSelectedVenueId(venues[0].id);
+        }
+      };
+      fetchVenues();
+    }
+  }, [isOpen, initialVenueId, supabase]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!venueId) {
-      showToast('Nessuna venue selezionata', 'error');
+    if (!selectedVenueId) {
+      showToast('Seleziona un locale per l\'evento', 'error');
       return;
     }
 
     setIsLoading(true);
     try {
-      const res = await fetch('/api/events/create', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...formData, venueId })
-      });
-      const data = await res.json();
-      if (data.error) throw new Error(data.error);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Non autorizzato');
+
+      const { data, error } = await supabase.from('events').insert({
+        ...formData,
+        venue_id: selectedVenueId,
+        organizer_id: user.id,
+        starts_at: new Date(formData.startTime).toISOString(),
+        ends_at: formData.endTime ? new Date(formData.endTime).toISOString() : null,
+        ticket_price: formData.price,
+        slug: formData.title.toLowerCase().replace(/ /g, '-') + '-' + Date.now(),
+        location: (await supabase.from('venues').select('location').eq('id', selectedVenueId).single()).data?.location
+      }).select().single();
+
+      if (error) throw error;
 
       showToast('Evento creato con successo! 🎉', 'success');
       if (onSuccess) onSuccess();
@@ -59,6 +91,22 @@ export default function CreateEvent({ isOpen, onClose, onSuccess, venueId }: Cre
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Crea Nuovo Evento">
       <form onSubmit={handleSubmit} className="space-y-4">
+        {!initialVenueId && userVenues.length > 1 && (
+          <div>
+            <label className="text-xs font-bold uppercase text-vibe-text-secondary">Seleziona Locale</label>
+            <select 
+              className="input-field mt-1"
+              value={selectedVenueId || ''}
+              onChange={(e) => setSelectedVenueId(e.target.value)}
+              required
+            >
+              <option value="">Scegli un locale...</option>
+              {userVenues.map(v => (
+                <option key={v.id} value={v.id}>{v.name}</option>
+              ))}
+            </select>
+          </div>
+        )}
         <div>
           <label className="text-xs font-bold uppercase text-vibe-text-secondary">Titolo</label>
           <input

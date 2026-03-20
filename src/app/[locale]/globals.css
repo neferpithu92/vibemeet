@@ -102,6 +102,15 @@
     @apply bg-white/10 border-white/20;
   }
 
+  .btn-outline {
+    @apply px-6 py-3 rounded-xl font-semibold text-vibe-text border border-white/20 bg-transparent 
+           transition-all duration-300;
+  }
+
+  .btn-outline:hover {
+    @apply bg-white/5 border-white/40;
+  }
+
   .btn-ghost {
     @apply px-6 py-3 rounded-xl font-semibold text-vibe-text-secondary 
            transition-all duration-300;

@@ -111,12 +111,9 @@ export default function RegisterPage() {
       return;
     }
 
-    // 2. Redirect a /map
+    // 2. Redirect a /onboarding per completare il profilo
     // Il profilo viene creato automaticamente dal trigger database
-    router.push('/map');
-
-    // 3. Redirect a /map
-    router.push('/map');
+    router.push('/onboarding');
     router.refresh();
   };
 

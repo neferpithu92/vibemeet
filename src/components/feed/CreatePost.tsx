@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Modal } from '@/components/ui/Modal';
 import MediaUpload from '@/components/ui/MediaUpload';
 import { useToast } from '@/components/ui/ToastProvider';

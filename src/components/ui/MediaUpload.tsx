@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import { Button } from '@/components/ui/Button';
 
 interface MediaUploadProps {
-  onUploadComplete: (url: string, file: File) => void;
-  bucket: 'media' | 'stories';
+  onUploadComplete: (url: string, file?: File) => void;
+  bucket: 'media' | 'stories' | 'avatars' | 'events';
   label?: string;
   aspectRatio?: 'square' | 'video' | 'any';
 }
