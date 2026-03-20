@@ -51,7 +51,7 @@ export default function AnalyticsDashboard() {
 
         let totalRevenue = 0;
         let totalTickets = 0;
-        let mappedEvents = [];
+        let mappedEvents: EventStats[] = [];
 
         if (events) {
           events.forEach(ev => {
