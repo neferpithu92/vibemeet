@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { createClient } from '@/lib/supabase/client';
@@ -13,6 +13,7 @@ import { createClient } from '@/lib/supabase/client';
  */
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const supabase = createClient();
 
   const [email, setEmail] = useState('');
@@ -20,7 +21,12 @@ export default function LoginPage() {
   const [show2FA, setShow2FA] = useState(false);
   const [twoFACode, setTwoFACode] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  
+  // Gestione errori dalla URL
+  const urlError = searchParams.get('error');
+  const urlMessage = searchParams.get('message');
+  
+  const [error, setError] = useState<string | null>(urlError ? (urlMessage || 'Errore di autenticazione') : null);
   const [message, setMessage] = useState<string | null>(null);
 
   /** Login con email e password */

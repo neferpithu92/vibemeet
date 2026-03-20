@@ -12,15 +12,23 @@ export async function middleware(request: NextRequest) {
     console.log('Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL);
   }
 
-  // 1. Inizializza il middleware di next-intl
-  const handleI18nRouting = createIntlMiddleware({
-    locales,
-    defaultLocale,
-    localeDetection: true
-  });
+  // 1. Check if it's an auth callback to skip i18n
+  const { pathname } = request.nextUrl;
+  const isAuthCallback = pathname.startsWith('/auth/callback');
 
-  // 2. Ottieni la risposta dal middleware i18n
-  let response = handleI18nRouting(request);
+  let response: NextResponse;
+
+  if (isAuthCallback) {
+    response = NextResponse.next();
+  } else {
+    // 2. Inizializza il middleware di next-intl
+    const handleI18nRouting = createIntlMiddleware({
+      locales,
+      defaultLocale,
+      localeDetection: true
+    });
+    response = handleI18nRouting(request);
+  }
 
   // 3. Inizializza Supabase Client integrato con la risposta i18n
   const supabase = createServerClient(
@@ -48,8 +56,6 @@ export async function middleware(request: NextRequest) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-
-  const { pathname } = request.nextUrl;
 
   // Rimuovi il prefisso locale dal pathname per il check delle route (preserva lo slash iniziale)
   const pathnameWithoutLocale = pathname.replace(/^\/(it|en|de|fr|rm)/, '') || '/';
