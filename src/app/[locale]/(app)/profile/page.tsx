@@ -2,13 +2,16 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Avatar } from '@/components/ui/Avatar';
 import AvatarCropperModal from '@/components/ui/AvatarCropperModal';
+import EditProfileModal from '@/components/profile/EditProfileModal';
 import { createClient } from '@/lib/supabase/client';
 import { Skeleton } from '@/components/ui/Skeleton';
+import { Share2, Edit3, Settings, LogOut } from 'lucide-react';
 
 const tabs = ['Post', 'Eventi', 'Salvati'] as const;
 
@@ -65,6 +68,7 @@ export default function ProfilePage() {
   const [followerCount, setFollowerCount] = useState(0);
   const [followingCount, setFollowingCount] = useState(0);
   const [isCropperOpen, setIsCropperOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -160,6 +164,36 @@ export default function ProfilePage() {
     setIsCropperOpen(false);
   };
 
+  const handleProfileUpdate = (updatedData: { display_name: string; bio: string | null }) => {
+    if (profile) {
+      setProfile({
+        ...profile,
+        display_name: updatedData.display_name,
+        bio: updatedData.bio
+      });
+    }
+    setIsEditModalOpen(false);
+  };
+
+  const handleShare = async () => {
+    const shareData = {
+      title: `Profilo di ${profile?.display_name || profile?.username} su Vibe`,
+      text: profile?.bio || 'Scopri il mio profilo su Vibe!',
+      url: window.location.href
+    };
+
+    if (navigator.share) {
+      try {
+        await navigator.share(shareData);
+      } catch (err) {
+        console.error('Error sharing:', err);
+      }
+    } else {
+      navigator.clipboard.writeText(window.location.href);
+      alert('Link copiato negli appunti! 🔗');
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="page-container">
@@ -251,33 +285,64 @@ export default function ProfilePage() {
 
           {/* Actions */}
           <div className="flex gap-3 mt-4">
-            <Button variant="secondary" className="flex-1 text-sm">✏️ Modifica profilo</Button>
-            <Button variant="ghost" className="text-sm">📤</Button>
+            <Button 
+                variant="secondary" 
+                className="flex-1 text-sm font-bold flex items-center justify-center gap-2 h-11 rounded-xl"
+                onClick={() => setIsEditModalOpen(true)}
+            >
+              <Edit3 className="w-4 h-4" /> Modifica profilo
+            </Button>
+            <Button 
+                variant="ghost" 
+                className="text-sm h-11 w-11 p-0 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 flex items-center justify-center"
+                onClick={handleShare}
+            >
+              <Share2 className="w-5 h-5 text-white/70" />
+            </Button>
           </div>
         </Card>
 
-        {/* Content Tabs */}
-        <div className="flex gap-1 mb-6 p-1 rounded-xl bg-white/5">
+        {/* Content Tabs (System 14 - Premium Interactions) */}
+        <div className="flex gap-1 mb-6 p-1 rounded-xl bg-white/5 relative">
           {tabs.map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-all duration-300 ${
-                activeTab === tab
-                  ? 'bg-vibe-purple/20 text-vibe-purple'
-                  : 'text-vibe-text-secondary hover:text-vibe-text'
+              className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-colors duration-300 relative z-10 ${
+                activeTab === tab ? 'text-vibe-purple' : 'text-vibe-text-secondary hover:text-vibe-text'
               }`}
             >
-              {tab === 'Post' ? '📷' : tab === 'Eventi' ? '📍' : '🔖'} {tab}
+              {activeTab === tab && (
+                <motion.div 
+                  layoutId="activeTab"
+                  className="absolute inset-0 bg-vibe-purple/20 rounded-lg border border-vibe-purple/30"
+                  transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                />
+              )}
+              <span className="relative z-10">
+                {tab === 'Post' ? '📷' : tab === 'Eventi' ? '📍' : '🔖'} {tab}
+              </span>
             </button>
           ))}
         </div>
 
-        {/* Content Grid */}
-        {activeTab === 'Post' ? (
+        {/* Content Grid with AnimatePresence */}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeTab}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }}
+          >
+            {activeTab === 'Post' ? (
           <div className="grid grid-cols-3 gap-1 rounded-xl overflow-hidden">
             {posts.length > 0 ? posts.map((post) => (
-              <div key={post.id} className="relative aspect-square bg-white/5 group cursor-pointer overflow-hidden border border-white/5">
+              <motion.div 
+                key={post.id} 
+                whileHover={{ scale: 1.02 }}
+                className="relative aspect-square bg-white/5 group cursor-pointer overflow-hidden border border-white/5"
+              >
                 <img 
                   src={post.media_url} 
                   alt="" 
@@ -285,15 +350,13 @@ export default function ProfilePage() {
                 />
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-300 flex items-center justify-center">
                   <div className="opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center gap-3 text-white">
-                    <span className="text-sm font-bold">❤️ {post.likes_count || 0}</span>
+                    <span className="text-sm font-bold flex items-center gap-1">
+                       <svg className="w-4 h-4 text-red-500 fill-current" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg> 
+                       {post.likes_count || 0}
+                    </span>
                   </div>
                 </div>
-                <div className="absolute bottom-2 left-2 truncate max-w-[80%]">
-                  <span className="text-[9px] text-white/70 bg-black/30 px-1.5 py-0.5 rounded backdrop-blur-sm">
-                    {(Array.isArray(post.venue) ? post.venue[0]?.name : post.venue?.name) || 'Vibe Location'}
-                  </span>
-                </div>
-              </div>
+              </motion.div>
             )) : (
               <div className="col-span-3 py-20 text-center glass-card border-dashed">
                 <p className="text-vibe-text-secondary text-sm">Non hai ancora postato nulla 📷</p>
@@ -328,8 +391,8 @@ export default function ProfilePage() {
             <p className="text-vibe-text-secondary text-sm">Elementi salvati appariranno qui 🔖</p>
           </div>
         )}
-
-        {/* Quick Settings */}
+          </motion.div>
+        </AnimatePresence>
         <Card className="mt-6 p-4">
           <h3 className="font-display font-bold text-sm mb-4">⚙️ Impostazioni rapide</h3>
           <div className="space-y-2">
@@ -357,13 +420,26 @@ export default function ProfilePage() {
           </Button>
         </div>
 
-        {/* Avatar Cropper Modal (System 8) */}
         <AvatarCropperModal 
           isOpen={isCropperOpen} 
           onClose={() => setIsCropperOpen(false)} 
           onAvatarUpdated={handleAvatarUpdated}
           currentAvatarUrl={profile?.avatar_url}
         />
+
+        {/* Edit Profile Modal (System 14) */}
+        {profile && (
+           <EditProfileModal
+             isOpen={isEditModalOpen}
+             onClose={() => setIsEditModalOpen(false)}
+             profile={{
+               display_name: profile.display_name,
+               username: profile.username,
+               bio: profile.bio
+             }}
+             onUpdate={handleProfileUpdate}
+           />
+        )}
       </div>
     </div>
   );
