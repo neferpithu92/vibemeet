@@ -42,7 +42,16 @@ export default async function VenueDetailPage({ params }: { params: Promise<{ sl
   return VenueDetailRender({ venue, user });
 }
 
-async function VenueDetailRender({ venue, user }: { venue: any, user: any }) {
+interface Venue {
+  id: string;
+  name: string;
+  address: string;
+  slug: string;
+  description: string;
+  vibe_score: number;
+}
+
+async function VenueDetailRender({ venue, user }: { venue: Venue, user: any }) {
   const supabase = await createClient();
 
   // Verifica se l'utente segue la venue

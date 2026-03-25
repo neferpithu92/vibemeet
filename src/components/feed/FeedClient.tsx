@@ -7,18 +7,24 @@ import { Badge } from '@/components/ui/Badge';
 import Link from 'next/link';
 import CreateStory from './CreateStory';
 
+interface FeedProfile {
+  username: string;
+  display_name?: string;
+  avatar_url?: string;
+}
+
 interface FeedPost {
   id: string;
   caption?: string;
   content?: string;
   url?: string;
-  profiles?: any;
+  profiles?: FeedProfile | FeedProfile[];
 }
 
 interface FeedStory {
   id: string;
   media_url: string;
-  profiles?: any;
+  profiles?: FeedProfile | FeedProfile[];
 }
 
 interface FeedClientProps {

@@ -46,7 +46,7 @@ export default function DashboardPage() {
 
       if (userVenues && userVenues.length > 0) {
         setVenues(userVenues as Venue[]);
-        const venueIds = userVenues.map((v: any) => v.id);
+        const venueIds = userVenues.map((v: Venue) => v.id);
 
         // 2. Carica statistiche aggregate
         // Check-ins totali

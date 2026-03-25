@@ -93,7 +93,7 @@ export function LocationPicker({ value, onChange, required = false }: LocationPi
         );
         const data = await res.json();
         if (data.features) {
-          const mapboxVenues = data.features.map((f: any) => ({
+          const mapboxVenues = data.features.map((f: { id: string; text: string; center: [number, number] }) => ({
             id: f.id,
             name: f.text,
             lng: f.center[0],
