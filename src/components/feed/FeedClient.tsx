@@ -17,7 +17,7 @@ interface FeedPost {
   id: string;
   caption?: string;
   content?: string;
-  url?: string;
+  media_url?: string;
   profiles?: FeedProfile | FeedProfile[];
 }
 
@@ -119,9 +119,9 @@ export default function FeedClient({ initialPosts, stories }: FeedClientProps) {
               <p className="text-sm text-vibe-text mb-3 leading-relaxed">{post.caption || post.content}</p>
 
               {/* Media */}
-              {post.url && (
+              {post.media_url && (
                 <div className="w-full h-64 rounded-xl bg-vibe-gradient-subtle mb-3 overflow-hidden">
-                  <img src={post.url} alt="Post content" className="w-full h-full object-cover" />
+                  <img src={post.media_url} alt="Post content" className="w-full h-full object-cover" />
                 </div>
               )}
 

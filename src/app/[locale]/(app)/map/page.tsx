@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Avatar } from '@/components/ui/Avatar';
 import { MapView } from '@/components/map/MapView';
-import { VenueMarker, EventMarker, StoryMarker, PresenceMarker } from '@/components/map/Markers';
+import { VenueMarker, EventMarker, StoryMarker, PresenceMarker, MediaMarker } from '@/components/map/Markers';
 import MapSearch from '@/components/map/MapSearch';
 import ActivityFeed from '@/components/social/ActivityFeed';
 
@@ -64,6 +64,21 @@ interface MapUser {
   longitude: number;
 }
 
+interface MapMedia {
+  id: string;
+  media_url: string;
+  thumbnail_url?: string;
+  media_type?: string;
+  caption?: string;
+  location?: {
+    coordinates: [number, number];
+  };
+  profiles?: {
+    username: string;
+    avatar_url: string;
+  };
+}
+
 /**
  * Pagina Mappa Interattiva — visualizza Mapbox con dati reali e real-time da Supabase.
  */
@@ -90,6 +105,7 @@ export default function MapPage() {
   const [venues, setVenues] = useState<MapVenue[]>([]);
   const [events, setEvents] = useState<MapEvent[]>([]);
   const [stories, setStories] = useState<MapStory[]>([]);
+  const [media, setMedia] = useState<MapMedia[]>([]);
   const [users, setUsers] = useState<MapUser[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   
@@ -137,6 +153,7 @@ export default function MapPage() {
       if (data.venues) setVenues(data.venues);
       if (data.events) setEvents(data.events);
       if (data.stories) setStories(data.stories);
+      if (data.media) setMedia(data.media);
       if (data.users) setUsers(data.users);
       currentBounds.current = bounds;
     } catch (err) {
@@ -197,7 +214,6 @@ export default function MapPage() {
 
         {/* Marker delle Storie */}
         {isLayerActive('stories') && stories.map((story) => {
-          // Gestione PostGIS point: [lng, lat]
           const coords = story.location?.coordinates || [0, 0];
           return (
             <StoryMarker
@@ -208,6 +224,23 @@ export default function MapPage() {
               username={story.profiles?.username}
               isActive={selectedItem?.id === story.id}
               onClick={() => setSelectedItem({ ...story, type: 'story' })}
+            />
+          );
+        })}
+
+        {/* Marker del Feed Media (Post Personali) */}
+        {isLayerActive('stories') && media.map((item) => {
+          const coords = item.location?.coordinates || [0, 0];
+          return (
+            <MediaMarker
+              key={item.id}
+              longitude={coords[0]}
+              latitude={coords[1]}
+              mediaUrl={item.media_url}
+              thumbnailUrl={item.thumbnail_url}
+              mediaType={item.media_type}
+              isActive={selectedItem?.id === item.id}
+              onClick={() => setSelectedItem({ ...item, type: 'media' })}
             />
           );
         })}
@@ -329,12 +362,12 @@ export default function MapPage() {
             ✕
           </button>
 
-          {selectedItem.type === 'story' ? (
+          {selectedItem.type === 'story' || selectedItem.type === 'media' ? (
             <div className="space-y-6">
               <div className="relative aspect-[9/16] w-full rounded-2xl overflow-hidden bg-vibe-dark border border-white/10 shadow-2xl">
                 <img 
                   src={selectedItem.media_url} 
-                  alt="Story content" 
+                  alt="Content" 
                   className="w-full h-full object-cover"
                 />
                 <div className="absolute top-4 left-4 flex items-center gap-3 bg-black/40 backdrop-blur-md p-1.5 pr-4 rounded-full">
@@ -345,7 +378,9 @@ export default function MapPage() {
               <div className="space-y-4 p-2">
                 <p className="text-sm leading-relaxed text-vibe-text">{selectedItem.caption || 'Live! ✨'}</p>
                 <div className="flex items-center justify-between p-3 rounded-xl bg-white/5">
-                  <span className="text-[10px] uppercase font-bold tracking-widest text-vibe-pink">{t('stories')}</span>
+                  <span className="text-[10px] uppercase font-bold tracking-widest text-vibe-pink">
+                    {selectedItem.type === 'story' ? t('stories') : 'Post Feed'}
+                  </span>
                 </div>
               </div>
             </div>

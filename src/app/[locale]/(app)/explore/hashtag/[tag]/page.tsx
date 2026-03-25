@@ -3,8 +3,8 @@ import { HashtagBadge } from '@/components/ui/HashtagBadge';
 
 interface HashtagMedia {
   id: string;
-  type: string;
-  url: string;
+  media_type: string;
+  media_url: string;
   thumbnail_url?: string;
   caption?: string;
   like_count?: number;
@@ -48,9 +48,9 @@ export default async function HashtagExplorePage({
     if (mediaIds.length > 0) {
       const { data } = await supabase
         .from('media')
-        .select('id, type, url, thumbnail_url, caption, like_count, view_count, created_at')
+        .select('id, media_type, media_url, thumbnail_url, caption, like_count, view_count, created_at')
         .in('id', mediaIds);
-      media = data || [];
+      media = (data as any) || [];
     }
   }
 
@@ -105,13 +105,13 @@ export default async function HashtagExplorePage({
               </div>
               <div className="bg-white/5 rounded-xl p-3 text-center">
                 <p className="text-lg font-bold vibe-gradient-text">
-                  {media.filter((m) => m.type === 'video' || m.type === 'reel').length}
+                  {media.filter((m) => m.media_type === 'video' || m.media_type === 'reel').length}
                 </p>
                 <p className="text-xs text-vibe-text-secondary">Vibes</p>
               </div>
               <div className="bg-white/5 rounded-xl p-3 text-center">
                 <p className="text-lg font-bold vibe-gradient-text">
-                  {media.filter((m) => m.type === 'photo').length}
+                  {media.filter((m) => m.media_type === 'photo').length}
                 </p>
                 <p className="text-xs text-vibe-text-secondary">Foto</p>
               </div>
@@ -127,16 +127,16 @@ export default async function HashtagExplorePage({
                 key={item.id}
                 className="relative aspect-square rounded-xl overflow-hidden group cursor-pointer"
               >
-                {item.thumbnail_url || item.url ? (
+                {item.thumbnail_url || item.media_url ? (
                   <img
-                    src={item.thumbnail_url || item.url}
+                    src={item.thumbnail_url || item.media_url}
                     alt={item.caption || ''}
                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                   />
                 ) : (
                   <div className="w-full h-full bg-vibe-gradient-subtle flex items-center justify-center">
                     <span className="text-3xl">
-                      {item.type === 'video' || item.type === 'reel' ? '🎬' : '📷'}
+                      {item.media_type === 'video' || item.media_type === 'reel' ? '🎬' : '📷'}
                     </span>
                   </div>
                 )}
@@ -159,7 +159,7 @@ export default async function HashtagExplorePage({
                   </div>
                 </div>
                 {/* Type badge */}
-                {(item.type === 'video' || item.type === 'reel') && (
+                {(item.media_type === 'video' || item.media_type === 'reel') && (
                   <div className="absolute top-2 right-2">
                     <span className="text-white text-sm">▶️</span>
                   </div>

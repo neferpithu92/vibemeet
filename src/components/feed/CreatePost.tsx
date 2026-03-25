@@ -33,16 +33,17 @@ export default function CreatePost({ isOpen, onClose, onSuccess }: CreatePostPro
     if (!user) return;
 
     try {
+      const lng = Number(location?.lng);
+      const lat = Number(location?.lat);
+      if (isNaN(lng) || isNaN(lat)) throw new Error('Invalid coordinates');
+
       const { data: media, error } = await supabase.from('media').insert({
-        author_id: user.id,
-        url: url,
-        thumbnail_url: url, // Assuming URL works as thumbnail for images
-        type: url.includes('mp4') || url.includes('webm') ? 'video' : 'photo',
+        user_id: user.id,
+        media_url: url,
+        thumbnail_url: url,
+        media_type: url.includes('mp4') || url.includes('webm') ? 'video' : 'photo',
         caption: caption,
-        location_name: location?.name,
-        venue_id: location?.venue_id,
-        lat: location?.lat,
-        lng: location?.lng
+        location: `POINT(${lng} ${lat})`
       }).select().single();
 
       if (error) throw error;

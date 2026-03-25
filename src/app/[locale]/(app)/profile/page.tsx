@@ -6,6 +6,7 @@ import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Avatar } from '@/components/ui/Avatar';
+import AvatarCropperModal from '@/components/ui/AvatarCropperModal';
 import { createClient } from '@/lib/supabase/client';
 import { Skeleton } from '@/components/ui/Skeleton';
 
@@ -63,6 +64,7 @@ export default function ProfilePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [followerCount, setFollowerCount] = useState(0);
   const [followingCount, setFollowingCount] = useState(0);
+  const [isCropperOpen, setIsCropperOpen] = useState(false);
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -89,7 +91,7 @@ export default function ProfilePage() {
           *,
           venue:venues(name)
         `)
-        .eq('author_id', user.id)
+        .eq('user_id', user.id)
         .order('created_at', { ascending: false });
       
       if (mediaData) setPosts(mediaData);
@@ -134,6 +136,11 @@ export default function ProfilePage() {
     await supabase.auth.signOut();
     router.push('/login');
     router.refresh();
+  };
+
+  const handleAvatarUpdated = (newUrl: string) => {
+    if (profile) setProfile({ ...profile, avatar_url: newUrl });
+    setIsCropperOpen(false);
   };
 
   if (isLoading) {
@@ -191,7 +198,12 @@ export default function ProfilePage() {
         {/* Profilo Card */}
         <Card className="p-6 mb-6">
           <div className="flex flex-col sm:flex-row items-center gap-4">
-            <Avatar size="xl" fallback={profile?.display_name || 'U'} />
+            <div className="relative group cursor-pointer" onClick={() => setIsCropperOpen(true)}>
+              <Avatar size="xl" src={profile?.avatar_url} fallback={profile?.display_name || 'U'} />
+              <div className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                <span className="text-white text-xs font-bold">Modifica</span>
+              </div>
+            </div>
             <div className="flex-1 text-center sm:text-left">
               <div className="flex items-center gap-2 justify-center sm:justify-start">
                 <h2 className="font-display text-xl font-bold">{profile?.display_name || 'Utente'}</h2>
@@ -327,6 +339,14 @@ export default function ProfilePage() {
             Esci dall&apos;account
           </Button>
         </div>
+
+        {/* Avatar Cropper Modal (System 8) */}
+        <AvatarCropperModal 
+          isOpen={isCropperOpen} 
+          onClose={() => setIsCropperOpen(false)} 
+          onAvatarUpdated={handleAvatarUpdated}
+          currentAvatarUrl={profile?.avatar_url}
+        />
       </div>
     </div>
   );

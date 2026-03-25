@@ -207,11 +207,11 @@ export interface Database {
       media: {
         Row: {
           id: string
-          author_id: string | null
+          user_id: string | null
           entity_type: string
           entity_id: string
-          type: string
-          url: string
+          media_type: string
+          media_url: string
           thumbnail_url: string | null
           caption: string | null
           location: any | null
@@ -221,11 +221,11 @@ export interface Database {
         }
         Insert: {
           id?: string
-          author_id?: string | null
+          user_id?: string | null
           entity_type: string
           entity_id: string
-          type: string
-          url: string
+          media_type: string
+          media_url: string
           thumbnail_url?: string | null
           caption?: string | null
           location?: any | null
@@ -235,11 +235,11 @@ export interface Database {
         }
         Update: {
           id?: string
-          author_id?: string | null
+          user_id?: string | null
           entity_type?: string
           entity_id?: string
-          type?: string
-          url?: string
+          media_type?: string
+          media_url?: string
           thumbnail_url?: string | null
           caption?: string | null
           location?: any | null

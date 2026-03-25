@@ -11,14 +11,14 @@ interface HashtagLink {
 
 interface HashtagContent {
   id: string;
-  type: string;
-  url: string;
+  media_type: string;
+  media_url: string;
   thumbnail_url?: string;
   caption?: string;
   like_count?: number;
   view_count?: number;
   created_at: string;
-  author_id: string;
+  user_id: string;
 }
 
 /**
@@ -69,9 +69,9 @@ export async function GET(
   if (mediaIds.length > 0) {
     const { data } = await supabase
       .from('media')
-      .select('id, type, url, thumbnail_url, caption, like_count, view_count, created_at, author_id')
+      .select('id, media_type, media_url, thumbnail_url, caption, like_count, view_count, created_at, user_id')
       .in('id', mediaIds);
-    media = data || [];
+    media = (data as any) || [];
   }
 
   // Check if trending

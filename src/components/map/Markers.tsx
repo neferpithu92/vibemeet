@@ -159,3 +159,58 @@ export function PresenceMarker({
     </Marker>
   );
 }
+/**
+ * Marker per i Post del Feed (Media) sulla mappa.
+ * Visualizza una piccola anteprima (thumbnail) del contenuto.
+ */
+export function MediaMarker({ 
+  longitude, 
+  latitude, 
+  mediaUrl, 
+  thumbnailUrl, 
+  mediaType, 
+  onClick, 
+  isActive 
+}: MarkerProps & { 
+  mediaUrl: string; 
+  thumbnailUrl?: string; 
+  mediaType?: string; 
+}) {
+  return (
+    <Marker longitude={longitude} latitude={latitude} anchor="bottom" onClick={onClick}>
+      <button 
+        className={cn(
+          "relative group transition-all duration-300",
+          isActive ? "scale-125 z-20" : "hover:scale-110"
+        )}
+      >
+        <div className={cn(
+          "w-12 h-12 rounded-xl p-[2px] shadow-xl transition-all duration-300 bg-vibe-dark/40 backdrop-blur-md",
+          isActive ? "bg-vibe-purple scale-110" : "border border-white/20"
+        )}>
+          <div className="w-full h-full rounded-lg overflow-hidden bg-vibe-surface relative">
+            <img 
+              src={thumbnailUrl || mediaUrl} 
+              alt="Feed post" 
+              className="w-full h-full object-cover" 
+            />
+            {mediaType === 'video' && (
+              <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+                <span className="text-white text-[10px]">▶️</span>
+              </div>
+            )}
+          </div>
+        </div>
+        
+        {/* Glow effect */}
+        <div className="absolute inset-0 rounded-xl glow-purple opacity-0 group-hover:opacity-40 transition-opacity" />
+        
+        {/* Pointer tip */}
+        <div className={cn(
+           "absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 rotate-45 border-r border-b transition-all duration-300",
+           isActive ? "bg-vibe-purple border-vibe-purple" : "bg-vibe-dark/80 border-white/20"
+        )} />
+      </button>
+    </Marker>
+  );
+}
