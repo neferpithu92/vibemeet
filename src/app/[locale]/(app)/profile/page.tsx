@@ -76,13 +76,30 @@ export default function ProfilePage() {
       }
 
       // 1. Carica profilo utente
-      const { data: profileData } = await supabase
-        .from('users')
-        .select('display_name, username, bio, avatar_url, is_verified')
-        .eq('id', user.id)
-        .single();
+      try {
+        const { data: profileData, error: profileError } = await supabase
+          .from('users')
+          .select('display_name, username, bio, avatar_url, is_verified')
+          .eq('id', user.id)
+          .single();
 
-      if (profileData) setProfile(profileData);
+        if (profileError) {
+          console.error('ERROR (users table):', profileError);
+          // If 406, it means some columns are missing. Try a minimal select as fallback.
+          if (profileError.code === 'PGRST106' || profileError.status === 406) {
+             const { data: fallbackData } = await supabase
+               .from('users')
+               .select('username, avatar_url')
+               .eq('id', user.id)
+               .single();
+             if (fallbackData) setProfile(fallbackData as any);
+          }
+        } else if (profileData) {
+          setProfile(profileData);
+        }
+      } catch (err) {
+        console.error('Fetch profile exception:', err);
+      }
 
       // 2. Carica Post (Media)
       const { data: mediaData } = await supabase
