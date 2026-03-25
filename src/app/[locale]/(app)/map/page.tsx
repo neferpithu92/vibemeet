@@ -228,8 +228,8 @@ export default function MapPage() {
         {isLayerActive('events') && events.map(event => (
           <EventMarker 
             key={event.id}
-            longitude={event.venue?.longitude || event.longitude}
-            latitude={event.venue?.latitude || event.latitude}
+            longitude={event.venue?.longitude || event.longitude || 0}
+            latitude={event.venue?.latitude || event.latitude || 0}
             isActive={selectedItem?.id === event.id}
             onClick={() => setSelectedItem({ ...event, type: 'event' })}
           />

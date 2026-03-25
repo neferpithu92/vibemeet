@@ -11,6 +11,7 @@ interface MappedEvent {
   title: string;
   date: string;
   views: number;
+  clicks: number;
   rsvps: number;
   tickets: number;
   revenue: number;
@@ -76,6 +77,7 @@ export default function AnalyticsDashboard() {
               title: ev.title,
               date: (ev as any).created_at,
               views: sumViews,
+              clicks: sumClicks,
               rsvps: sumTickets, // Using tickets as proxy or 0
               tickets: sumTickets,
               revenue: sumRev

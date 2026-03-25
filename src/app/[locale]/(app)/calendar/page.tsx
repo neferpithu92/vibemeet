@@ -7,9 +7,9 @@ import { Card } from '@/components/ui/Card';
 interface CalendarEvent {
   id: string;
   title: string;
-  start_time: string;
-  location_name: string;
-  cover_image: string | null;
+  starts_at: string;
+  cover_url: string | null;
+  venue?: { name: string; address: string } | null;
 }
 
 interface CalendarTicket {
@@ -40,16 +40,22 @@ export default function CalendarPage() {
         .from('tickets')
         .select(`
           id, qr_code, status,
-          events ( id, title, start_time, location_name, cover_image )
+          events ( id, title, starts_at, cover_url, venue:venues(name, address) )
         `)
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
       if (data) {
-        const normalized: CalendarTicket[] = (data as RawTicket[]).map(t => ({
-          ...t,
-          events: Array.isArray(t.events) ? t.events[0] ?? null : t.events
-        }));
+        const normalized: CalendarTicket[] = (data as any[]).map(t => {
+          const rawEvent = Array.isArray(t.events) ? t.events[0] : t.events;
+          const venue = rawEvent?.venue ? (Array.isArray(rawEvent.venue) ? rawEvent.venue[0] : rawEvent.venue) : null;
+          return {
+            id: t.id,
+            qr_code: t.qr_code,
+            status: t.status,
+            events: rawEvent ? { ...rawEvent, venue } : null
+          };
+        });
         setTickets(normalized);
       }
       setLoading(false);
@@ -82,9 +88,9 @@ export default function CalendarPage() {
         <div className="space-y-4">
           {tickets.map((t) => (
             <Card key={t.id} className="p-4 flex flex-col md:flex-row gap-4 bg-white/5 hover:bg-white/10 transition-colors border-white/10">
-              {t.events?.cover_image ? (
+              {t.events?.cover_url ? (
                 <img
-                  src={t.events.cover_image}
+                  src={t.events.cover_url}
                   alt="Event"
                   className="w-full md:w-32 h-32 object-cover rounded-lg"
                 />
@@ -98,11 +104,11 @@ export default function CalendarPage() {
                   {t.events?.title || 'Evento non trovato'}
                 </h3>
                 <p className="text-sm text-vibe-text-secondary mb-1">
-                  📍 {t.events?.location_name || 'Da confermare'}
+                  📍 {t.events?.venue?.address || 'Da confermare'}
                 </p>
                 <p className="text-sm text-vibe-purple font-medium mb-3">
-                  {t.events?.start_time
-                    ? new Date(t.events.start_time).toLocaleString('it-IT')
+                  {t.events?.starts_at
+                    ? new Date(t.events.starts_at).toLocaleString('it-IT')
                     : ''}
                 </p>
               </div>
