@@ -85,8 +85,8 @@ export default function ProfilePage() {
 
         if (profileError) {
           console.error('ERROR (users table):', profileError);
-          // If 406, it means some columns are missing. Try a minimal select as fallback.
-          if (profileError.code === 'PGRST106' || profileError.status === 406) {
+          // If 406 (PGRST106), it means some columns are missing. Try a minimal select as fallback.
+          if (profileError.code === 'PGRST106') {
              const { data: fallbackData } = await supabase
                .from('users')
                .select('username, avatar_url')
