@@ -146,13 +146,21 @@
     "following": "Suandà",
     "editProfile": "Modifitgar il profil",
     "settings": "Parameters",
+    "quickSettings": "Configurs spertas",
     "language": "Lingua",
-    "privacy": "Protecziun da datas",
-    "notifications": "Communicaziuns",
-    "help": "Agid",
-    "about": "Infurmaziuns",
-    "deleteAccount": "Stizzar il conto",
-    "exportData": "Exportar Vossas datas"
+    "privacy": "Privatadad da charta",
+    "notifications": "Notificaziuns",
+    "theme": "Tema",
+    "exportData": "Exportar datas (GDPR)",
+    "status": {
+      "active": "Activ",
+      "inactive": "Inactiv",
+      "friends": "Be amis",
+      "public": "Public",
+      "private": "Privat",
+      "dark": "Scur",
+      "light": "Cler"
+    }
   },
   "dashboard": {
     "title": "Dashboard",

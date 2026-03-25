@@ -146,13 +146,21 @@
     "following": "Following",
     "editProfile": "Edit profile",
     "settings": "Settings",
+    "quickSettings": "Quick Settings",
     "language": "Language",
-    "privacy": "Privacy",
+    "privacy": "Map Privacy",
     "notifications": "Notifications",
-    "help": "Help",
-    "about": "About",
-    "deleteAccount": "Delete account",
-    "exportData": "Export your data"
+    "theme": "Theme",
+    "exportData": "Export Data (GDPR)",
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive",
+      "friends": "Friends only",
+      "public": "Public",
+      "private": "Private",
+      "dark": "Dark",
+      "light": "Light"
+    }
   },
   "dashboard": {
     "title": "Dashboard",

@@ -155,13 +155,21 @@
     "following": "Seguiti",
     "editProfile": "Modifica profilo",
     "settings": "Impostazioni",
+    "quickSettings": "Impostazioni rapide",
     "language": "Lingua",
-    "privacy": "Privacy",
+    "privacy": "Privacy mappa",
     "notifications": "Notifiche",
-    "help": "Aiuto",
-    "about": "Info",
-    "deleteAccount": "Elimina account",
-    "exportData": "Esporta i tuoi dati"
+    "theme": "Tema",
+    "exportData": "Esporta dati (GDPR)",
+    "status": {
+      "active": "Attive",
+      "inactive": "Disattivate",
+      "friends": "Solo amici",
+      "public": "Pubblico",
+      "private": "Privato",
+      "dark": "Scuro",
+      "light": "Chiaro"
+    }
   },
   "dashboard": {
     "title": "Dashboard",

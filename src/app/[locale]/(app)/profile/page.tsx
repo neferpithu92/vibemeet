@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname, useParams } from 'next/navigation';
+import { useTranslations, useLocale } from 'next-intl';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
@@ -69,6 +70,13 @@ export default function ProfilePage() {
   const [followingCount, setFollowingCount] = useState(0);
   const [isCropperOpen, setIsCropperOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isNotificationsActive, setIsNotificationsActive] = useState(true);
+  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+  const [privacy, setPrivacy] = useState<'friends' | 'public' | 'private'>('friends');
+  
+  const t = useTranslations('profile');
+  const locale = useLocale();
+  const pathname = usePathname();
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -83,7 +91,7 @@ export default function ProfilePage() {
       try {
         const { data: profileData, error: profileError } = await supabase
           .from('users')
-          .select('display_name, username, bio, avatar_url, is_verified')
+          .select('display_name, username, bio, avatar_url, is_verified, map_visibility')
           .eq('id', user.id)
           .single();
 
@@ -194,6 +202,38 @@ export default function ProfilePage() {
     }
   };
 
+  const handleLanguageToggle = () => {
+    const supportedLocales = ['it', 'en', 'de', 'fr', 'rm'];
+    const currentIndex = supportedLocales.indexOf(locale);
+    const nextLocale = supportedLocales[(currentIndex + 1) % supportedLocales.length];
+    
+    // Replace the locale in the current path
+    // Assuming pattern is /[locale]/...
+    const newPath = pathname.replace(`/${locale}`, `/${nextLocale}`);
+    router.push(newPath);
+  };
+
+  const handlePrivacyToggle = async () => {
+    const modes: ('friends' | 'public' | 'private')[] = ['friends', 'public', 'private'];
+    const nextMode = modes[(modes.indexOf(privacy) + 1) % modes.length];
+    setPrivacy(nextMode);
+
+    // Sync to DB
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session) {
+      await supabase.from('users').update({ map_visibility: nextMode }).eq('id', session.user.id);
+    }
+  };
+
+  const handleThemeToggle = () => {
+    setTheme(prev => prev === 'dark' ? 'light' : 'dark');
+    // Future: implement persistent theme logic here
+  };
+
+  const handleNotificationsToggle = () => {
+    setIsNotificationsActive(prev => !prev);
+  };
+
   if (isLoading) {
     return (
       <div className="page-container">
@@ -271,15 +311,15 @@ export default function ProfilePage() {
           <div className="flex justify-center sm:justify-start gap-8 mt-6 pt-4 border-t border-white/5">
             <div className="text-center">
               <p className="font-bold text-lg">{posts.length}</p>
-              <p className="text-xs text-vibe-text-secondary">Post</p>
+              <p className="text-xs text-vibe-text-secondary">{t('posts')}</p>
             </div>
             <div className="text-center">
               <p className="font-bold text-lg">{followerCount.toLocaleString()}</p>
-              <p className="text-xs text-vibe-text-secondary">Follower</p>
+              <p className="text-xs text-vibe-text-secondary">{t('followers')}</p>
             </div>
             <div className="text-center">
               <p className="font-bold text-lg">{followingCount}</p>
-              <p className="text-xs text-vibe-text-secondary">Seguiti</p>
+              <p className="text-xs text-vibe-text-secondary">{t('following')}</p>
             </div>
           </div>
 
@@ -290,7 +330,7 @@ export default function ProfilePage() {
                 className="flex-1 text-sm font-bold flex items-center justify-center gap-2 h-11 rounded-xl"
                 onClick={() => setIsEditModalOpen(true)}
             >
-              <Edit3 className="w-4 h-4" /> Modifica profilo
+              <Edit3 className="w-4 h-4" /> {t('editProfile')}
             </Button>
             <Button 
                 variant="ghost" 
@@ -394,17 +434,21 @@ export default function ProfilePage() {
           </motion.div>
         </AnimatePresence>
         <Card className="mt-6 p-4">
-          <h3 className="font-display font-bold text-sm mb-4">⚙️ Impostazioni rapide</h3>
+          <h3 className="font-display font-bold text-sm mb-4">⚙️ {t('quickSettings')}</h3>
           <div className="space-y-2">
             {[
-              { label: 'Lingua', value: 'Italiano', icon: '🌐' },
-              { label: 'Privacy mappa', value: 'Solo amici', icon: '🔒' },
-              { label: 'Notifiche', value: 'Attive', icon: '🔔' },
-              { label: 'Tema', value: 'Scuro', icon: '🌙' },
-              { label: 'Esporta dati (GDPR)', value: '', icon: '📥' },
+              { label: t('language'), value: locale === 'it' ? 'Italiano' : 'English', icon: '🌐', action: handleLanguageToggle },
+              { label: t('privacy'), value: t(`status.${privacy}`), icon: '🔒', action: handlePrivacyToggle },
+              { label: t('notifications'), value: isNotificationsActive ? t('status.active') : t('status.inactive'), icon: '🔔', action: handleNotificationsToggle },
+              { label: t('theme'), value: theme === 'dark' ? t('status.dark') : t('status.light'), icon: '🌙', action: handleThemeToggle },
+              { label: t('exportData'), value: '', icon: '📥', action: () => alert('Request sent! 📧') },
             ].map((setting) => (
-              <button key={setting.label} className="w-full flex items-center gap-3 px-3 py-3 rounded-xl bg-white/5 hover:bg-white/10 transition-all">
-                <span>{setting.icon}</span>
+              <button 
+                key={setting.label} 
+                onClick={setting.action}
+                className="w-full flex items-center gap-3 px-3 py-3 rounded-xl bg-white/5 hover:bg-white/10 transition-all group"
+              >
+                <span className="group-hover:scale-125 transition-transform">{setting.icon}</span>
                 <span className="text-sm font-medium flex-1 text-left">{setting.label}</span>
                 <span className="text-sm text-vibe-text-secondary">{setting.value}</span>
                 <svg className="w-4 h-4 text-vibe-text-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
@@ -416,7 +460,7 @@ export default function ProfilePage() {
         {/* Logout */}
         <div className="mt-6 text-center">
           <Button variant="ghost" className="text-red-400 hover:text-red-300" onClick={handleLogout}>
-            Esci dall&apos;account
+            {t('logout')}
           </Button>
         </div>
 

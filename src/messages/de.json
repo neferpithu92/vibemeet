@@ -146,13 +146,21 @@
     "following": "Abonniert",
     "editProfile": "Profil bearbeiten",
     "settings": "Einstellungen",
+    "quickSettings": "Schnelleinstellungen",
     "language": "Sprache",
-    "privacy": "Datenschutz",
+    "privacy": "Karten-Datenschutz",
     "notifications": "Benachrichtigungen",
-    "help": "Hilfe",
-    "about": "Über",
-    "deleteAccount": "Konto löschen",
-    "exportData": "Deine Daten exportieren"
+    "theme": "Theme",
+    "exportData": "Daten exportieren (GDPR)",
+    "status": {
+      "active": "Aktiv",
+      "inactive": "Inaktiv",
+      "friends": "Nur Freunde",
+      "public": "Öffentlich",
+      "private": "Privat",
+      "dark": "Dunkel",
+      "light": "Hell"
+    }
   },
   "dashboard": {
     "title": "Dashboard",
