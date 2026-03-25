@@ -101,3 +101,17 @@ BEGIN
 EXCEPTION
     WHEN OTHERS THEN NULL;
 END $$;
+-- Refresh RLS Policies for Media (System 14 & 12)
+ALTER TABLE public.media ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS media_select ON public.media;
+CREATE POLICY media_select ON public.media FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS media_insert ON public.media;
+CREATE POLICY media_insert ON public.media FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS media_update ON public.media;
+CREATE POLICY media_update ON public.media FOR UPDATE USING (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS media_delete ON public.media;
+CREATE POLICY media_delete ON public.media FOR DELETE USING (auth.uid() = user_id);
