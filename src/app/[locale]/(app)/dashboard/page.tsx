@@ -1,12 +1,11 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import Link from 'next/link';
+import { Link, useRouter } from '@/lib/i18n/navigation';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { createClient } from '@/lib/supabase/client';
-import { useRouter } from 'next/navigation';
 
 interface Venue {
   id: string;
@@ -29,6 +28,29 @@ export default function DashboardPage() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [venues, setVenues] = useState<Venue[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isPortalLoading, setIsPortalLoading] = useState<string | null>(null);
+
+  const handleManageSubscription = async (venueId: string) => {
+    try {
+      setIsPortalLoading(venueId);
+      const res = await fetch('/api/checkout/portal', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ entityId: venueId }),
+      });
+      const data = await res.json();
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        alert(data.error || 'Nessun abbonamento attivo trovato.');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Errore di comunicazione col portale pagamenti.');
+    } finally {
+      setIsPortalLoading(null);
+    }
+  };
 
   useEffect(() => {
     async function loadDashboardData() {
@@ -154,10 +176,19 @@ export default function DashboardPage() {
                   <p className="text-sm text-vibe-text-secondary">{venue.address}</p>
                 </div>
               </div>
-              <div className="flex items-center gap-3 w-full md:w-auto">
+              <div className="flex items-center gap-3 w-full md:w-auto mt-3 md:mt-0 flex-wrap justify-end">
                 <Badge variant="live" className="capitalize">Attivo</Badge>
                 <Button variant="ghost" size="sm" className="hidden md:flex">Gestisci</Button>
                 <Button variant="secondary" size="sm" className="flex-1 md:flex-none">Vedi Statistiche</Button>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => handleManageSubscription(venue.id)}
+                  disabled={isPortalLoading === venue.id}
+                  className="w-full md:w-auto border-vibe-pink text-vibe-pink hover:bg-vibe-pink/10"
+                >
+                  {isPortalLoading === venue.id ? 'Apertura...' : 'Gestisci Abbonamento (CHF)'}
+                </Button>
               </div>
             </Card>
           ))}

@@ -3,27 +3,30 @@
 import { useTranslations } from 'next-intl';
 import { Link, usePathname } from '@/lib/i18n/navigation';
 import { cn } from '@/lib/utils';
+import { Map, Clapperboard, Plus, Compass, User } from 'lucide-react';
 
 /**
- * Navigazione mobile bottom con 5 tab — Mappa, Feed, Crea, Scopri, Profilo.
+ * Navigazione mobile bottom con 5 tab — Stile App Nativo (TikTok/Insta pattern).
  */
 export function BottomNav() {
   const t = useTranslations('nav');
   const pathname = usePathname();
 
   const tabs = [
-    { href: '/map', label: t('map'), icon: '🗺️' },
-    { href: '/feed', label: t('feed'), icon: '▶️' },
-    { href: '/create', label: t('create'), icon: '➕', isCreate: true },
-    { href: '/explore', label: t('explore'), icon: '🔍' },
-    { href: '/profile', label: t('profile'), icon: 'profile' },
+    { href: '/map', label: t('map'), Icon: Map },
+    { href: '/reels', label: 'Reels', Icon: Clapperboard },
+    { href: '/create', label: t('create'), Icon: Plus, isCreate: true },
+    { href: '/explore', label: t('explore'), Icon: Compass },
+    { href: '/profile', label: t('profile'), Icon: User },
   ];
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-vibe-dark/90 backdrop-blur-xl border-t border-white/5">
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-[100] bg-black/60 backdrop-blur-2xl border-t border-white/10 pb-[env(safe-area-inset-bottom)]">
       <div className="flex items-center justify-around h-16 px-2">
         {tabs.map((tab) => {
-          const isActive = pathname?.startsWith(tab.href);
+          // Gestione route attive (reels/feed, ecc)
+          const isActive = pathname === tab.href || pathname?.startsWith(`${tab.href}/`);
+          const Icon = tab.Icon;
           
           if (tab.isCreate) {
             return (
@@ -32,8 +35,8 @@ export function BottomNav() {
                 href={tab.href as any}
                 className="flex flex-col items-center justify-center -mt-5"
               >
-                <div className="w-12 h-12 rounded-2xl bg-vibe-gradient flex items-center justify-center shadow-lg glow-purple transition-transform duration-300 hover:scale-110">
-                  <span className="text-xl">{tab.icon}</span>
+                <div className="w-12 h-12 rounded-full bg-vibe-gradient flex items-center justify-center shadow-[0_0_20px_rgba(255,0,255,0.4)] transition-transform duration-300 hover:scale-105 active:scale-95">
+                  <Icon className="w-6 h-6 text-white" strokeWidth={3} />
                 </div>
               </Link>
             );
@@ -44,18 +47,22 @@ export function BottomNav() {
               key={tab.href}
               href={tab.href as any}
               className={cn(
-                'flex flex-col items-center justify-center gap-0.5 py-1 px-3 rounded-xl transition-all duration-300',
+                'flex flex-col items-center justify-center gap-1 w-16 h-full transition-all duration-300 active:scale-90',
                 isActive
-                  ? 'text-vibe-purple'
-                  : 'text-vibe-text-secondary'
+                  ? 'text-white'
+                  : 'text-white/50 hover:text-white/80'
               )}
             >
-              <span className="text-lg">{tab.icon}</span>
-              <span className="text-[10px] font-medium">
+              <Icon 
+                className={cn('w-6 h-6 transition-all', isActive ? 'scale-110' : '')} 
+                strokeWidth={isActive ? 2.5 : 2} 
+                fill={isActive && tab.label !== 'Reels' && tab.label !== '+' ? 'currentColor' : 'none'}
+              />
+              <span className="text-[10px] font-medium tracking-wide">
                 {tab.label === 'profile' ? t('profile') : tab.label}
               </span>
               {isActive && (
-                <div className="w-1 h-1 rounded-full bg-vibe-purple mt-0.5" />
+                <div className="w-1 h-1 rounded-full bg-white mt-0.5 absolute bottom-1" />
               )}
             </Link>
           );

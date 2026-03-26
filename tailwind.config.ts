@@ -9,15 +9,15 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        'vibe-purple': '#7C3AED',
-        'vibe-cyan': '#06B6D4',
-        'vibe-pink': '#EC4899',
-        'vibe-dark': '#0A0A0F',
-        'vibe-surface': '#111118',
-        'vibe-glass': 'rgba(255,255,255,0.05)',
-        'vibe-border': 'rgba(255,255,255,0.08)',
-        'vibe-text': '#F8F8FF',
-        'vibe-text-secondary': '#A0A0B0',
+        'vibe-purple': 'var(--vibe-purple)',
+        'vibe-cyan': 'var(--vibe-cyan)',
+        'vibe-pink': 'var(--vibe-pink)',
+        'vibe-dark': 'var(--vibe-dark)',
+        'vibe-surface': 'var(--vibe-surface)',
+        'vibe-glass': 'var(--vibe-glass)',
+        'vibe-border': 'var(--vibe-border)',
+        'vibe-text': 'var(--vibe-text)',
+        'vibe-text-secondary': 'var(--vibe-text-secondary)',
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],

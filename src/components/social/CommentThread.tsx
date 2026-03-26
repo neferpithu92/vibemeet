@@ -10,7 +10,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { formatDistanceToNow } from 'date-fns';
 import { it, enUS, de, fr } from 'date-fns/locale';
 import { useLocale } from 'next-intl';
-import Link from 'next/link';
+import { Link } from '@/lib/i18n/navigation';
 
 interface Comment {
   id: string;

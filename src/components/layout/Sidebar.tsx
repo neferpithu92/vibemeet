@@ -1,11 +1,7 @@
 'use client';
 
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { Link, usePathname } from '@/lib/i18n/navigation';
 import { cn } from '@/lib/utils';
-
-
-
 import { useTranslations } from 'next-intl';
 
 /**
@@ -14,6 +10,8 @@ import { useTranslations } from 'next-intl';
 export function Sidebar() {
   const pathname = usePathname();
   const t = useTranslations('nav');
+  // Se vogliamo gestire il piano e la venue nelle traduzioni (opzionale ma buono)
+  // const tB = useTranslations('business');
 
   const sidebarLinks = [
     { href: '/dashboard', label: t('dashboard'), icon: '📊' },
@@ -49,7 +47,7 @@ export function Sidebar() {
           return (
             <Link
               key={link.href}
-              href={link.href}
+              href={link.href as any}
               className={cn(
                 'flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300',
                 isActive

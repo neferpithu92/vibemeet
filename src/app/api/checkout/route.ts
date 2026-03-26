@@ -6,6 +6,7 @@ import { PLAN_LIMITS } from '@/lib/plans';
 /**
  * API per creare una sessione di checkout Stripe.
  * Supporta i piani: Starter, Pro, Enterprise (valuta CHF).
+ * Implementazione Swiss VAT 8.1% dinamica.
  */
 export async function POST(req: Request) {
   try {
@@ -34,9 +35,10 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Piano non valido' }, { status: 400 });
     }
 
-    // Crea sessione di checkout
+    // Crea sessione di checkout con Tax ID Collection (UID svizzero) e Automatic Tax.
+    // L'Automatic Tax capisce la location e applica l'8.1% se configurato in Stripe.
     const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card', 'twint'], // Supporto TWINT per la Svizzera
+      payment_method_types: ['card'], // TWINT è supportato su Stripe ma solo per pagamenti one-off, non recurring al 100% nativo.
       line_items: [
         {
           price_data: {
@@ -47,6 +49,8 @@ export async function POST(req: Request) {
             },
             unit_amount: selectedPlan.amount,
             recurring: { interval: 'month' },
+            // Segnaliamo in Stripe se il pacchetto è inclusive o exclusive di tasse
+            tax_behavior: 'exclusive', 
           },
           quantity: 1,
         },
@@ -54,7 +58,15 @@ export async function POST(req: Request) {
       mode: 'subscription',
       success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard`,
-      customer_email: user.email,
+      customer_email: user.email, // Usa l'email per legare il Customer in Stripe
+      tax_id_collection: {
+        enabled: true, // Richiede l'inserimento dell'UID per P.IVA svizzera
+      },
+      customer_update: {
+        name: 'auto',
+        address: 'auto',
+      },
+      billing_address_collection: 'required', // Richiesto per calcolo IVA accurato in Svizzera
       metadata: {
         userId: user.id,
         entityId,

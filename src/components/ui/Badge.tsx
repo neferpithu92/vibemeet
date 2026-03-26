@@ -7,6 +7,7 @@ interface BadgeProps {
   variant?: BadgeVariant;
   children: React.ReactNode;
   className?: string;
+  onClick?: () => void;
 }
 
 const variantClasses: Record<BadgeVariant, string> = {
@@ -20,9 +21,9 @@ const variantClasses: Record<BadgeVariant, string> = {
 /**
  * Badge per stati — verificato, live, nuovo, premium.
  */
-export function Badge({ variant = 'default', children, className }: BadgeProps) {
+export function Badge({ variant = 'default', children, className, onClick }: BadgeProps) {
   return (
-    <span className={cn(variantClasses[variant], className)}>
+    <span className={cn(variantClasses[variant], className)} onClick={onClick}>
       {variant === 'live' && (
         <span className="w-2 h-2 bg-red-400 rounded-full mr-1.5 animate-pulse" />
       )}

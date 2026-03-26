@@ -38,6 +38,8 @@ import PageTransition from '@/components/layout/PageTransition';
 import SafeHomeWidget from '@/components/safety/SafeHomeWidget';
 import CookieBanner from '@/components/legal/CookieBanner';
 
+import { ThemeProvider } from '@/contexts/ThemeContext';
+
 export default async function RootLayout({
   children,
   params,
@@ -56,10 +58,11 @@ export default async function RootLayout({
   const messages = await getMessages();
 
   return (
-    <html lang={locale} className={`${inter.variable} ${outfit.variable}`}>
+    <html lang={locale} className={`${inter.variable} ${outfit.variable}`} suppressHydrationWarning>
       <body className="bg-vibe-dark text-vibe-text font-sans antialiased">
-        <NextIntlClientProvider locale={locale} messages={messages}>
-          <ToastProvider>
+        <ThemeProvider>
+          <NextIntlClientProvider locale={locale} messages={messages}>
+            <ToastProvider>
             <PageTransition>
               {children}
             </PageTransition>
@@ -68,6 +71,7 @@ export default async function RootLayout({
             <CookieBanner />
           </ToastProvider>
         </NextIntlClientProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

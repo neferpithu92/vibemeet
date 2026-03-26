@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { Link, useRouter } from '@/lib/i18n/navigation';
+import { useSearchParams } from 'next/navigation';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { createClient } from '@/lib/supabase/client';
@@ -89,6 +89,58 @@ export default function LoginPage() {
     setIsLoading(false);
   };
 
+  /** Reset Password */
+  const handleForgotPassword = async () => {
+    if (!email) {
+      setError('Inserisci la tua email per recuperare la password');
+      return;
+    }
+    setIsLoading(true);
+    setError(null);
+    const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/auth/callback`,
+    });
+    if (resetError) {
+      setError(resetError.message);
+    } else {
+      setMessage('Ti abbiamo inviato un link per reimpostare la password. Controlla la tua email! 📧');
+    }
+    setIsLoading(false);
+  };
+
+  /** Verify 2FA code */
+  const handleVerify2FA = async () => {
+    if (!twoFACode || twoFACode.length < 6) {
+      setError('Inserisci il codice a 6 cifre');
+      return;
+    }
+    setIsLoading(true);
+    setError(null);
+    try {
+      const { data: factors } = await supabase.auth.mfa.listFactors();
+      const totpFactor = factors?.totp?.[0];
+      if (!totpFactor) {
+        setError('Nessun fattore 2FA trovato');
+        setIsLoading(false);
+        return;
+      }
+      const { data: challenge, error: challengeError } = await supabase.auth.mfa.challenge({ factorId: totpFactor.id });
+      if (challengeError) throw challengeError;
+      const { error: verifyError } = await supabase.auth.mfa.verify({
+        factorId: totpFactor.id,
+        challengeId: challenge.id,
+        code: twoFACode,
+      });
+      if (verifyError) throw verifyError;
+      router.push('/map');
+      router.refresh();
+    } catch (err: any) {
+      setError(err.message || 'Codice non valido');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="animate-fade-in">
       {/* Logo */}
@@ -138,7 +190,7 @@ export default function LoginPage() {
                   <label className="block text-sm font-medium text-vibe-text-secondary">
                     Password
                   </label>
-                  <button type="button" className="text-xs text-vibe-purple hover:text-vibe-pink transition-colors">
+                  <button type="button" onClick={handleForgotPassword} className="text-xs text-vibe-purple hover:text-vibe-pink transition-colors">
                     Password dimenticata?
                   </button>
                 </div>
@@ -219,7 +271,7 @@ export default function LoginPage() {
               className="input-field text-center text-2xl tracking-[0.5em] mb-4"
               maxLength={6}
             />
-            <Button variant="primary" className="w-full">
+            <Button variant="primary" className="w-full" onClick={handleVerify2FA} isLoading={isLoading}>
               Verifica
             </Button>
             <button

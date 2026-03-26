@@ -7,15 +7,95 @@
    ============================================ */
 
 @layer base {
-  :root {
+  /* Default Theme (Cyberpunk/VIBE Original) */
+  :root, [data-theme='system'], [data-theme='default'] {
     --vibe-purple: #7C3AED;
     --vibe-cyan: #06B6D4;
     --vibe-pink: #EC4899;
     --vibe-dark: #0A0A0F;
     --vibe-surface: #111118;
+    --vibe-glass: rgba(255, 255, 255, 0.05);
     --vibe-border: rgba(255, 255, 255, 0.08);
     --vibe-text: #F8F8FF;
     --vibe-text-secondary: #A0A0B0;
+  }
+
+  /* Neon Theme (High Contrast Cyberpunk) */
+  [data-theme='neon'] {
+    --vibe-purple: #D926A9;
+    --vibe-cyan: #00FF00;
+    --vibe-pink: #FF00FF;
+    --vibe-dark: #000000;
+    --vibe-surface: #0a0a0a;
+    --vibe-glass: rgba(0, 255, 0, 0.05);
+    --vibe-border: rgba(255, 0, 255, 0.2);
+    --vibe-text: #FFFFFF;
+    --vibe-text-secondary: #00FF00;
+  }
+
+  /* Minimal Theme (Monochrome Elegance) */
+  [data-theme='minimal'] {
+    --vibe-purple: #FFFFFF;
+    --vibe-cyan: #CCCCCC;
+    --vibe-pink: #FFFFFF;
+    --vibe-dark: #050505;
+    --vibe-surface: #121212;
+    --vibe-glass: rgba(255, 255, 255, 0.03);
+    --vibe-border: rgba(255, 255, 255, 0.05);
+    --vibe-text: #FFFFFF;
+    --vibe-text-secondary: #888888;
+  }
+
+  /* Aurora Theme (Nordic Aurora Borealis) */
+  [data-theme='aurora'] {
+    --vibe-purple: #2F80ED;
+    --vibe-cyan: #00FFB2;
+    --vibe-pink: #8F94FB;
+    --vibe-dark: #0B111A;
+    --vibe-surface: #131A26;
+    --vibe-glass: rgba(0, 255, 178, 0.05);
+    --vibe-border: rgba(0, 255, 178, 0.1);
+    --vibe-text: #E2F1E7;
+    --vibe-text-secondary: #8E9BAE;
+  }
+
+  /* Sand Theme (Desert/Warm Gold) */
+  [data-theme='sand'] {
+    --vibe-purple: #D4A373;
+    --vibe-cyan: #E9EDC9;
+    --vibe-pink: #FAEDCD;
+    --vibe-dark: #1E1B18;
+    --vibe-surface: #2B2622;
+    --vibe-glass: rgba(212, 163, 115, 0.05);
+    --vibe-border: rgba(212, 163, 115, 0.1);
+    --vibe-text: #FEFAE0;
+    --vibe-text-secondary: #BDAA98;
+  }
+
+  /* Ocean Theme (Deep Aquamarine) */
+  [data-theme='ocean'] {
+    --vibe-purple: #0077B6;
+    --vibe-cyan: #00B4D8;
+    --vibe-pink: #90E0EF;
+    --vibe-dark: #03045E;
+    --vibe-surface: #023E8A;
+    --vibe-glass: rgba(0, 180, 216, 0.1);
+    --vibe-border: rgba(0, 180, 216, 0.15);
+    --vibe-text: #CAF0F8;
+    --vibe-text-secondary: #90E0EF;
+  }
+
+  /* Forest Theme (Dark Earthy Woods) */
+  [data-theme='forest'] {
+    --vibe-purple: #D9F99D;
+    --vibe-cyan: #84CC16;
+    --vibe-pink: #A3E635;
+    --vibe-dark: #141C14;
+    --vibe-surface: #1D2A1D;
+    --vibe-glass: rgba(132, 204, 22, 0.05);
+    --vibe-border: rgba(132, 204, 22, 0.15);
+    --vibe-text: #ECFCCB;
+    --vibe-text-secondary: #A3E635;
   }
 
   * {

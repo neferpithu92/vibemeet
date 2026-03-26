@@ -2,15 +2,17 @@ import { createClient } from '@/lib/supabase/server';
 import DiscoveryClient from '@/components/discovery/DiscoveryClient';
 
 /* ======= DATA CONSTANTS ======= */
+// In production, categories should probably come from i18n json or DB
+// For now, we keep them here but we will translate them inside the DiscoveryClient
 const categories = [
-  { id: 'all', label: 'Tutto', icon: '🌟' },
-  { id: 'club', label: 'Club', icon: '🎵' },
-  { id: 'bar', label: 'Bar', icon: '🍸' },
-  { id: 'festival', label: 'Festival', icon: '🎪' },
-  { id: 'outdoor', label: 'All\'aperto', icon: '🌿' },
-  { id: 'restaurant', label: 'Cibo', icon: '🍕' },
-  { id: 'art', label: 'Arte', icon: '🎨' },
-  { id: 'sport', label: 'Sport', icon: '⚽' },
+  { id: 'all', label: 'common.all', icon: '🌟' },
+  { id: 'club', label: 'common.club', icon: '🎵' },
+  { id: 'bar', label: 'common.bar', icon: '🍸' },
+  { id: 'festival', label: 'common.festival', icon: '🎪' },
+  { id: 'outdoor', label: 'common.outdoor', icon: '🌿' },
+  { id: 'restaurant', label: 'common.food', icon: '🍕' },
+  { id: 'art', label: 'common.art', icon: '🎨' },
+  { id: 'sport', label: 'common.sport', icon: '⚽' },
 ];
 
 /**

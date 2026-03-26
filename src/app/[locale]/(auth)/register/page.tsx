@@ -1,8 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useState, useRef } from 'react';
+import { Link, useRouter } from '@/lib/i18n/navigation';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { createClient } from '@/lib/supabase/client';
@@ -44,6 +43,9 @@ export default function RegisterPage() {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const [locationGranted, setLocationGranted] = useState(false);
+  const avatarInputRef = useRef<HTMLInputElement>(null);
 
   const stepIndex = steps.indexOf(currentStep);
   const progress = ((stepIndex + 1) / steps.length) * 100;
@@ -111,7 +113,20 @@ export default function RegisterPage() {
       return;
     }
 
-    // 2. Redirect a /onboarding per completare il profilo
+    // 2. Upload avatar if selected
+    if (avatarPreview && avatarInputRef.current?.files?.[0]) {
+      const file = avatarInputRef.current.files[0];
+      const ext = file.name.split('.').pop();
+      const { data: uploadData } = await supabase.storage.from('avatars').upload(
+        `${authData.user?.id}/avatar.${ext}`, file, { upsert: true }
+      );
+      if (uploadData) {
+        const { data: publicData } = supabase.storage.from('avatars').getPublicUrl(uploadData.path);
+        await supabase.from('users').update({ avatar_url: publicData.publicUrl }).eq('id', authData.user?.id);
+      }
+    }
+
+    // 3. Redirect a /onboarding per completare il profilo
     // Il profilo viene creato automaticamente dal trigger database
     router.push('/onboarding');
     router.refresh();
@@ -213,10 +228,27 @@ export default function RegisterPage() {
         {currentStep === 'profile' && (
           <div className="space-y-4 animate-fade-in">
             <div className="text-center mb-4">
-              <div className="w-24 h-24 rounded-full bg-vibe-gradient/20 flex items-center justify-center mx-auto cursor-pointer hover:bg-vibe-gradient/30 transition-all">
-                <span className="text-3xl">📸</span>
+              <div 
+                onClick={() => avatarInputRef.current?.click()}
+                className="w-24 h-24 rounded-full bg-vibe-gradient/20 flex items-center justify-center mx-auto cursor-pointer hover:bg-vibe-gradient/30 transition-all overflow-hidden"
+              >
+                {avatarPreview ? (
+                  <img src={avatarPreview} alt="Avatar" className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-3xl">📸</span>
+                )}
               </div>
-              <p className="text-xs text-vibe-text-secondary mt-2">Tocca per aggiungere una foto</p>
+              <input 
+                ref={avatarInputRef}
+                type="file" 
+                accept="image/*" 
+                className="hidden" 
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) setAvatarPreview(URL.createObjectURL(file));
+                }}
+              />
+              <p className="text-xs text-vibe-text-secondary mt-2">{avatarPreview ? 'Foto selezionata ✓' : 'Tocca per aggiungere una foto'}</p>
             </div>
             <div>
               <label className="block text-sm font-medium text-vibe-text-secondary mb-1.5">Username</label>
@@ -281,6 +313,29 @@ export default function RegisterPage() {
             <p className="text-sm text-vibe-text-secondary mb-6">
               VIBE funziona meglio sapendo dove ti trovi. Scopri eventi, venue e persone vicine a te.
             </p>
+            {locationGranted ? (
+              <div className="flex items-center justify-center gap-2 text-green-400 font-bold text-sm">
+                <span>✅</span> Posizione abilitata!
+              </div>
+            ) : (
+              <Button 
+                variant="secondary" 
+                className="w-full"
+                onClick={() => {
+                  if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(
+                      () => setLocationGranted(true),
+                      () => setError('Permesso GPS negato. Puoi continuare senza.'),
+                      { enableHighAccuracy: true, timeout: 5000 }
+                    );
+                  } else {
+                    setError('Geolocalizzazione non supportata');
+                  }
+                }}
+              >
+                📍 Abilita GPS
+              </Button>
+            )}
           </div>
         )}
 

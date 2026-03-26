@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Switch } from '@/components/ui/Switch';
 import { createClient } from '@/lib/supabase/client';
-import { useRouter } from 'next/navigation';
+import { useRouter } from '@/lib/i18n/navigation';
 
 interface SettingsPageProps {
   initialSettings: any;
@@ -28,13 +28,18 @@ export default function SettingsPage({ initialSettings, user }: SettingsPageProp
     push_events: true,
     push_safety: true,
     theme: 'dark',
-    language: 'it'
+    language: 'it',
+    location_radius: '500m',
+    event_anon_mode: false,
+    checkin_visibility: 'followers'
   });
   
   const [isSaving, setIsSaving] = useState(false);
   const [email, setEmail] = useState(user?.email || '');
   const [password, setPassword] = useState('');
   const [qrCode, setQrCode] = useState('');
+  const [username, setUsername] = useState(user?.username || '');
+  const [fullName, setFullName] = useState(user?.full_name || user?.display_name || '');
 
   const handleToggle = (key: string) => {
     setSettings((prev: Record<string, any>) => ({ ...prev, [key]: !prev[key] }));
@@ -53,12 +58,17 @@ export default function SettingsPage({ initialSettings, user }: SettingsPageProp
         push_events: settings.push_events,
         push_safety: settings.push_safety,
         theme: settings.theme,
-        language: settings.language
+        language: settings.language,
+        location_radius: settings.location_radius,
+        event_anon_mode: settings.event_anon_mode,
+        checkin_visibility: settings.checkin_visibility
       }).eq('user_id', user?.id);
 
       await supabase.from('users').update({
         account_type: settings.is_private ? 'private' : 'public',
-        language: settings.language
+        language: settings.language,
+        username: username || undefined,
+        display_name: fullName || undefined,
       }).eq('id', user?.id);
 
       alert('Impostazioni salvate con successo!');
@@ -161,20 +171,31 @@ export default function SettingsPage({ initialSettings, user }: SettingsPageProp
               </div>
               <div>
                 <label className="text-xs text-vibe-text-secondary font-bold uppercase mb-1 block">Username</label>
-                <input type="text" defaultValue={user?.username || ''} className="input-field py-2" />
+                <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} className="input-field py-2" />
               </div>
               <div>
                 <label className="text-xs text-vibe-text-secondary font-bold uppercase mb-1 block">Nome Completo</label>
-                <input type="text" defaultValue={user?.full_name || ''} className="input-field py-2" />
+                <input type="text" value={fullName} onChange={(e) => setFullName(e.target.value)} className="input-field py-2" />
               </div>
               <div>
                 <label className="text-xs text-vibe-text-secondary font-bold uppercase mb-1 block">Lingua</label>
-                <select value={settings.language} onChange={e => handleToggle('language')} className="input-field py-2">
+                <select value={settings.language} onChange={e => setSettings((prev: Record<string, any>) => ({ ...prev, language: e.target.value }))} className="input-field py-2">
                   <option value="it">Italiano</option>
                   <option value="en">English</option>
                   <option value="de">Deutsch</option>
                   <option value="fr">Français</option>
                 </select>
+              </div>
+
+              <div className="pt-4 mt-6 border-t border-white/10">
+                <Button 
+                  onClick={() => router.push('/settings/theme')}
+                  variant="outline" 
+                  className="w-full justify-between"
+                >
+                  🎨 Theme Engine (Aspetto)
+                  <span>→</span>
+                </Button>
               </div>
             </div>
           </div>
@@ -203,6 +224,64 @@ export default function SettingsPage({ initialSettings, user }: SettingsPageProp
                   </p>
                 </div>
                 <Switch checked={settings.show_activity} onChange={() => handleToggle('show_activity')} />
+              </div>
+
+              <div className="pt-4 border-t border-white/10 space-y-6">
+                <h3 className="font-bold text-vibe-text">Visibilità e Anonimato</h3>
+                
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="font-semibold text-vibe-text">Modo Anonimo per Eventi</h3>
+                    <p className="text-xs text-vibe-text-secondary mt-1">
+                      Nasconde il tuo profilo dagli RSVP, pur conteggiando la tua presenza.
+                    </p>
+                  </div>
+                  <Switch checked={settings.event_anon_mode} onChange={() => handleToggle('event_anon_mode')} />
+                </div>
+
+                <div>
+                  <label className="font-semibold text-vibe-text block mb-2">Visibilità Check-in</label>
+                  <p className="text-xs text-vibe-text-secondary mb-3">
+                    Decidi chi può vedere i tuoi check-in sui locali della mappa.
+                  </p>
+                  <select 
+                    value={settings.checkin_visibility} 
+                    onChange={e => setSettings((prev: any) => ({ ...prev, checkin_visibility: e.target.value }))} 
+                    className="input-field py-2"
+                  >
+                    <option value="everyone">Tutti</option>
+                    <option value="followers">Solo Amici/Follower</option>
+                    <option value="none">Nessuno</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="font-semibold text-vibe-text block mb-2">Raggio Posizione VIBE (Heatmap)</label>
+                  <p className="text-xs text-vibe-text-secondary mb-3">
+                    Scegli con che precisione condividere i tuoi dati anonimizzati per le Heatmap e per i suggerimenti vicino a te.
+                  </p>
+                  <select 
+                    value={settings.location_radius} 
+                    onChange={e => setSettings((prev: any) => ({ ...prev, location_radius: e.target.value }))} 
+                    className="input-field py-2"
+                  >
+                    <option value="100m">Preciso (100m)</option>
+                    <option value="500m">Quartiere (500m)</option>
+                    <option value="city">Città</option>
+                    <option value="off">Off (Invisibile / Modalità Fantasma)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="pt-4 border-t border-white/10 mt-6">
+                <Button 
+                  onClick={() => router.push('/settings/blocks')}
+                  variant="outline" 
+                  className="w-full justify-between"
+                >
+                  🛡️ Gestione Utenti Bloccati
+                  <span>→</span>
+                </Button>
               </div>
             </div>
           </div>

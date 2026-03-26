@@ -31,6 +31,7 @@ export default function MediaUpload({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const supabase = createClient();
   const xhrRef = useRef<XMLHttpRequest | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
 
   useEffect(() => {
     const handleOnline = () => setIsOffline(false);
@@ -135,7 +136,31 @@ export default function MediaUpload({
     <div className="space-y-4">
       <div 
         onClick={() => status === 'idle' && fileInputRef.current?.click()}
-        className={`relative ${ratioClass} w-full rounded-2xl border-2 border-dashed border-white/10 bg-white/5 flex flex-col items-center justify-center transition-all overflow-hidden group ${status === 'idle' ? 'cursor-pointer hover:bg-white/10' : ''}`}
+        onDragOver={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          if (status === 'idle') setIsDragging(true);
+        }}
+        onDragLeave={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          setIsDragging(false);
+        }}
+        onDrop={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          setIsDragging(false);
+          if (status !== 'idle') return;
+          const droppedFile = e.dataTransfer.files?.[0];
+          if (droppedFile && (droppedFile.type.startsWith('image/') || droppedFile.type.startsWith('video/'))) {
+            setFile(droppedFile);
+            setPreview(URL.createObjectURL(droppedFile));
+            setStatus('idle');
+            setProgress(0);
+            startUpload(droppedFile);
+          }
+        }}
+        className={`relative ${ratioClass} w-full rounded-2xl border-2 border-dashed ${isDragging ? 'border-vibe-purple bg-vibe-purple/10' : 'border-white/10 bg-white/5'} flex flex-col items-center justify-center transition-all overflow-hidden group ${status === 'idle' ? 'cursor-pointer hover:bg-white/10' : ''}`}
       >
         {preview ? (
           file?.type.startsWith('video') ? (

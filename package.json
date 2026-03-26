@@ -12,9 +12,12 @@
     "@stripe/stripe-js": "^8.10.0",
     "@supabase/ssr": "^0.9.0",
     "@supabase/supabase-js": "^2.99.2",
+    "@upstash/ratelimit": "^2.0.8",
+    "@upstash/redis": "^1.37.0",
     "clsx": "^2",
     "date-fns": "^4.1.0",
     "framer-motion": "^12.38.0",
+    "libsodium-wrappers": "^0.8.2",
     "lucide-react": "^0.577.0",
     "mapbox-gl": "^3.20.0",
     "next": "^16.1.7",
@@ -27,6 +30,7 @@
     "tailwind-merge": "^2"
   },
   "devDependencies": {
+    "@types/libsodium-wrappers": "^0.7.14",
     "@types/node": "^25.5.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",

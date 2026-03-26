@@ -10,6 +10,7 @@ import { Avatar } from '@/components/ui/Avatar';
 import { MapView } from '@/components/map/MapView';
 import { VenueMarker, EventMarker, StoryMarker, PresenceMarker, MediaMarker } from '@/components/map/Markers';
 import MapSearch from '@/components/map/MapSearch';
+import HeatmapLayer from '@/components/map/HeatmapLayer';
 import ActivityFeed from '@/components/social/ActivityFeed';
 
 import { useMapRealtime } from '@/lib/supabase/useMapRealtime';
@@ -101,6 +102,8 @@ export default function MapPage() {
   const [showFilters, setShowFilters] = useState(false);
   const [showActivity, setShowActivity] = useState(false);
   const [isFollowing, setIsFollowing] = useState(false);
+  const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
+  const [dateFilter, setDateFilter] = useState<'today' | 'upcoming' | 'all'>('all');
   
   const [venues, setVenues] = useState<MapVenue[]>([]);
   const [events, setEvents] = useState<MapEvent[]>([]);
@@ -200,6 +203,9 @@ export default function MapPage() {
         <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 w-full max-w-xs px-2 pointer-events-auto">
           <MapSearch />
         </div>
+
+        {/* Heatmap Layer */}
+        <HeatmapLayer visible={isLayerActive('heatmap') || false} />
 
         {/* Render markers per Venues */}
         {isLayerActive('venues') && venues.map(venue => (
@@ -336,7 +342,11 @@ export default function MapPage() {
               <label className="block text-xs font-bold text-vibe-text-secondary uppercase mb-3 text-left">{te('filters.genre')}</label>
               <div className="flex flex-wrap gap-2 text-left">
                 {['Techno', 'House', 'Jazz', 'Hip-Hop', 'Pop'].map(g => (
-                  <Badge key={g} className="cursor-pointer hover:bg-vibe-purple/20">{g}</Badge>
+                  <Badge 
+                    key={g} 
+                    className={`cursor-pointer transition-colors ${selectedGenres.includes(g) ? 'bg-vibe-purple/30 text-vibe-purple ring-1 ring-vibe-purple/50' : 'hover:bg-vibe-purple/20'}`}
+                    onClick={() => setSelectedGenres(prev => prev.includes(g) ? prev.filter(x => x !== g) : [...prev, g])}
+                  >{g}</Badge>
                 ))}
               </div>
             </div>
@@ -344,8 +354,8 @@ export default function MapPage() {
             <div className="text-left">
               <label className="block text-xs font-bold text-vibe-text-secondary uppercase mb-3">{te('filters.date')}</label>
               <div className="grid grid-cols-2 gap-2">
-                <Button variant="ghost" size="sm" className="text-xs">{te('today')}</Button>
-                <Button variant="ghost" size="sm" className="text-xs">{te('upcoming')}</Button>
+                <Button variant={dateFilter === 'today' ? 'primary' : 'ghost'} size="sm" className="text-xs" onClick={() => setDateFilter(dateFilter === 'today' ? 'all' : 'today')}>{te('today')}</Button>
+                <Button variant={dateFilter === 'upcoming' ? 'primary' : 'ghost'} size="sm" className="text-xs" onClick={() => setDateFilter(dateFilter === 'upcoming' ? 'all' : 'upcoming')}>{te('upcoming')}</Button>
               </div>
             </div>
           </div>

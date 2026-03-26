@@ -63,6 +63,7 @@ export function Navbar() {
   const navLinks = [
     { href: '/map', label: t('map'), icon: '🗺️' },
     { href: '/feed', label: t('feed'), icon: '▶️' },
+    { href: '/reels', label: 'Reels', icon: '🎬' },
     { href: '/explore', label: t('explore'), icon: '🔍' },
     { href: '/events', label: t('events'), icon: '🎉' },
   ];

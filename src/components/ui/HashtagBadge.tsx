@@ -1,7 +1,6 @@
 'use client';
 
-import Link from 'next/link';
-import { useParams } from 'next/navigation';
+import { Link } from '@/lib/i18n/navigation';
 
 interface HashtagBadgeProps {
   tag: string;
@@ -14,12 +13,9 @@ interface HashtagBadgeProps {
  * HashtagBadge — Clickable hashtag badge that navigates to /explore/hashtag/[tag]
  */
 export function HashtagBadge({ tag, count, size = 'sm', trending = false }: HashtagBadgeProps) {
-  const params = useParams();
-  const locale = params?.locale || 'it';
-
   return (
     <Link
-      href={`/${locale}/explore/hashtag/${encodeURIComponent(tag)}`}
+      href={`/explore/hashtag/${encodeURIComponent(tag)}`}
       className={`
         inline-flex items-center gap-1.5 rounded-full font-semibold transition-all duration-300
         hover:scale-105 hover:shadow-lg

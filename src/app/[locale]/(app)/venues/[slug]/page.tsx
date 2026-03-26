@@ -4,7 +4,7 @@ import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Avatar } from '@/components/ui/Avatar';
-import Link from 'next/link';
+import { Link } from '@/lib/i18n/navigation';
 
 import FollowButton from '@/components/social/FollowButton';
 import CheckInButton from '@/components/social/CheckInButton';

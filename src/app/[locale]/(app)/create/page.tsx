@@ -6,7 +6,8 @@ import { Button } from '@/components/ui/Button';
 import CreateStory from '@/components/feed/CreateStory';
 import CreatePost from '@/components/feed/CreatePost';
 import CreateEvent from '@/components/events/CreateEvent';
-import { useRouter } from 'next/navigation';
+import { useRouter } from '@/lib/i18n/navigation';
+import { useTranslations } from 'next-intl';
 
 /**
  * Pagina di creazione hub per iniziare una Storia, un Post o un Evento.
@@ -16,6 +17,7 @@ export default function CreateHubPage() {
   const [isPostOpen, setIsPostOpen] = useState(false);
   const [isEventOpen, setIsEventOpen] = useState(false);
   const router = useRouter();
+  const t = useTranslations('create');
 
   const handleSuccess = () => {
     // Dopo il successo, reindirizziamo al feed o dashboard
@@ -105,7 +107,6 @@ export default function CreateHubPage() {
         isOpen={isEventOpen}
         onClose={() => setIsEventOpen(false)}
         onSuccess={() => router.push('/dashboard')}
-        venueId="pending" // TODO: Add logic to select venue if multi-venue owner
       />
     </div>
   );

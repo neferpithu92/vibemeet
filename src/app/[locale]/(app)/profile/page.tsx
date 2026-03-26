@@ -1,8 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter, usePathname, useParams } from 'next/navigation';
+import { useRouter, usePathname } from '@/lib/i18n/navigation';
+import { useParams } from 'next/navigation';
 import { useTranslations, useLocale } from 'next-intl';
+import { locales } from '@/lib/i18n/config';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
@@ -14,7 +16,7 @@ import { createClient } from '@/lib/supabase/client';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { Share2, Edit3, Settings, LogOut } from 'lucide-react';
 
-const tabs = ['Post', 'Eventi', 'Salvati'] as const;
+const tabs = ['Post', 'Events', 'Saved'] as const;
 
 const userPosts = [
   { id: '1', type: 'photo', likes: 45, comments: 8, venue: 'Club Paradiso' },
@@ -187,7 +189,7 @@ export default function ProfilePage() {
     const shareData = {
       title: `Profilo di ${profile?.display_name || profile?.username} su Vibe`,
       text: profile?.bio || 'Scopri il mio profilo su Vibe!',
-      url: window.location.href
+      url: typeof window !== 'undefined' ? window.location.href : ''
     };
 
     if (navigator.share) {
@@ -203,14 +205,10 @@ export default function ProfilePage() {
   };
 
   const handleLanguageToggle = () => {
-    const supportedLocales = ['it', 'en', 'de', 'fr', 'rm'];
-    const currentIndex = supportedLocales.indexOf(locale);
-    const nextLocale = supportedLocales[(currentIndex + 1) % supportedLocales.length];
+    const currentIndex = locales.indexOf(locale as any);
+    const nextLocale = locales[(currentIndex + 1) % locales.length];
     
-    // Replace the locale in the current path
-    // Assuming pattern is /[locale]/...
-    const newPath = pathname.replace(`/${locale}`, `/${nextLocale}`);
-    router.push(newPath);
+    router.replace(pathname, { locale: nextLocale });
   };
 
   const handlePrivacyToggle = async () => {
@@ -277,7 +275,7 @@ export default function ProfilePage() {
       <div className="max-w-2xl mx-auto px-4 py-4">
         {/* Header con impostazioni */}
         <div className="flex items-center justify-between mb-6">
-          <h1 className="font-display text-2xl font-bold vibe-gradient-text">Profilo</h1>
+          <h1 className="font-display text-2xl font-bold vibe-gradient-text">{t('title')}</h1>
           <button className="glass-card p-2 hover:bg-white/10 transition-all rounded-xl">
             <svg className="w-5 h-5 text-vibe-text" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
@@ -292,12 +290,12 @@ export default function ProfilePage() {
             <div className="relative group cursor-pointer" onClick={() => setIsCropperOpen(true)}>
               <Avatar size="xl" src={profile?.avatar_url} fallback={profile?.display_name || 'U'} />
               <div className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                <span className="text-white text-xs font-bold">Modifica</span>
+                <span className="text-white text-xs font-bold">{t('editProfile')}</span>
               </div>
             </div>
             <div className="flex-1 text-center sm:text-left">
               <div className="flex items-center gap-2 justify-center sm:justify-start">
-                <h2 className="font-display text-xl font-bold">{profile?.display_name || 'Utente'}</h2>
+                <h2 className="font-display text-xl font-bold">{profile?.display_name || 'Vibe User'}</h2>
                 {profile?.is_verified && <Badge variant="verified">✓</Badge>}
               </div>
               <p className="text-sm text-vibe-text-secondary">@{profile?.username || 'utente'}</p>
@@ -360,7 +358,7 @@ export default function ProfilePage() {
                 />
               )}
               <span className="relative z-10">
-                {tab === 'Post' ? '📷' : tab === 'Eventi' ? '📍' : '🔖'} {tab}
+                {tab === 'Post' ? '📷' : tab === 'Events' ? '📍' : '🔖'} {t(tab.toLowerCase() as any)}
               </span>
             </button>
           ))}
@@ -399,11 +397,11 @@ export default function ProfilePage() {
               </motion.div>
             )) : (
               <div className="col-span-3 py-20 text-center glass-card border-dashed">
-                <p className="text-vibe-text-secondary text-sm">Non hai ancora postato nulla 📷</p>
+                <p className="text-vibe-text-secondary text-sm">{t('noContent')} 📷</p>
               </div>
             )}
           </div>
-        ) : activeTab === 'Eventi' ? (
+        ) : activeTab === 'Events' ? (
           <div className="space-y-3">
             {checkIns.length > 0 ? checkIns.map((ci) => {
               const v = Array.isArray(ci.venue) ? ci.venue[0] : ci.venue;
@@ -411,10 +409,10 @@ export default function ProfilePage() {
               return (
                 <Card key={ci.id} className="p-4 flex items-center justify-between hover:bg-white/10 transition-all cursor-pointer">
                   <div>
-                    <h4 className="font-bold text-sm">{v?.name || e?.title || 'Check-in'}</h4>
-                    <p className="text-xs text-vibe-text-secondary">{v?.address || 'Posizione registrata'}</p>
+                    <h4 className="font-bold text-sm">{v?.name || e?.title || t('checkIn')}</h4>
+                    <p className="text-xs text-vibe-text-secondary">{v?.address || t('nearby')}</p>
                     <p className="text-[10px] text-vibe-purple mt-1 font-medium">
-                      {new Date(ci.created_at).toLocaleDateString('it-CH', { day: 'numeric', month: 'long' })}
+                      {new Date(ci.created_at).toLocaleDateString(locale, { day: 'numeric', month: 'long' })}
                     </p>
                   </div>
                   <Badge variant="live">CHECK-IN</Badge>
@@ -422,13 +420,13 @@ export default function ProfilePage() {
               );
             }) : (
               <div className="py-20 text-center glass-card border-dashed">
-                <p className="text-vibe-text-secondary text-sm">Nessun evento o check-in recente 📍</p>
+                <p className="text-vibe-text-secondary text-sm">{t('noContent')} 📍</p>
               </div>
             )}
           </div>
         ) : (
           <div className="py-20 text-center glass-card border-dashed">
-            <p className="text-vibe-text-secondary text-sm">Elementi salvati appariranno qui 🔖</p>
+            <p className="text-vibe-text-secondary text-sm">{t('noContent')} 🔖</p>
           </div>
         )}
           </motion.div>
