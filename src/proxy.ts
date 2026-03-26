@@ -2,6 +2,23 @@ import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 import createIntlMiddleware from 'next-intl/middleware';
 import { locales, defaultLocale } from './lib/i18n/config';
+import { Ratelimit } from '@upstash/ratelimit';
+import { Redis } from '@upstash/redis';
+
+// Initialize the ratelimiter
+let ratelimit: Ratelimit | null = null;
+try {
+  if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
+    ratelimit = new Ratelimit({
+      redis: Redis.fromEnv(),
+      limiter: Ratelimit.slidingWindow(50, '10 s'),
+      analytics: true,
+      prefix: '@upstash/ratelimit',
+    });
+  }
+} catch (e) {
+  console.warn("Ratelimiter non configurato");
+}
 
 /**
  * Proxy — protegge le route (app), gestisce i locale e il refresh dei token di sessione.
@@ -12,8 +29,23 @@ export async function proxy(request: NextRequest) {
     console.log('Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL);
   }
 
-  // 1. Check if it's an auth callback to skip i18n
+  // 0. Extract pathname for routing and rate limiting
   const { pathname } = request.nextUrl;
+
+  // 1. Rate Limiting for API routes
+  if (pathname.startsWith('/api') && ratelimit) {
+    const ip = request.headers.get('x-forwarded-for') ?? '127.0.0.1';
+    const { success, reset } = await ratelimit.limit(ip);
+    
+    if (!success) {
+      return NextResponse.json(
+        { error: 'Too many requests - Fort Knox Activated.' },
+        { status: 429, headers: { 'Retry-After': reset.toString() } }
+      );
+    }
+  }
+
+  // 2. Check if it's an auth callback to skip i18n
   const isAuthCallback = pathname.startsWith('/auth/callback');
 
   let response: NextResponse;

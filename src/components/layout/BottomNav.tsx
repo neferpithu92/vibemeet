@@ -3,7 +3,7 @@
 import { useTranslations } from 'next-intl';
 import { Link, usePathname } from '@/lib/i18n/navigation';
 import { cn } from '@/lib/utils';
-import { Map, Clapperboard, Plus, Compass, User } from 'lucide-react';
+import { Map, Clapperboard, Plus, MessageSquare, User } from 'lucide-react';
 
 /**
  * Navigazione mobile bottom con 5 tab — Stile App Nativo (TikTok/Insta pattern).
@@ -16,7 +16,7 @@ export function BottomNav() {
     { href: '/map', label: t('map'), Icon: Map },
     { href: '/reels', label: 'Reels', Icon: Clapperboard },
     { href: '/create', label: t('create'), Icon: Plus, isCreate: true },
-    { href: '/explore', label: t('explore'), Icon: Compass },
+    { href: '/chat', label: 'Chat', Icon: MessageSquare },
     { href: '/profile', label: t('profile'), Icon: User },
   ];
 

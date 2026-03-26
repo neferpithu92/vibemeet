@@ -273,7 +273,15 @@ export default function SettingsPage({ initialSettings, user }: SettingsPageProp
                 </div>
               </div>
 
-              <div className="pt-4 border-t border-white/10 mt-6">
+              <div className="pt-4 border-t border-white/10 mt-6 space-y-2">
+                <Button 
+                  onClick={() => router.push('/settings/privacy')}
+                  variant="outline" 
+                  className="w-full justify-between"
+                >
+                  🔵 Social Circles (Whitelist & Visibilità)
+                  <span>→</span>
+                </Button>
                 <Button 
                   onClick={() => router.push('/settings/blocks')}
                   variant="outline" 

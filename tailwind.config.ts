@@ -1,5 +1,15 @@
 import type { Config } from 'tailwindcss';
 
+const withOpacity = (variableName: string): any => {
+  return ({ opacityValue }: { opacityValue?: string }) => {
+    if (opacityValue === undefined) {
+      return `var(${variableName})`;
+    }
+    // Fallback simpler replacement to avoid Turbopack @apply crashes with color-mix
+    return `rgba(var(${variableName}-rgb), ${opacityValue})`;
+  };
+};
+
 const config: Config = {
   content: [
     './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
@@ -9,15 +19,15 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        'vibe-purple': 'var(--vibe-purple)',
-        'vibe-cyan': 'var(--vibe-cyan)',
-        'vibe-pink': 'var(--vibe-pink)',
-        'vibe-dark': 'var(--vibe-dark)',
-        'vibe-surface': 'var(--vibe-surface)',
+        'vibe-purple': withOpacity('--vibe-purple'),
+        'vibe-cyan': withOpacity('--vibe-cyan'),
+        'vibe-pink': withOpacity('--vibe-pink'),
+        'vibe-dark': withOpacity('--vibe-dark'),
+        'vibe-surface': withOpacity('--vibe-surface'),
         'vibe-glass': 'var(--vibe-glass)',
         'vibe-border': 'var(--vibe-border)',
-        'vibe-text': 'var(--vibe-text)',
-        'vibe-text-secondary': 'var(--vibe-text-secondary)',
+        'vibe-text': withOpacity('--vibe-text'),
+        'vibe-text-secondary': withOpacity('--vibe-text-secondary'),
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],

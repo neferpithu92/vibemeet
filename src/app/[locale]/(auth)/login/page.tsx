@@ -6,6 +6,7 @@ import { useSearchParams } from 'next/navigation';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { createClient } from '@/lib/supabase/client';
+import { generateKeyPairFromPassword } from '@/lib/encryption';
 
 /**
  * Pagina Login — email/password, OAuth, magic link, 2FA.
@@ -44,6 +45,36 @@ export default function LoginPage() {
       setError(authError.message);
       setIsLoading(false);
       return;
+    }
+
+    // --- VEL Key Restoration ---
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        // Recuperiamo la public_key registrata dal profilo utente (tabella users)
+        const { data: userData } = await supabase
+          .from('users')
+          .select('public_key')
+          .eq('id', user.id)
+          .single();
+
+        // Ricalcoliamo il KeyPair in modo deterministico
+        const cryptoKeys = await generateKeyPairFromPassword(password, email);
+
+        // Validazione integrità crittografica
+        if (userData?.public_key && userData.public_key !== cryptoKeys.publicKey) {
+          console.error("VEL ALERT: Cryptographic mismatch. Messages might be unreadable.");
+          // Opzionale: notificabilità all'utente
+        }
+
+        // Persistenza session-only
+        if (typeof window !== 'undefined') {
+          sessionStorage.setItem('vibe_public_key', cryptoKeys.publicKey);
+          sessionStorage.setItem('vibe_private_key', cryptoKeys.privateKey);
+        }
+      }
+    } catch (e) {
+      console.warn("VEL Restoration failed during login.", e);
     }
 
     router.push('/map');

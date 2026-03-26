@@ -8,6 +8,9 @@ import { Badge } from '@/components/ui/Badge';
 import { useToast } from '@/components/ui/ToastProvider';
 import { createClient } from '@/lib/supabase/client';
 import CreateStory from './CreateStory';
+import { mutationManager } from '@/lib/social/MutationManager';
+import { useEffect } from 'react';
+
 
 interface FeedProfile {
   username: string;
@@ -44,12 +47,48 @@ export default function FeedClient({ initialPosts, stories }: FeedClientProps) {
   const [likedPosts, setLikedPosts] = useState<Set<string>>(new Set());
   const [savedPosts, setSavedPosts] = useState<Set<string>>(new Set());
 
+  // GEM-Core Alpha: Global ID tracking & Impressions
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) {
+        mutationManager.setUserId(user.id);
+        
+        // Track impressions for all initially loaded posts
+        initialPosts.forEach(post => {
+          const profile = Array.isArray(post.profiles) ? post.profiles[0] : post.profiles;
+          mutationManager.record({
+            post_id: post.id,
+            author_id: profile?.username || 'unknown', // Ideally we'd have author_id, using username as fallback
+            type: 'view',
+            affinity_inc: 0.05 // Feed impression has lower weight than vertical watch
+          });
+        });
+      }
+    });
+  }, [supabase.auth, initialPosts]);
+
+
   const handleLike = async (postId: string) => {
     const isLiked = likedPosts.has(postId);
     // Optimistic update
     setLikedPosts(prev => {
       const next = new Set(prev);
-      isLiked ? next.delete(postId) : next.add(postId);
+      if (!isLiked) {
+        // Record high-throughput interaction
+        const profile = Array.isArray(initialPosts.find(p => p.id === postId)?.profiles) 
+          ? (initialPosts.find(p => p.id === postId)?.profiles as FeedProfile[])[0] 
+          : (initialPosts.find(p => p.id === postId)?.profiles as FeedProfile);
+          
+        mutationManager.record({
+          post_id: postId,
+          author_id: profile?.username || 'unknown',
+          type: 'like',
+          affinity_inc: 2.0
+        });
+        next.add(postId);
+      } else {
+        next.delete(postId);
+      }
       return next;
     });
     try {

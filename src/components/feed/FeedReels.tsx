@@ -8,6 +8,10 @@ import { Button } from '@/components/ui/Button';
 import { Link } from '@/lib/i18n/navigation';
 import { useTranslations } from 'next-intl';
 import { createClient } from '@/lib/supabase/client';
+import { Heart, MessageCircle, Send, MapPin, ChevronLeft, ChevronUp } from 'lucide-react';
+import CommentsDrawer from './CommentsDrawer';
+import { mutationManager } from '@/lib/social/MutationManager';
+
 
 interface ReelItem {
   id: string;
@@ -48,6 +52,8 @@ export default function FeedReels({ initialReels = [] }: FeedReelsProps) {
   const [likedReels, setLikedReels] = useState<Set<string>>(new Set());
   const [cursor, setCursor] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(true);
+  const [showHeart, setShowHeart] = useState<{ id: string, x: number, y: number } | null>(null);
+  const [activeCommentReel, setActiveCommentReel] = useState<string | null>(null);
   const videoRefs = useRef<Map<string, HTMLVideoElement>>(new Map());
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -65,6 +71,19 @@ export default function FeedReels({ initialReels = [] }: FeedReelsProps) {
         // Assuming data.items returns ReelItems. Filtering locally if backend returns mixed content
         const newReels = (data.items || []).filter((item: any) => item.media_type === 'video');
         
+        // NEW: Populate likedReels state from backend results
+        const newlyLiked = newReels
+          .filter((r: any) => r.is_liked)
+          .map((r: any) => r.id);
+        
+        if (newlyLiked.length > 0) {
+          setLikedReels(prev => {
+            const next = new Set(prev);
+            newlyLiked.forEach((id: string) => next.add(id));
+            return next;
+          });
+        }
+
         // If not enough video items returned, we might consider we've hit the end for reels (simplification)
         if (!data.nextCursor || newReels.length === 0) setHasMore(false);
         setCursor(data.nextCursor || null);
@@ -84,10 +103,35 @@ export default function FeedReels({ initialReels = [] }: FeedReelsProps) {
     }
   }, [fetchReels, initialReels.length]);
 
-  // Auto-play current video, pause others
+  // Auto-play current video, pause others + Record View
   useEffect(() => {
     const currentReel = reels[currentIndex];
     if (!currentReel) return;
+
+    // Set User ID for MutationManager
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) mutationManager.setUserId(user.id);
+    });
+
+    // Record View Interaction
+    mutationManager.record({
+      post_id: currentReel.id,
+      author_id: currentReel.user.id,
+      type: 'view',
+      affinity_inc: 0.1
+    });
+
+    // Tracking watch time (simplified)
+    const startTime = Date.now();
+    const watchTimer = setTimeout(() => {
+      mutationManager.record({
+        post_id: currentReel.id,
+        author_id: currentReel.user.id,
+        type: 'view',
+        watch_time: 5,
+        affinity_inc: 0.2 // Higher affinity for longer watch
+      });
+    }, 5000);
 
     videoRefs.current.forEach((video, id) => {
       if (id === currentReel.id) {
@@ -97,7 +141,11 @@ export default function FeedReels({ initialReels = [] }: FeedReelsProps) {
         video.currentTime = 0;
       }
     });
-  }, [currentIndex, reels]);
+
+    return () => {
+      clearTimeout(watchTimer);
+    };
+  }, [currentIndex, reels, supabase.auth]);
 
   // Prefetch next batch when near end
   useEffect(() => {
@@ -135,15 +183,24 @@ export default function FeedReels({ initialReels = [] }: FeedReelsProps) {
 
   // Double-tap to like
   const lastTap = useRef<number>(0);
-  const handleDoubleTap = useCallback((reelId: string) => {
+  const handleDoubleTap = useCallback((e: React.MouseEvent, reelId: string) => {
     const now = Date.now();
     if (now - lastTap.current < 300) {
+      setShowHeart({ id: Date.now().toString(), x: e.clientX, y: e.clientY });
+      setTimeout(() => setShowHeart(null), 1000);
+
       setLikedReels(prev => {
         const next = new Set(prev);
         next.add(reelId);
         return next;
       });
-      // Fire API call
+      // Fire API call and record interaction
+      mutationManager.record({
+        post_id: reelId,
+        author_id: reels[currentIndex]?.user.id,
+        type: 'like',
+        affinity_inc: 2.0
+      });
       fetch('/api/social/like', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -151,7 +208,7 @@ export default function FeedReels({ initialReels = [] }: FeedReelsProps) {
       }).catch(() => {});
     }
     lastTap.current = now;
-  }, []);
+  }, [currentIndex, reels]);
 
   const handleLike = useCallback(async (reelId: string) => {
     const isLiked = likedReels.has(reelId);
@@ -161,13 +218,21 @@ export default function FeedReels({ initialReels = [] }: FeedReelsProps) {
       return next;
     });
     try {
+      if (!isLiked) {
+        mutationManager.record({
+          post_id: reelId,
+          author_id: reels[currentIndex]?.user.id,
+          type: 'like',
+          affinity_inc: 2.0
+        });
+      }
       await fetch('/api/social/like', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ entityId: reelId, entityType: 'media', action: isLiked ? 'unlike' : 'like' }),
       });
     } catch { /* optimistic, no revert */ }
-  }, [likedReels]);
+  }, [likedReels, currentIndex, reels]);
 
   if (isLoading && reels.length === 0) {
     return (
@@ -207,7 +272,7 @@ export default function FeedReels({ initialReels = [] }: FeedReelsProps) {
           exit={{ y: -100, opacity: 0 }}
           transition={{ type: 'spring', stiffness: 300, damping: 30 }}
           className="absolute inset-0 flex items-center justify-center"
-          onClick={() => handleDoubleTap(currentReel.id)}
+          onClick={(e) => handleDoubleTap(e, currentReel.id)}
         >
           {/* Media */}
           <div className="absolute inset-0">
@@ -233,32 +298,35 @@ export default function FeedReels({ initialReels = [] }: FeedReelsProps) {
           </div>
 
           {/* Right action bar */}
-          <div className="absolute right-4 bottom-32 flex flex-col items-center gap-6 z-10">
+            <div className="absolute right-4 bottom-32 flex flex-col items-center gap-6 z-10">
             {/* Like */}
             <button
               onClick={(e) => { e.stopPropagation(); handleLike(currentReel.id); }}
-              className="flex flex-col items-center gap-1"
+              className="flex flex-col items-center gap-1 active:scale-90 transition-transform"
             >
               <div className={`w-12 h-12 rounded-full flex items-center justify-center backdrop-blur-md transition-all ${
-                likedReels.has(currentReel.id) ? 'bg-vibe-pink/30' : 'bg-white/10'
+                likedReels.has(currentReel.id) ? 'bg-vibe-pink/30 shadow-[0_0_15px_rgba(255,45,145,0.4)]' : 'bg-white/10'
               }`}>
-                <svg className="w-6 h-6" fill={likedReels.has(currentReel.id) ? '#FF2D91' : 'none'} viewBox="0 0 24 24" stroke="white" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                </svg>
+                <Heart 
+                  className="w-7 h-7"
+                  fill={likedReels.has(currentReel.id) ? '#FF2D91' : 'none'}
+                  color={likedReels.has(currentReel.id) ? '#FF2D91' : 'white'}
+                />
               </div>
-              <span className="text-xs text-white font-bold">
+              <span className="text-xs text-white font-bold drop-shadow-md">
                 {currentReel.likes_count + (likedReels.has(currentReel.id) ? 1 : 0)}
               </span>
             </button>
 
             {/* Comment */}
-            <button className="flex flex-col items-center gap-1">
+            <button 
+              onClick={(e) => { e.stopPropagation(); setActiveCommentReel(currentReel.id); }}
+              className="flex flex-col items-center gap-1 active:scale-90 transition-transform"
+            >
               <div className="w-12 h-12 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center">
-                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                </svg>
+                <MessageCircle className="w-7 h-7 text-white" />
               </div>
-              <span className="text-xs text-white font-bold">{currentReel.comments_count}</span>
+              <span className="text-xs text-white font-bold drop-shadow-md">{currentReel.comments_count}</span>
             </button>
 
             {/* Share */}
@@ -271,21 +339,19 @@ export default function FeedReels({ initialReels = [] }: FeedReelsProps) {
                   navigator.clipboard.writeText(window.location.href);
                 }
               }}
-              className="flex flex-col items-center gap-1"
+              className="flex flex-col items-center gap-1 active:scale-90 transition-transform"
             >
               <div className="w-12 h-12 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center">
-                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                </svg>
+                <Send className="w-6 h-6 text-white ml-1" /> {/* ml-1 to visually center Send icon */}
               </div>
-              <span className="text-xs text-white font-bold">Share</span>
+              <span className="text-xs text-white font-bold drop-shadow-md">Share</span>
             </button>
 
             {/* Map pin — link to location */}
             {currentReel.location_name && (
-              <button className="flex flex-col items-center gap-1">
+              <button className="flex flex-col items-center gap-1 active:scale-90 transition-transform">
                 <div className="w-12 h-12 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center">
-                  <span className="text-xl">📍</span>
+                  <MapPin className="w-6 h-6 text-white" />
                 </div>
               </button>
             )}
@@ -339,12 +405,10 @@ export default function FeedReels({ initialReels = [] }: FeedReelsProps) {
           </div>
 
           {/* Top bar */}
-          <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between p-4 pt-safe">
+          <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between p-4 pt-safe bg-gradient-to-b from-black/50 to-transparent">
             <Link href="/feed" onClick={(e: React.MouseEvent) => e.stopPropagation()}>
-              <button className="w-10 h-10 rounded-full bg-black/30 backdrop-blur-md flex items-center justify-center">
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-                </svg>
+              <button className="w-10 h-10 rounded-full bg-black/30 backdrop-blur-md flex items-center justify-center active:scale-90 transition-transform">
+                <ChevronLeft className="w-6 h-6 text-white" />
               </button>
             </Link>
             <h1 className="font-display font-bold text-white text-lg tracking-wide">Reels</h1>
@@ -368,17 +432,43 @@ export default function FeedReels({ initialReels = [] }: FeedReelsProps) {
       {/* Swipe hint (shown only for the first reel) */}
       {currentIndex === 0 && (
         <motion.div
-          className="absolute bottom-28 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center"
+          className="absolute bottom-24 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center pointer-events-none"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: [0, 1, 0], y: [10, 0, -10] }}
           transition={{ repeat: 3, duration: 1.5, delay: 1 }}
         >
-          <svg className="w-6 h-6 text-white/60" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" />
-          </svg>
-          <span className="text-xs text-white/50 font-medium">Swipe up</span>
+          <ChevronUp className="w-6 h-6 text-white/80 drop-shadow-md" />
+          <span className="text-[10px] text-white/80 font-bold uppercase tracking-widest drop-shadow-md mt-1">Esplora</span>
         </motion.div>
       )}
+
+      {/* Double Tap Heart Animation */}
+      <AnimatePresence>
+        {showHeart && (
+          <motion.div
+            key={showHeart.id}
+            initial={{ scale: 0.5, opacity: 0, x: '-50%', y: '-50%', rotate: -15 }}
+            animate={{ scale: [0.5, 1.5, 1], opacity: [0, 1, 0], rotate: 0 }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
+            className="fixed z-[100] pointer-events-none"
+            style={{ left: showHeart.x, top: showHeart.y }}
+          >
+            <Heart 
+              className="w-28 h-28 text-vibe-pink drop-shadow-[0_0_20px_rgba(255,45,145,0.7)]" 
+              fill="#FF2D91" 
+              color="white" 
+              strokeWidth={1} 
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Comments Drawer */}
+      <CommentsDrawer
+        isOpen={!!activeCommentReel}
+        onClose={() => setActiveCommentReel(null)}
+        entityId={activeCommentReel || ''}
+      />
     </div>
   );
 }

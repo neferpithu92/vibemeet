@@ -10,13 +10,17 @@ export async function GET(req: Request) {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
     
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized - Login required' }, { status: 401 });
+    }
+
     const { searchParams } = new URL(req.url);
     const cursor = searchParams.get('cursor');
     const limit = parseInt(searchParams.get('limit') || '20');
 
     // Chiamata alla funzione SQL compute_feed_score (Migration 017)
     const { data: feed, error } = await supabase.rpc('get_fyp_algo_feed', {
-      p_user_id: user?.id || null,
+      p_user_id: user.id,
       p_limit: limit,
       p_cursor: cursor
     });

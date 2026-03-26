@@ -5,6 +5,7 @@ import { Link, useRouter } from '@/lib/i18n/navigation';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { createClient } from '@/lib/supabase/client';
+import { generateKeyPairFromPassword } from '@/lib/encryption';
 
 const steps = ['account', 'profile', 'interests', 'location'] as const;
 type Step = typeof steps[number];
@@ -95,7 +96,17 @@ export default function RegisterPage() {
     setIsLoading(true);
     setError(null);
 
-    // 1. Crea account su Supabase Auth
+    // 1. Genera KeyPair E2E deterministico dalla password (VEL Initial Setup)
+    let cryptoKeys;
+    try {
+      cryptoKeys = await generateKeyPairFromPassword(formData.password, formData.email);
+    } catch (e) {
+      setError("Errore durante l'inizializzazione del layer di sicurezza.");
+      setIsLoading(false);
+      return;
+    }
+
+    // 2. Crea account su Supabase Auth (include Public Key nei metadati)
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email: formData.email,
       password: formData.password,
@@ -103,6 +114,7 @@ export default function RegisterPage() {
         data: {
           username: formData.username.toLowerCase().replace(/\s/g, '_'),
           display_name: formData.displayName,
+          public_key: cryptoKeys.publicKey, // VEL Registry
         }
       }
     });
@@ -111,6 +123,12 @@ export default function RegisterPage() {
       setError(authError.message);
       setIsLoading(false);
       return;
+    }
+
+    // 3. Persistenza locale temporanea delle chiavi (Session only)
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('vibe_public_key', cryptoKeys.publicKey);
+      sessionStorage.setItem('vibe_private_key', cryptoKeys.privateKey);
     }
 
     // 2. Upload avatar if selected
@@ -171,7 +189,7 @@ export default function RegisterPage() {
             <span
               key={step}
               className={`text-[10px] font-medium ${
-                i <= stepIndex ? 'text-vibe-purple' : 'text-vibe-text-secondary/50'
+                i <= stepIndex ? 'text-vibe-purple' : 'text-vibe-text-secondary opacity-50'
               }`}
             >
               {step === 'account' ? 'Account' : step === 'profile' ? 'Profilo' : step === 'interests' ? 'Interessi' : 'Posizione'}
@@ -364,7 +382,7 @@ export default function RegisterPage() {
         </div>
 
         {/* Termini */}
-        <p className="text-[10px] text-vibe-text-secondary/50 text-center mt-4">
+        <p className="text-[10px] text-vibe-text-secondary opacity-50 text-center mt-4">
           Registrandoti, accetti i nostri Termini di Servizio e la Privacy Policy
         </p>
       </Card>

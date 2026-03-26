@@ -14,6 +14,11 @@ export async function GET(request: Request) {
 
   const supabase = await createClient();
 
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    return NextResponse.json({ error: 'Unauthorized - Login required' }, { status: 401 });
+  }
+
   // Ricerca eventi
   const { data: events } = await supabase
     .from('events')

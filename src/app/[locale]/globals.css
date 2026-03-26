@@ -10,92 +10,141 @@
   /* Default Theme (Cyberpunk/VIBE Original) */
   :root, [data-theme='system'], [data-theme='default'] {
     --vibe-purple: #7C3AED;
+    --vibe-purple-rgb: 124, 58, 237;
     --vibe-cyan: #06B6D4;
+    --vibe-cyan-rgb: 6, 182, 212;
     --vibe-pink: #EC4899;
+    --vibe-pink-rgb: 236, 72, 153;
     --vibe-dark: #0A0A0F;
+    --vibe-dark-rgb: 10, 10, 15;
     --vibe-surface: #111118;
+    --vibe-surface-rgb: 17, 17, 24;
     --vibe-glass: rgba(255, 255, 255, 0.05);
     --vibe-border: rgba(255, 255, 255, 0.08);
     --vibe-text: #F8F8FF;
+    --vibe-text-rgb: 248, 248, 255;
     --vibe-text-secondary: #A0A0B0;
+    --vibe-text-secondary-rgb: 160, 160, 176;
   }
 
   /* Neon Theme (High Contrast Cyberpunk) */
   [data-theme='neon'] {
     --vibe-purple: #D926A9;
+    --vibe-purple-rgb: 217, 38, 169;
     --vibe-cyan: #00FF00;
+    --vibe-cyan-rgb: 0, 255, 0;
     --vibe-pink: #FF00FF;
+    --vibe-pink-rgb: 255, 0, 255;
     --vibe-dark: #000000;
+    --vibe-dark-rgb: 0, 0, 0;
     --vibe-surface: #0a0a0a;
+    --vibe-surface-rgb: 10, 10, 10;
     --vibe-glass: rgba(0, 255, 0, 0.05);
     --vibe-border: rgba(255, 0, 255, 0.2);
     --vibe-text: #FFFFFF;
+    --vibe-text-rgb: 255, 255, 255;
     --vibe-text-secondary: #00FF00;
+    --vibe-text-secondary-rgb: 0, 255, 0;
   }
 
   /* Minimal Theme (Monochrome Elegance) */
   [data-theme='minimal'] {
     --vibe-purple: #FFFFFF;
+    --vibe-purple-rgb: 255, 255, 255;
     --vibe-cyan: #CCCCCC;
+    --vibe-cyan-rgb: 204, 204, 204;
     --vibe-pink: #FFFFFF;
+    --vibe-pink-rgb: 255, 255, 255;
     --vibe-dark: #050505;
+    --vibe-dark-rgb: 5, 5, 5;
     --vibe-surface: #121212;
+    --vibe-surface-rgb: 18, 18, 18;
     --vibe-glass: rgba(255, 255, 255, 0.03);
     --vibe-border: rgba(255, 255, 255, 0.05);
     --vibe-text: #FFFFFF;
+    --vibe-text-rgb: 255, 255, 255;
     --vibe-text-secondary: #888888;
+    --vibe-text-secondary-rgb: 136, 136, 136;
   }
 
   /* Aurora Theme (Nordic Aurora Borealis) */
   [data-theme='aurora'] {
     --vibe-purple: #2F80ED;
+    --vibe-purple-rgb: 47, 128, 237;
     --vibe-cyan: #00FFB2;
+    --vibe-cyan-rgb: 0, 255, 178;
     --vibe-pink: #8F94FB;
+    --vibe-pink-rgb: 143, 148, 251;
     --vibe-dark: #0B111A;
+    --vibe-dark-rgb: 11, 17, 26;
     --vibe-surface: #131A26;
+    --vibe-surface-rgb: 19, 26, 38;
     --vibe-glass: rgba(0, 255, 178, 0.05);
     --vibe-border: rgba(0, 255, 178, 0.1);
     --vibe-text: #E2F1E7;
+    --vibe-text-rgb: 226, 241, 231;
     --vibe-text-secondary: #8E9BAE;
+    --vibe-text-secondary-rgb: 142, 155, 174;
   }
 
   /* Sand Theme (Desert/Warm Gold) */
   [data-theme='sand'] {
     --vibe-purple: #D4A373;
+    --vibe-purple-rgb: 212, 163, 115;
     --vibe-cyan: #E9EDC9;
+    --vibe-cyan-rgb: 233, 237, 201;
     --vibe-pink: #FAEDCD;
+    --vibe-pink-rgb: 250, 237, 205;
     --vibe-dark: #1E1B18;
+    --vibe-dark-rgb: 30, 27, 24;
     --vibe-surface: #2B2622;
+    --vibe-surface-rgb: 43, 38, 34;
     --vibe-glass: rgba(212, 163, 115, 0.05);
     --vibe-border: rgba(212, 163, 115, 0.1);
     --vibe-text: #FEFAE0;
+    --vibe-text-rgb: 254, 250, 224;
     --vibe-text-secondary: #BDAA98;
+    --vibe-text-secondary-rgb: 189, 170, 152;
   }
 
   /* Ocean Theme (Deep Aquamarine) */
   [data-theme='ocean'] {
     --vibe-purple: #0077B6;
+    --vibe-purple-rgb: 0, 119, 182;
     --vibe-cyan: #00B4D8;
+    --vibe-cyan-rgb: 0, 180, 216;
     --vibe-pink: #90E0EF;
+    --vibe-pink-rgb: 144, 224, 239;
     --vibe-dark: #03045E;
+    --vibe-dark-rgb: 3, 4, 94;
     --vibe-surface: #023E8A;
+    --vibe-surface-rgb: 2, 62, 138;
     --vibe-glass: rgba(0, 180, 216, 0.1);
     --vibe-border: rgba(0, 180, 216, 0.15);
     --vibe-text: #CAF0F8;
+    --vibe-text-rgb: 202, 240, 248;
     --vibe-text-secondary: #90E0EF;
+    --vibe-text-secondary-rgb: 144, 224, 239;
   }
 
   /* Forest Theme (Dark Earthy Woods) */
   [data-theme='forest'] {
     --vibe-purple: #D9F99D;
+    --vibe-purple-rgb: 217, 249, 157;
     --vibe-cyan: #84CC16;
+    --vibe-cyan-rgb: 132, 204, 22;
     --vibe-pink: #A3E635;
+    --vibe-pink-rgb: 163, 230, 53;
     --vibe-dark: #141C14;
+    --vibe-dark-rgb: 20, 28, 20;
     --vibe-surface: #1D2A1D;
+    --vibe-surface-rgb: 29, 42, 29;
     --vibe-glass: rgba(132, 204, 22, 0.05);
     --vibe-border: rgba(132, 204, 22, 0.15);
     --vibe-text: #ECFCCB;
+    --vibe-text-rgb: 236, 252, 203;
     --vibe-text-secondary: #A3E635;
+    --vibe-text-secondary-rgb: 163, 230, 53;
   }
 
   * {
@@ -223,13 +272,11 @@
 
   /* ---- Input Fields ---- */
   .input-field {
-    @apply w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 
-           text-vibe-text placeholder-vibe-text-secondary/50
-           transition-all duration-300 outline-none;
+    @apply w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 placeholder-vibe-text-secondary placeholder-opacity-50 focus:outline-none focus:border-vibe-purple focus:border-opacity-50 focus:ring-1 focus:ring-vibe-purple focus:ring-opacity-50 transition-all text-white;
   }
 
   .input-field:focus {
-    @apply border-vibe-purple/50 bg-white/10;
+    @apply border-vibe-purple bg-white/10;
     box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.15);
   }
 
@@ -239,7 +286,8 @@
   }
 
   .badge-verified {
-    @apply badge bg-vibe-purple/20 text-vibe-purple;
+    @apply badge text-vibe-purple;
+    background-color: rgba(124, 58, 237, 0.2);
   }
 
   .badge-live {
@@ -247,7 +295,8 @@
   }
 
   .badge-new {
-    @apply badge bg-vibe-cyan/20 text-vibe-cyan;
+    @apply badge text-vibe-cyan;
+    background-color: rgba(6, 182, 212, 0.2);
   }
 
   .badge-premium {

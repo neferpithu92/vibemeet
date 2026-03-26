@@ -211,7 +211,7 @@ export default function CommentThread({ entityType, entityId }: CommentThreadPro
               value={newComment}
               onChange={(e) => setNewComment(e.target.value)}
               placeholder={t('writeComment')}
-              className="w-full bg-transparent border-none focus:ring-0 text-sm min-h-[80px] resize-none placeholder-vibe-text-secondary/50"
+              className="w-full bg-transparent border-none focus:ring-0 text-sm min-h-[80px] resize-none placeholder:text-vibe-text-secondary placeholder:opacity-50"
             />
             <div className="flex justify-end mt-2 pt-2 border-t border-white/5">
               <Button 

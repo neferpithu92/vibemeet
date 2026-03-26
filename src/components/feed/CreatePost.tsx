@@ -7,6 +7,9 @@ import { useToast } from '@/components/ui/ToastProvider';
 import { Button } from '@/components/ui/Button';
 import { HashtagInput } from '@/components/ui/HashtagInput';
 import { LocationPicker } from '@/components/ui/LocationPicker';
+import { useCirclesStore } from '@/stores/useCirclesStore';
+import { Users, Lock, Eye, Check } from 'lucide-react';
+
 
 interface CreatePostProps {
   isOpen: boolean;
@@ -25,6 +28,15 @@ export default function CreatePost({ isOpen, onClose, onSuccess }: CreatePostPro
   const [caption, setCaption] = useState('');
   const [hashtags, setHashtags] = useState<string[]>([]);
   const [location, setLocation] = useState<{ lat: number; lng: number; name?: string; venue_id?: string } | null>(null);
+  const [visibility, setVisibility] = useState<'public' | 'friends' | 'circles' | 'private'>('public');
+  const [selectedCircleId, setSelectedCircleId] = useState<string | null>(null);
+
+  const { circles, fetchCircles } = useCirclesStore();
+
+  React.useEffect(() => {
+    if (isOpen) fetchCircles();
+  }, [isOpen, fetchCircles]);
+
   
   const { showToast } = useToast();
 
@@ -43,7 +55,9 @@ export default function CreatePost({ isOpen, onClose, onSuccess }: CreatePostPro
         thumbnail_url: url,
         media_type: url.includes('mp4') || url.includes('webm') ? 'video' : 'photo',
         caption: caption,
-        location: `POINT(${lng} ${lat})`
+        location: `POINT(${lng} ${lat})`,
+        visibility: visibility,
+        allowed_circle_id: visibility === 'circles' ? selectedCircleId : null
       }).select().single();
 
       if (error) throw error;
@@ -107,6 +121,64 @@ export default function CreatePost({ isOpen, onClose, onSuccess }: CreatePostPro
             onChange={setHashtags} 
             placeholder="Aggiungi hashtag... (es. #zurichnight)"
           />
+        </div>
+
+        {/* Visibility Selector */}
+        <div className="space-y-3">
+          <label className="text-xs font-bold text-vibe-text-secondary uppercase">
+            Chi può vedere questo Vibe?
+          </label>
+          <div className="grid grid-cols-2 gap-2">
+            {[
+              { id: 'public', label: 'Pubblico', icon: Eye },
+              { id: 'friends', label: 'Amici', icon: Users },
+              { id: 'circles', label: 'Circles', icon: Lock },
+              { id: 'private', label: 'Privato', icon: Lock },
+            ].map((opt) => (
+              <button
+                key={opt.id}
+                onClick={() => setVisibility(opt.id as any)}
+                className={`flex items-center justify-between px-3 py-2.5 rounded-xl border text-sm transition-all ${
+                  visibility === opt.id 
+                    ? 'bg-vibe-purple/20 border-vibe-purple text-white shadow-[0_0_10px_rgba(157,78,221,0.2)]' 
+                    : 'bg-white/5 border-white/10 text-vibe-text-secondary hover:bg-white/10'
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <opt.icon className="w-4 h-4" />
+                  <span>{opt.label}</span>
+                </div>
+                {visibility === opt.id && <Check className="w-4 h-4 text-vibe-purple" />}
+              </button>
+            ))}
+          </div>
+
+          {/* Social Circles List (if 'circles' selected) */}
+          {visibility === 'circles' && (
+            <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+              <div className="p-3 bg-white/5 rounded-xl border border-white/10 space-y-2">
+                <p className="text-[10px] text-vibe-text-secondary uppercase font-bold px-1">Seleziona un Circle</p>
+                {circles.length > 0 ? (
+                  <div className="grid grid-cols-1 gap-1">
+                    {circles.map(circle => (
+                      <button
+                        key={circle.id}
+                        onClick={() => setSelectedCircleId(circle.id)}
+                        className={`text-left px-3 py-2 rounded-lg text-xs flex items-center justify-between transition-colors ${
+                          selectedCircleId === circle.id ? 'bg-vibe-purple text-white' : 'hover:bg-white/10 text-vibe-text-secondary'
+                        }`}
+                      >
+                        {circle.name}
+                        {selectedCircleId === circle.id && <Check className="w-3 h-3" />}
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-xs text-vibe-text-secondary italic px-1 py-1">Nessun Circle creato. Creane uno nelle impostazioni.</p>
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Mandatory Location */}
