@@ -21,14 +21,10 @@ try {
 }
 
 /**
- * Middleware — protegge le route (app), gestisce i locale e il refresh dei token di sessione.
+ * Proxy — protegge le route (app), gestisce i locale e il refresh dei token di sessione.
+ * In Next.js 16+, 'proxy.ts' sostituisce 'middleware.ts'.
  */
-export async function middleware(request: NextRequest) {
-  // Debug: Verifica URL Supabase in produzione
-  if (process.env.NODE_ENV === 'production') {
-    // console.log('Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL);
-  }
-
+export async function proxy(request: NextRequest) {
   // 0. Extract pathname for routing and rate limiting
   const { pathname } = request.nextUrl;
 
@@ -93,7 +89,6 @@ export async function middleware(request: NextRequest) {
   const pathnameWithoutLocale = pathname.replace(/^\/(it|en|de|fr|rm)/, '') || '/';
   
   // Route pubbliche che NON richiedono autenticazione
-  // Usiamo startsWith con slash per sicurezza
   const normalizedPath = pathnameWithoutLocale.startsWith('/') ? pathnameWithoutLocale : `/${pathnameWithoutLocale}`;
 
   const isPublicRoute =

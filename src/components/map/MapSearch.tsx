@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/Card';
 import { useMap } from 'react-map-gl/mapbox';
+import { useTranslations } from 'next-intl';
 
 interface MapSearchResult {
   id: string;
@@ -21,6 +22,8 @@ interface MapSearchResult {
 }
 
 export default function MapSearch() {
+  const t = useTranslations('map');
+  const tn = useTranslations('nav');
   const { current: map } = useMap();
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<MapSearchResult[]>([]);
@@ -37,16 +40,15 @@ export default function MapSearch() {
       try {
         const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
         
-        // 1. Ricerca interna (Venues/Events/Profiles)
+        // 1. Ricerca interna (Solo Venues ed Eventi per la mappa)
         const res = await fetch(`/api/discovery/search?q=${encodeURIComponent(query)}`);
         const data = await res.json();
         const internalResults = [
           ...(data.venues || []), 
-          ...(data.events || []),
-          ...(data.users || [])
+          ...(data.events || [])
         ].map(item => ({
           ...item,
-          displayName: item.displayName || item.name || item.title,
+          displayName: item.name || item.title,
           source: 'internal'
         }));
 
@@ -100,7 +102,7 @@ export default function MapSearch() {
       <div className="relative">
         <input
           type="text"
-          placeholder="Cerca amici, locali o eventi..."
+          placeholder={t('nearby')}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           className="input-field pl-10 h-10 text-sm bg-vibe-dark/60 backdrop-blur-md"
@@ -124,14 +126,14 @@ export default function MapSearch() {
               className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-white/10 text-left transition-colors group"
             >
               <span className="text-xl">
-                {item.source === 'mapbox' ? '📍' : (item.type === 'user' ? '👥' : (item.name ? '🏢' : '🎉'))}
+                {item.source === 'mapbox' ? '📍' : (item.name ? '🏢' : '🎉')}
               </span>
               <div className="min-w-0">
                 <p className="text-sm font-semibold truncate group-hover:text-vibe-purple transition-colors">
                   {item.displayName}
                 </p>
                 <p className="text-[10px] text-vibe-text-secondary truncate uppercase tracking-wider">
-                  {item.source === 'mapbox' ? 'Mappa' : (item.type === 'user' ? 'Profilo' : (item.type || item.venue?.name || 'Evento'))}
+                  {item.source === 'mapbox' ? tn('map') : (item.type || item.venue?.name || tn('events'))}
                 </p>
               </div>
             </button>
