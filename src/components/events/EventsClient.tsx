@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { useTranslations } from 'next-intl';
 import { format } from 'date-fns';
-import { it, enUS } from 'date-fns/locale';
+import { it, enUS, de, fr } from 'date-fns/locale';
 import { useLocale } from 'next-intl';
 
 interface Event {
@@ -41,7 +41,7 @@ const filters = {
 export default function EventsClient({ initialEvents }: EventsClientProps) {
   const t = useTranslations('events');
   const locale = useLocale();
-  const dateLocale = locale === 'it' ? it : enUS;
+  const dateLocale = locale === 'it' ? it : locale === 'de' ? de : locale === 'fr' ? fr : enUS;
 
   const [activeTimeFilter, setActiveTimeFilter] = useState('Tutti');
   const [activeGenreFilter, setActiveGenreFilter] = useState('Tutti');

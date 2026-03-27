@@ -438,12 +438,36 @@
     "pauseAccount": "Metti in pausa account",
     "resumeAccount": "Riattiva account",
     "deletionWarning": "Il tuo account è programmato per l'eliminazione definitiva tra meno di 30 giorni.",
+    "plans": {
+      "starter": {
+        "name": "Starter",
+        "price": "0",
+        "features": ["Visibilità Mappa", "Profilo Base", "5 Storie/giorno"]
+      },
+      "pro": {
+        "name": "Pro",
+        "price": "9.99",
+        "features": ["Supporto Prioritario", "Badge Verificato", "Storie Illimitate", "Temi Personalizzati"]
+      },
+      "premium": {
+        "name": "Premium",
+        "price": "19.99",
+        "features": ["Tutte le funzioni Pro", "Assistente Eventi AI", "Modalità Incognito", "Revenue Sharing"]
+      }
+    },
     "cancelDeletion": "Annulla eliminazione",
     "accountPausedTitle": "Account in Pausa",
     "deletionPendingTitle": "Eliminazione in Corso",
     "resumePrompt": "Bentornato! Il tuo account è attualmente in pausa. Puoi riattivarlo con un click.",
     "deletionPrompt": "Il tuo account verrà eliminato definitivamente tra meno di 30 giorni. Vuoi annullare la richiesta?",
-    "cancel": "Annulla"
+    "cancel": "Annulla",
+    "activity": {
+      "liveTitle": "Attività Live",
+      "checkIn": "ha fatto check-in presso",
+      "follow": "ha iniziato a seguire",
+      "participate": "ha partecipato a",
+      "noRecent": "Nessuna attività recente"
+    }
   },
   "createHub": {
     "title": "Cosa vuoi creare?",

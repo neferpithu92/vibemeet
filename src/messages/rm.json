@@ -438,6 +438,23 @@
     "pauseAccount": "Pauseschar conto",
     "resumeAccount": "Reactivar conto",
     "deletionWarning": "Tes conto è programmà per la stizzada definitiva en main che 30 dis.",
+    "plans": {
+      "starter": {
+        "name": "Starter",
+        "price": "0",
+        "features": ["Visibilitad Carta", "Profil da Basa", "5 Istorgias/di"]
+      },
+      "pro": {
+        "name": "Pro",
+        "price": "9.99",
+        "features": ["Support Prioritar", "Badge Verifitgà", "Istorgias Illimitadas", "Temas Persunalisads"]
+      },
+      "premium": {
+        "name": "Premium",
+        "price": "19.99",
+        "features": ["Tuttas funcziuns Pro", "Assistent d'Eveniments AI", "Modus Incognito", "Part da las Entradas"]
+      }
+    },
     "cancelDeletion": "Annullar stizzada",
     "accountPausedTitle": "Conto pauseschà",
     "deletionPendingTitle": "Stizzada en curs",
@@ -473,6 +490,19 @@
     "success": "Eveniment creà cun success! 🎉",
     "errorNoVenue": "Tscherna in local per l'eveniment",
     "errorUnauthorized": "Betg autorisà",
-    "errorUnexpected": "Errur nunspetgada"
+    "errorUnexpected": "Errur nunspetgada",
+    "mutualFriends": "Amis en commun",
+    "friendRequests": "Dumandas d'amis",
+    "sendRequest": "Trametter dumanda",
+    "requestSent": "Dumanda tramessa",
+    "accept": "Acceptar",
+    "decline": "Refusar",
+    "friends": "Amis",
+    "messages": "Messagis",
+    "noMessages": "Naginas conversaziuns anc.",
+    "clickToChat": "Cliccar per chattar",
+    "typeMessage": "Scriver in messagi...",
+    "endToEndEncrypted": "Criptà E2E",
+    "chatSecurityWarning": "Ils messagis èn protegids tras la criptaziun end-to-end VIBE (VEL)."
   }
 }

@@ -15,6 +15,7 @@ import EditProfileModal from '@/components/profile/EditProfileModal';
 import { createClient } from '@/lib/supabase/client';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { Share2, Edit3, Settings, LogOut } from 'lucide-react';
+import { localeNames } from '@/lib/i18n/config';
 
 const tabs = ['Post', 'Events', 'Saved'] as const;
 
@@ -435,7 +436,7 @@ export default function ProfilePage() {
           <h3 className="font-display font-bold text-sm mb-4">⚙️ {t('quickSettings')}</h3>
           <div className="space-y-2">
             {[
-              { label: t('language'), value: locale === 'it' ? 'Italiano' : 'English', icon: '🌐', action: handleLanguageToggle },
+              { label: t('language'), value: localeNames[locale as keyof typeof localeNames] || locale, icon: '🌐', action: handleLanguageToggle },
               { label: t('privacy'), value: t(`status.${privacy}`), icon: '🔒', action: handlePrivacyToggle },
               { label: t('notifications'), value: isNotificationsActive ? t('status.active') : t('status.inactive'), icon: '🔔', action: handleNotificationsToggle },
               { label: t('theme'), value: theme === 'dark' ? t('status.dark') : t('status.light'), icon: '🌙', action: handleThemeToggle },

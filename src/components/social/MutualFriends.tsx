@@ -13,9 +13,17 @@ export function MutualFriends({ targetId }: { targetId: string }) {
 
   useEffect(() => {
     async function fetchMutuals() {
-      const { data, error } = await fetch(`/api/social/friends?type=mutual&target_id=${targetId}`).then(res => res.json());
-      if (!error && Array.isArray(data)) {
-        setMutuals(data);
+      try {
+        const response = await fetch(`/api/social/friends?type=mutual&target_id=${targetId}`);
+        const result = await response.json();
+        
+        if (Array.isArray(result)) {
+          setMutuals(result);
+        } else if (result.error) {
+          console.error('Mutual Friends Error:', result.error);
+        }
+      } catch (err) {
+        console.error('Fetch Mutuals Exception:', err);
       }
       setLoading(false);
     }

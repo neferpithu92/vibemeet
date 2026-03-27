@@ -438,12 +438,36 @@
     "pauseAccount": "Pause account",
     "resumeAccount": "Resume account",
     "deletionWarning": "Your account is scheduled for permanent deletion in less than 30 days.",
+    "plans": {
+      "starter": {
+        "name": "Starter",
+        "price": "0",
+        "features": ["Map Visibility", "Basic Profile", "5 Stories/day"]
+      },
+      "pro": {
+        "name": "Pro",
+        "price": "9.99",
+        "features": ["Priority Support", "Verified Badge", "Unlimited Stories", "Custom Themes"]
+      },
+      "premium": {
+        "name": "Premium",
+        "price": "19.99",
+        "features": ["All Pro features", "AI Event Assistant", "Incognito Mode", "Revenue Sharing"]
+      }
+    },
     "cancelDeletion": "Cancel deletion",
     "accountPausedTitle": "Account Paused",
     "deletionPendingTitle": "Deletion Pending",
     "resumePrompt": "Welcome back! Your account is currently paused. You can reactivate it with one click.",
     "deletionPrompt": "Your account is scheduled for permanent deletion in less than 30 days. Do you want to cancel the request?",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "activity": {
+      "liveTitle": "Live Activity",
+      "checkIn": "checked in at",
+      "follow": "started following",
+      "participate": "participated in",
+      "noRecent": "No recent activity"
+    }
   },
   "createHub": {
     "title": "What do you want to create?",

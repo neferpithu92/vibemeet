@@ -438,6 +438,23 @@
     "pauseAccount": "Konto pausieren",
     "resumeAccount": "Konto fortsetzen",
     "deletionWarning": "Dein Konto wird in weniger als 30 Tagen endgültig gelöscht.",
+    "plans": {
+      "starter": {
+        "name": "Starter",
+        "price": "0",
+        "features": ["Karten-Sichtbarkeit", "Basis-Profil", "5 Storys/Tag"]
+      },
+      "pro": {
+        "name": "Pro",
+        "price": "9.99",
+        "features": ["Prioritäts-Support", "Verifiziert-Badge", "Unbegrenzte Storys", "Eigene Themes"]
+      },
+      "premium": {
+        "name": "Premium",
+        "price": "19.99",
+        "features": ["Alle Pro-Funktionen", "KI-Event-Assistent", "Inkognito-Modus", "Umsatzbeteiligung"]
+      }
+    },
     "cancelDeletion": "Löschung abbrechen",
     "accountPausedTitle": "Konto pausiert",
     "deletionPendingTitle": "Löschung ausstehend",
@@ -473,6 +490,19 @@
     "success": "Event erfolgreich erstellt! 🎉",
     "errorNoVenue": "Wähle eine Location für das Event aus",
     "errorUnauthorized": "Nicht autorisiert",
-    "errorUnexpected": "Unerwarteter Fehler"
+    "errorUnexpected": "Unerwarteter Fehler",
+    "mutualFriends": "Gemeinsame Freunde",
+    "friendRequests": "Freundschaftsanfragen",
+    "sendRequest": "Anfrage senden",
+    "requestSent": "Anfrage gesendet",
+    "accept": "Akzeptieren",
+    "decline": "Ablehnen",
+    "friends": "Freunde",
+    "messages": "Nachrichten",
+    "noMessages": "Noch keine Gespräche.",
+    "clickToChat": "Klicken zum Chatten",
+    "typeMessage": "Nachricht schreiben...",
+    "endToEndEncrypted": "E2E verschlüsselt",
+    "chatSecurityWarning": "Nachrichten sind durch VIBE End-to-End-Verschlüsselung (VEL) gesichert."
   }
 }

@@ -438,6 +438,23 @@
     "pauseAccount": "Mettre le compte en pause",
     "resumeAccount": "Reprendre le compte",
     "deletionWarning": "Votre compte est programmé pour une suppression définitive dans moins de 30 jours.",
+    "plans": {
+      "starter": {
+        "name": "Starter",
+        "price": "0",
+        "features": ["Visibilité Carte", "Profil de Base", "5 Stories/jour"]
+      },
+      "pro": {
+        "name": "Pro",
+        "price": "9.99",
+        "features": ["Support Prioritaire", "Badge Vérifié", "Stories Illimitées", "Thèmes Personnalisés"]
+      },
+      "premium": {
+        "name": "Premium",
+        "price": "19.99",
+        "features": ["Tutte le fonctions Pro", "Assistant Événements IA", "Mode Incognito", "Partage de Revenus"]
+      }
+    },
     "cancelDeletion": "Annuler la suppression",
     "accountPausedTitle": "Compte suspendu",
     "deletionPendingTitle": "Suppression en cours",
@@ -473,6 +490,19 @@
     "success": "Événement créé avec succès ! 🎉",
     "errorNoVenue": "Sélectionnez un lieu pour l'événement",
     "errorUnauthorized": "Non autorisé",
-    "errorUnexpected": "Erreur imprévue"
+    "errorUnexpected": "Erreur imprévue",
+    "mutualFriends": "Amis en commun",
+    "friendRequests": "Demandes d'ami",
+    "sendRequest": "Envoyer demande",
+    "requestSent": "Demande envoyée",
+    "accept": "Accepter",
+    "decline": "Refuser",
+    "friends": "Amis",
+    "messages": "Messages",
+    "noMessages": "Pas ancora di conversations.",
+    "clickToChat": "Cliquer pour chatter",
+    "typeMessage": "Écrire un message...",
+    "endToEndEncrypted": "Chiffré E2E",
+    "chatSecurityWarning": "Les messages sont sécurisés par le chiffrement de bout en bout VIBE (VEL)."
   }
 }

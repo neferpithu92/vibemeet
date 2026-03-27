@@ -8,7 +8,7 @@ import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { motion, AnimatePresence } from 'framer-motion';
 import { formatDistanceToNow } from 'date-fns';
-import { it, enUS } from 'date-fns/locale';
+import { it, enUS, de, fr } from 'date-fns/locale';
 import { useLocale } from 'next-intl';
 import { Link } from '@/lib/i18n/navigation';
 
@@ -113,16 +113,16 @@ export default function ActivityFeed() {
   };
 
   const getActivityText = (item: ActivityItem) => {
-    if (item.type === 'check_in') return `ha fatto check-in presso`;
-    if (item.type === 'follow') return `ha iniziato a seguire`;
-    return `ha partecipato a`;
+    if (item.type === 'check_in') return t('activity.checkIn', { fallback: 'ha fatto check-in presso' });
+    if (item.type === 'follow') return t('activity.follow', { fallback: 'ha iniziato a seguire' });
+    return t('activity.participate', { fallback: 'ha partecipato a' });
   };
 
   return (
     <Card className="p-4 bg-vibe-dark/40 backdrop-blur-xl border-white/5">
       <h3 className="text-sm font-bold uppercase tracking-wider text-vibe-text-secondary mb-4 flex items-center gap-2">
         <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-        Attività Live
+        {t('activity.liveTitle', { fallback: 'Attività Live' })}
       </h3>
 
       <div className="space-y-4">
@@ -155,14 +155,17 @@ export default function ActivityFeed() {
                     </Link>
                   </p>
                   <p className="text-[10px] text-vibe-text-secondary mt-1">
-                    {getActivityIcon(item.type)} {formatDistanceToNow(new Date(item.created_at), { addSuffix: true, locale: locale === 'it' ? it : enUS })}
+                    {getActivityIcon(item.type)} {formatDistanceToNow(new Date(item.created_at), { 
+                      addSuffix: true, 
+                      locale: locale === 'it' ? it : locale === 'de' ? de : locale === 'fr' ? fr : enUS 
+                    })}
                   </p>
                 </div>
               </motion.div>
             ))}
           </AnimatePresence>
         ) : (
-          <p className="text-xs text-vibe-text-secondary text-center py-4 italic">Nessuna attività recente</p>
+          <p className="text-xs text-vibe-text-secondary text-center py-4 italic">{t('activity.noRecent', { fallback: 'Nessuna attività recente' })}</p>
         )}
       </div>
     </Card>

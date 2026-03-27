@@ -31,9 +31,27 @@ export function SubscriptionManager() {
   }, [supabase]);
 
   const plans = [
-    { id: 'starter', name: 'Starter', price: '0', icon: <Zap className="w-4 h-4" />, features: ['Map Visibility', 'Basic Profile', '5 Stories/day'] },
-    { id: 'pro', name: 'Pro', price: '9.99', icon: <Star className="w-4 h-4 text-vibe-primary" />, features: ['Priority Support', 'Verified Badge', 'Unlimited Stories', 'Custom Themes'] },
-    { id: 'premium', name: 'Premium', price: '19.99', icon: <Crown className="w-4 h-4 text-yellow-500" />, features: ['All Pro features', 'AI Event Assistant', 'Incognito Mode', 'Revenue Sharing'] }
+    { 
+      id: 'starter', 
+      name: t('plans.starter.name', { fallback: 'Starter' }), 
+      price: t('plans.starter.price', { fallback: '0' }), 
+      icon: <Zap className="w-4 h-4" />, 
+      features: (t.raw('plans.starter.features') as string[]) || [] 
+    },
+    { 
+      id: 'pro', 
+      name: t('plans.pro.name', { fallback: 'Pro' }), 
+      price: t('plans.pro.price', { fallback: '9.99' }), 
+      icon: <Star className="w-4 h-4 text-vibe-primary" />, 
+      features: (t.raw('plans.pro.features') as string[]) || [] 
+    },
+    { 
+      id: 'premium', 
+      name: t('plans.premium.name', { fallback: 'Premium' }), 
+      price: t('plans.premium.price', { fallback: '19.99' }), 
+      icon: <Crown className="w-4 h-4 text-yellow-500" />, 
+      features: (t.raw('plans.premium.features') as string[]) || [] 
+    }
   ];
 
   if (loading) return <div className="animate-pulse h-40 bg-white/5 rounded-xl" />;
