@@ -121,7 +121,7 @@ export default function MapPage() {
   const mapRef = useRef<any>(null);
   const hasCentered = useRef(false);
 
-  // Ottieni posizione iniziale dell'utente
+  // Ottieni posizione iniziale dell'utente (Veloce)
   useEffect(() => {
     if (typeof window !== 'undefined' && navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
@@ -131,7 +131,7 @@ export default function MapPage() {
           console.log('[Map] Posizione utente rilevata:', coords);
         },
         (err) => console.warn('[Map] Errore geolocalizzazione iniziale:', err),
-        { enableHighAccuracy: true, timeout: 5000 }
+        { enableHighAccuracy: false, timeout: 3000, maximumAge: 60000 }
       );
     }
   }, []);
@@ -143,7 +143,7 @@ export default function MapPage() {
       mapRef.current.flyTo({
         center: [userPosition.lng, userPosition.lat],
         zoom: 13,
-        duration: 1500
+        duration: 600
       });
       hasCentered.current = true;
     }

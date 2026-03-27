@@ -37,12 +37,16 @@ export default function MapSearch() {
       try {
         const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
         
-        // 1. Ricerca interna (Venues/Events)
+        // 1. Ricerca interna (Venues/Events/Profiles)
         const res = await fetch(`/api/discovery/search?q=${encodeURIComponent(query)}`);
         const data = await res.json();
-        const internalResults = [...(data.venues || []), ...(data.events || [])].map(item => ({
+        const internalResults = [
+          ...(data.venues || []), 
+          ...(data.events || []),
+          ...(data.users || [])
+        ].map(item => ({
           ...item,
-          displayName: item.name || item.title,
+          displayName: item.displayName || item.name || item.title,
           source: 'internal'
         }));
 
@@ -86,7 +90,7 @@ export default function MapSearch() {
       map.flyTo({
         center: [lon, lat],
         zoom: item.source === 'mapbox' ? 12 : 16,
-        duration: 2000
+        duration: 800
       });
     }
   };
@@ -96,7 +100,7 @@ export default function MapSearch() {
       <div className="relative">
         <input
           type="text"
-          placeholder="Cerca un locale, evento o città..."
+          placeholder="Cerca amici, locali o eventi..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           className="input-field pl-10 h-10 text-sm bg-vibe-dark/60 backdrop-blur-md"
@@ -120,14 +124,14 @@ export default function MapSearch() {
               className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-white/10 text-left transition-colors group"
             >
               <span className="text-xl">
-                {item.source === 'mapbox' ? '📍' : (item.name ? '🏢' : '🎉')}
+                {item.source === 'mapbox' ? '📍' : (item.type === 'user' ? '👥' : (item.name ? '🏢' : '🎉'))}
               </span>
               <div className="min-w-0">
                 <p className="text-sm font-semibold truncate group-hover:text-vibe-purple transition-colors">
                   {item.displayName}
                 </p>
                 <p className="text-[10px] text-vibe-text-secondary truncate uppercase tracking-wider">
-                  {item.source === 'mapbox' ? 'Mappa' : (item.type || item.venue?.name || 'Evento')}
+                  {item.source === 'mapbox' ? 'Mappa' : (item.type === 'user' ? 'Profilo' : (item.type || item.venue?.name || 'Evento'))}
                 </p>
               </div>
             </button>

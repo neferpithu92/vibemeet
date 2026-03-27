@@ -21,12 +21,12 @@ try {
 }
 
 /**
- * Proxy — protegge le route (app), gestisce i locale e il refresh dei token di sessione.
+ * Middleware — protegge le route (app), gestisce i locale e il refresh dei token di sessione.
  */
-export async function proxy(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   // Debug: Verifica URL Supabase in produzione
   if (process.env.NODE_ENV === 'production') {
-    console.log('Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL);
+    // console.log('Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL);
   }
 
   // 0. Extract pathname for routing and rate limiting

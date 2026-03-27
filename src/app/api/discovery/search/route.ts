@@ -48,9 +48,26 @@ export async function GET(request: Request) {
     .ilike('name', `%${query}%`)
     .limit(5);
 
+  // Ricerca profili utenti (Amici)
+  const { data: users_profiles } = await supabase
+    .from('users')
+    .select('id, username, display_name, avatar_url, last_location')
+    .or(`username.ilike.%${query}%,display_name.ilike.%${query}%`)
+    .limit(5);
+
+  // Converti i profili in un formato compatibile con il frontend
+  const users = (users_profiles || []).map(u => ({
+    id: u.id,
+    displayName: u.display_name || u.username,
+    type: 'user',
+    longitude: (u.last_location as any)?.coordinates?.[0],
+    latitude: (u.last_location as any)?.coordinates?.[1]
+  }));
+
   return NextResponse.json({
     events: events || [],
     venues: venues || [],
-    artists: artists || []
+    artists: artists || [],
+    users: users
   });
 }
