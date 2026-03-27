@@ -341,7 +341,7 @@ export default function MapPage() {
             size="sm" 
             className="shadow-xl"
           >
-            🔖 {t('saved') || 'Eventi Salvi'}
+            🔖 {t('saved')}
           </Button>
         </Link>
       </div>

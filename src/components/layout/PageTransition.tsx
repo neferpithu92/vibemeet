@@ -1,5 +1,6 @@
 'use client';
 
+import { useLocale } from 'next-intl';
 import { motion, AnimatePresence } from 'framer-motion';
 import { usePathname } from '@/lib/i18n/navigation';
 
@@ -9,11 +10,12 @@ import { usePathname } from '@/lib/i18n/navigation';
  */
 export default function PageTransition({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const locale = useLocale();
 
   return (
     <AnimatePresence mode="wait">
       <motion.div
-        key={pathname}
+        key={`${locale}-${pathname}`}
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -10 }}
