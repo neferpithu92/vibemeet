@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import { useToast } from '@/components/ui/ToastProvider';
@@ -20,6 +21,7 @@ interface VenueOption {
 }
 
 export default function CreateEvent({ isOpen, onClose, onSuccess, venueId: initialVenueId }: CreateEventProps) {
+  const t = useTranslations('events_create');
   const supabase = createClient();
   const { showToast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
@@ -61,14 +63,14 @@ export default function CreateEvent({ isOpen, onClose, onSuccess, venueId: initi
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedVenueId) {
-      showToast('Seleziona un locale per l\'evento', 'error');
+      showToast(t('errorNoVenue'), 'error');
       return;
     }
 
     setIsLoading(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Non autorizzato');
+      if (!user) throw new Error(t('errorUnauthorized'));
 
       const { data, error } = await supabase.from('events').insert({
         ...formData,
@@ -83,29 +85,29 @@ export default function CreateEvent({ isOpen, onClose, onSuccess, venueId: initi
 
       if (error) throw error;
 
-      showToast('Evento creato con successo! 🎉', 'success');
+      showToast(t('success'), 'success', '🎉');
       if (onSuccess) onSuccess();
       onClose();
     } catch (err: any) {
-      showToast(err instanceof Error ? err.message : 'Errore imprevisto', 'error');
+      showToast(err instanceof Error ? err.message : t('errorUnexpected'), 'error');
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Crea Nuovo Evento">
+    <Modal isOpen={isOpen} onClose={onClose} title={t('title')}>
       <form onSubmit={handleSubmit} className="space-y-4">
         {!initialVenueId && userVenues.length > 1 && (
           <div>
-            <label className="text-xs font-bold uppercase text-vibe-text-secondary">Seleziona Locale</label>
+            <label className="text-xs font-bold uppercase text-vibe-text-secondary">{t('selectVenue')}</label>
             <select 
               className="input-field mt-1"
               value={selectedVenueId || ''}
               onChange={(e) => setSelectedVenueId(e.target.value)}
               required
             >
-              <option value="">Scegli un locale...</option>
+              <option value="">{t('chooseVenue')}</option>
               {userVenues.map(v => (
                 <option key={v.id} value={v.id}>{v.name}</option>
               ))}
@@ -113,29 +115,29 @@ export default function CreateEvent({ isOpen, onClose, onSuccess, venueId: initi
           </div>
         )}
         <div>
-          <label className="text-xs font-bold uppercase text-vibe-text-secondary">Titolo</label>
+          <label className="text-xs font-bold uppercase text-vibe-text-secondary">{t('eventTitle')}</label>
           <input
             type="text"
             required
             value={formData.title}
             onChange={(e) => setFormData({ ...formData, title: e.target.value })}
             className="input-field mt-1"
-            placeholder="Nome dell'evento..."
+            placeholder={t('eventPlaceholder')}
           />
         </div>
         <div>
-          <label className="text-xs font-bold uppercase text-vibe-text-secondary">Descrizione</label>
+          <label className="text-xs font-bold uppercase text-vibe-text-secondary">{t('description')}</label>
           <textarea
             required
             value={formData.description}
             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
             className="input-field mt-1 min-h-[80px]"
-            placeholder="Di cosa si tratta?"
+            placeholder={t('descriptionPlaceholder')}
           />
         </div>
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="text-xs font-bold uppercase text-vibe-text-secondary">Inizio</label>
+            <label className="text-xs font-bold uppercase text-vibe-text-secondary">{t('start')}</label>
             <input
               type="datetime-local"
               required
@@ -145,7 +147,7 @@ export default function CreateEvent({ isOpen, onClose, onSuccess, venueId: initi
             />
           </div>
           <div>
-            <label className="text-xs font-bold uppercase text-vibe-text-secondary">Prezzo (CHF)</label>
+            <label className="text-xs font-bold uppercase text-vibe-text-secondary">{t('price')}</label>
             <input
               type="number"
               min="0"
@@ -156,11 +158,11 @@ export default function CreateEvent({ isOpen, onClose, onSuccess, venueId: initi
           </div>
         </div>
         <div>
-          <label className="text-xs font-bold uppercase text-vibe-text-secondary">Immagine di Copertina</label>
+          <label className="text-xs font-bold uppercase text-vibe-text-secondary">{t('coverImage')}</label>
           <MediaUpload 
             bucket="events" 
             onUploadComplete={(url) => setFormData({ ...formData, coverUrl: url })}
-            label="Carica la locandina dell'evento"
+            label={t('uploadLabel')}
           />
         </div>
         <Button 
@@ -169,7 +171,7 @@ export default function CreateEvent({ isOpen, onClose, onSuccess, venueId: initi
           className="w-full" 
           disabled={isLoading}
         >
-          {isLoading ? 'Creazione...' : 'Pubblica Evento 🚀'}
+          {isLoading ? t('creating') : t('publish')}
         </Button>
       </form>
     </Modal>

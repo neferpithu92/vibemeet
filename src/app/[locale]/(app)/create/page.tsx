@@ -17,7 +17,7 @@ export default function CreateHubPage() {
   const [isPostOpen, setIsPostOpen] = useState(false);
   const [isEventOpen, setIsEventOpen] = useState(false);
   const router = useRouter();
-  const t = useTranslations('create');
+  const t = useTranslations('createHub');
 
   const handleSuccess = () => {
     // Dopo il successo, reindirizziamo al feed o dashboard
@@ -28,8 +28,8 @@ export default function CreateHubPage() {
     <div className="page-container flex items-center justify-center p-6">
       <div className="w-full max-w-md space-y-6">
         <div className="text-center mb-8">
-          <h1 className="font-display text-3xl font-bold vibe-gradient-text mb-2">Cosa vuoi creare?</h1>
-          <p className="text-vibe-text-secondary text-sm">Condividi le tue esperienze con la community</p>
+          <h1 className="font-display text-3xl font-bold vibe-gradient-text mb-2">{t('title')}</h1>
+          <p className="text-vibe-text-secondary text-sm">{t('subtitle')}</p>
         </div>
 
         <div className="grid grid-cols-1 gap-4">
@@ -43,8 +43,8 @@ export default function CreateHubPage() {
                 📱
               </div>
               <div className="flex-1">
-                <h2 className="font-bold text-lg">Nuova Storia</h2>
-                <p className="text-xs text-vibe-text-secondary text-balance">Contenuto live che scompare dopo 24 ore e appare sulla mappa.</p>
+                <h2 className="font-bold text-lg">{t('newStory')}</h2>
+                <p className="text-xs text-vibe-text-secondary text-balance">{t('storyDescription')}</p>
               </div>
             </div>
           </Card>
@@ -59,8 +59,8 @@ export default function CreateHubPage() {
                 ✨
               </div>
               <div className="flex-1">
-                <h2 className="font-bold text-lg">Nuovo Post</h2>
-                <p className="text-xs text-vibe-text-secondary text-balance">Pubblica foto o video nel feed globale in modo permanente.</p>
+                <h2 className="font-bold text-lg">{t('newPost')}</h2>
+                <p className="text-xs text-vibe-text-secondary text-balance">{t('postDescription')}</p>
               </div>
             </div>
           </Card>
@@ -75,8 +75,8 @@ export default function CreateHubPage() {
                 🎉
               </div>
               <div className="flex-1">
-                <h2 className="font-bold text-lg">Nuovo Evento</h2>
-                <p className="text-xs text-vibe-text-secondary text-balance">Organizza un party, un concerto o una serata speciale.</p>
+                <h2 className="font-bold text-lg">{t('newEvent')}</h2>
+                <p className="text-xs text-vibe-text-secondary text-balance">{t('eventDescription')}</p>
               </div>
             </div>
           </Card>
@@ -87,7 +87,7 @@ export default function CreateHubPage() {
           className="w-full mt-4"
           onClick={() => router.back()}
         >
-          Annulla
+          {t('cancel')}
         </Button>
       </div>
 

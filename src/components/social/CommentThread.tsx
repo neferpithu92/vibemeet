@@ -226,10 +226,10 @@ export default function CommentThread({ entityType, entityId }: CommentThreadPro
         ) : (
           <Card className="p-6 text-center border-dashed border-vibe-purple/20">
              <p className="text-sm text-vibe-text-secondary mb-3">
-               Effettua il login per commentare questa esperienza
+               {t('loginToComment')}
              </p>
              <Link href="/login">
-               <Button variant="secondary" size="sm">Accedi</Button>
+               <Button variant="secondary" size="sm">{t('login')}</Button>
              </Link>
           </Card>
         )}

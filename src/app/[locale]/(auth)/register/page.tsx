@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
+import { useTranslations } from 'next-intl';
 import { Link, useRouter } from '@/lib/i18n/navigation';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -28,11 +29,8 @@ const interests = [
   { id: 'theater', label: 'Teatro', icon: '🎭' },
 ];
 
-/**
- * Pagina registrazione a step: account → profilo → interessi → posizione.
- * Connessa a Supabase Auth + users table.
- */
 export default function RegisterPage() {
+  const t = useTranslations('auth');
   const router = useRouter();
   const supabase = createClient();
 
@@ -57,57 +55,53 @@ export default function RegisterPage() {
     );
   };
 
-  /** Valida lo step corrente */
   const validateStep = (): boolean => {
     setError(null);
     if (currentStep === 'account') {
       if (!formData.email || !formData.password) {
-        setError('Compila tutti i campi');
+        setError(t('errorFields'));
         return false;
       }
       if (formData.password.length < 8) {
-        setError('La password deve avere almeno 8 caratteri');
+        setError(t('errorPasswordLength'));
         return false;
       }
       if (formData.password !== formData.confirmPassword) {
-        setError('Le password non corrispondono');
+        setError(t('errorPasswordMatch'));
         return false;
       }
     }
     if (currentStep === 'profile') {
       if (!formData.username || !formData.displayName) {
-        setError('Inserisci username e nome visualizzato');
+        setError(t('errorUsernameProfile'));
         return false;
       }
       if (formData.username.length < 3) {
-        setError('L\'username deve avere almeno 3 caratteri');
+        setError(t('errorUsernameLength'));
         return false;
       }
     }
     if (currentStep === 'interests' && selectedInterests.length < 3) {
-      setError('Seleziona almeno 3 interessi');
+      setError(t('errorInterests'));
       return false;
     }
     return true;
   };
 
-  /** Registra l'utente su Supabase Auth e crea il profilo nella tabella users */
   const handleRegister = async () => {
     setIsLoading(true);
     setError(null);
 
-    // 1. Genera KeyPair E2E deterministico dalla password (VEL Initial Setup)
     let cryptoKeys;
     try {
       cryptoKeys = await generateKeyPairFromPassword(formData.password, formData.email);
     } catch (e) {
       console.error("Security layer init failed:", e);
-      setError("Errore durante l'inizializzazione del layer di sicurezza.");
+      setError("Security layer initialization failed.");
       setIsLoading(false);
       return;
     }
 
-    // 2. Crea account su Supabase Auth (include Public Key nei metadati)
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email: formData.email,
       password: formData.password,
@@ -115,7 +109,7 @@ export default function RegisterPage() {
         data: {
           username: formData.username.toLowerCase().replace(/\s/g, '_'),
           display_name: formData.displayName,
-          public_key: cryptoKeys.publicKey, // VEL Registry
+          public_key: cryptoKeys.publicKey,
         }
       }
     });
@@ -126,13 +120,11 @@ export default function RegisterPage() {
       return;
     }
 
-    // 3. Persistenza locale temporanea delle chiavi (Session only)
     if (typeof window !== 'undefined') {
       sessionStorage.setItem('vibe_public_key', cryptoKeys.publicKey);
       sessionStorage.setItem('vibe_private_key', cryptoKeys.privateKey);
     }
 
-    // 2. Upload avatar if selected
     if (avatarPreview && avatarInputRef.current?.files?.[0]) {
       const file = avatarInputRef.current.files[0];
       const ext = file.name.split('.').pop();
@@ -145,13 +137,10 @@ export default function RegisterPage() {
       }
     }
 
-    // 3. Redirect a /onboarding per completare il profilo
-    // Il profilo viene creato automaticamente dal trigger database
     router.push('/onboarding');
     router.refresh();
   };
 
-  /** Avanza allo step successivo o registra */
   const handleNext = async () => {
     if (!validateStep()) return;
 
@@ -164,20 +153,18 @@ export default function RegisterPage() {
 
   return (
     <div className="animate-fade-in">
-      {/* Logo */}
       <div className="text-center mb-6">
         <div className="w-16 h-16 rounded-2xl bg-vibe-gradient flex items-center justify-center mx-auto mb-4 shadow-lg glow-purple">
           <span className="text-white text-2xl font-bold font-display">V</span>
         </div>
         <h1 className="font-display text-3xl font-bold vibe-gradient-text mb-2">
-          Unisciti a VIBE
+          {t('joinTitle')}
         </h1>
         <p className="text-vibe-text-secondary text-sm">
-          Scopri il mondo intorno a te
+          {t('joinSubtitle')}
         </p>
       </div>
 
-      {/* Progress bar */}
       <div className="mb-6">
         <div className="h-1 rounded-full bg-white/10 overflow-hidden">
           <div
@@ -193,13 +180,12 @@ export default function RegisterPage() {
                 i <= stepIndex ? 'text-vibe-purple' : 'text-vibe-text-secondary opacity-50'
               }`}
             >
-              {step === 'account' ? 'Account' : step === 'profile' ? 'Profilo' : step === 'interests' ? 'Interessi' : 'Posizione'}
+              {step === 'account' ? t('stepAccount') : step === 'profile' ? t('stepProfile') : step === 'interests' ? t('stepInterests') : t('stepLocation')}
             </span>
           ))}
         </div>
       </div>
 
-      {/* Error Message */}
       {error && (
         <div className="mb-4 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm text-center animate-fade-in">
           {error}
@@ -207,43 +193,41 @@ export default function RegisterPage() {
       )}
 
       <Card className="p-6">
-        {/* Step 1: Account */}
         {currentStep === 'account' && (
           <div className="space-y-4 animate-fade-in">
             <div>
-              <label className="block text-sm font-medium text-vibe-text-secondary mb-1.5">Email</label>
+              <label className="block text-sm font-medium text-vibe-text-secondary mb-1.5">{t('email')}</label>
               <input
                 type="email"
                 value={formData.email}
                 onChange={(e) => setFormData(d => ({ ...d, email: e.target.value }))}
-                placeholder="la-tua@email.ch"
+                placeholder={t('placeholderEmail')}
                 className="input-field"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-vibe-text-secondary mb-1.5">Password</label>
+              <label className="block text-sm font-medium text-vibe-text-secondary mb-1.5">{t('password')}</label>
               <input
                 type="password"
                 value={formData.password}
                 onChange={(e) => setFormData(d => ({ ...d, password: e.target.value }))}
-                placeholder="Min. 8 caratteri"
+                placeholder={t('placeholderPassword')}
                 className="input-field"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-vibe-text-secondary mb-1.5">Conferma password</label>
+              <label className="block text-sm font-medium text-vibe-text-secondary mb-1.5">{t('confirmPassword')}</label>
               <input
                 type="password"
                 value={formData.confirmPassword}
                 onChange={(e) => setFormData(d => ({ ...d, confirmPassword: e.target.value }))}
-                placeholder="Ripeti la password"
+                placeholder={t('placeholderConfirm')}
                 className="input-field"
               />
             </div>
           </div>
         )}
 
-        {/* Step 2: Profilo */}
         {currentStep === 'profile' && (
           <div className="space-y-4 animate-fade-in">
             <div className="text-center mb-4">
@@ -267,39 +251,38 @@ export default function RegisterPage() {
                   if (file) setAvatarPreview(URL.createObjectURL(file));
                 }}
               />
-              <p className="text-xs text-vibe-text-secondary mt-2">{avatarPreview ? 'Foto selezionata ✓' : 'Tocca per aggiungere una foto'}</p>
+              <p className="text-xs text-vibe-text-secondary mt-2">{avatarPreview ? t('avatarSelected') : t('avatarPrompt')}</p>
             </div>
             <div>
-              <label className="block text-sm font-medium text-vibe-text-secondary mb-1.5">Username</label>
+              <label className="block text-sm font-medium text-vibe-text-secondary mb-1.5">{t('username')}</label>
               <div className="relative">
                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-vibe-text-secondary">@</span>
                 <input
                   type="text"
                   value={formData.username}
                   onChange={(e) => setFormData(d => ({ ...d, username: e.target.value }))}
-                  placeholder="il_tuo_username"
+                  placeholder={t('placeholderUsername')}
                   className="input-field pl-8"
                 />
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-vibe-text-secondary mb-1.5">Nome visualizzato</label>
+              <label className="block text-sm font-medium text-vibe-text-secondary mb-1.5">{t('placeholderDisplayName')}</label>
               <input
                 type="text"
                 value={formData.displayName}
                 onChange={(e) => setFormData(d => ({ ...d, displayName: e.target.value }))}
-                placeholder="Come vuoi che ti vedano gli altri?"
+                placeholder={t('placeholderDisplayName')}
                 className="input-field"
               />
             </div>
           </div>
         )}
 
-        {/* Step 3: Interessi */}
         {currentStep === 'interests' && (
           <div className="animate-fade-in">
-            <h3 className="font-display font-bold text-lg mb-2 text-center">Cosa ti interessa?</h3>
-            <p className="text-sm text-vibe-text-secondary text-center mb-4">Seleziona almeno 3 interessi</p>
+            <h3 className="font-display font-bold text-lg mb-2 text-center">{t('interestsTitle')}</h3>
+            <p className="text-sm text-vibe-text-secondary text-center mb-4">{t('interestsSubtitle')}</p>
             <div className="flex flex-wrap gap-2 justify-center">
               {interests.map((interest) => (
                 <button
@@ -317,24 +300,23 @@ export default function RegisterPage() {
               ))}
             </div>
             <p className="text-xs text-vibe-text-secondary text-center mt-3">
-              {selectedInterests.length} selezionati
+              {selectedInterests.length} {t('interestsCount')}
             </p>
           </div>
         )}
 
-        {/* Step 4: Posizione */}
         {currentStep === 'location' && (
           <div className="text-center animate-fade-in">
             <div className="w-24 h-24 rounded-full bg-vibe-gradient/20 flex items-center justify-center mx-auto mb-4">
               <span className="text-4xl">📍</span>
             </div>
-            <h3 className="font-display font-bold text-lg mb-2">Abilita posizione</h3>
+            <h3 className="font-display font-bold text-lg mb-2">{t('locationTitle')}</h3>
             <p className="text-sm text-vibe-text-secondary mb-6">
-              VIBE funziona meglio sapendo dove ti trovi. Scopri eventi, venue e persone vicine a te.
+              {t('locationSubtitle')}
             </p>
             {locationGranted ? (
               <div className="flex items-center justify-center gap-2 text-green-400 font-bold text-sm">
-                <span>✅</span> Posizione abilitata!
+                <span>✅</span> {t('locationEnabled')}
               </div>
             ) : (
               <Button 
@@ -344,21 +326,20 @@ export default function RegisterPage() {
                   if (navigator.geolocation) {
                     navigator.geolocation.getCurrentPosition(
                       () => setLocationGranted(true),
-                      () => setError('Permesso GPS negato. Puoi continuare senza.'),
+                      () => setError(t('errorGpsDenied')),
                       { enableHighAccuracy: true, timeout: 5000 }
                     );
                   } else {
-                    setError('Geolocalizzazione non supportata');
+                    setError(t('errorNotSupported'));
                   }
                 }}
               >
-                📍 Abilita GPS
+                📍 {t('enableGps')}
               </Button>
             )}
           </div>
         )}
 
-        {/* Navigazione step */}
         <div className="flex gap-3 mt-6 pt-4 border-t border-white/5">
           {stepIndex > 0 && (
             <Button
@@ -369,7 +350,7 @@ export default function RegisterPage() {
               }}
               className="flex-1"
             >
-              ← Indietro
+              ← {t('back')}
             </Button>
           )}
           <Button
@@ -378,21 +359,19 @@ export default function RegisterPage() {
             className="flex-1"
             isLoading={isLoading}
           >
-            {stepIndex === steps.length - 1 ? '🚀 Inizia' : 'Avanti →'}
+            {stepIndex === steps.length - 1 ? `🚀 ${t('start')}` : `${t('next')} →`}
           </Button>
         </div>
 
-        {/* Termini */}
         <p className="text-[10px] text-vibe-text-secondary opacity-50 text-center mt-4">
-          Registrandoti, accetti i nostri Termini di Servizio e la Privacy Policy
+          {t('terms')}
         </p>
       </Card>
 
-      {/* Footer */}
       <p className="text-center mt-6 text-sm text-vibe-text-secondary">
-        Hai già un account?{' '}
+        {t('haveAccount')}{' '}
         <Link href="/login" className="text-vibe-purple hover:text-vibe-pink transition-colors font-medium">
-          Accedi
+          {t('login')}
         </Link>
       </p>
     </div>

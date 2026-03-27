@@ -59,13 +59,37 @@ export async function middleware(request: NextRequest) {
 
     const { data: { user } } = await supabase.auth.getUser();
 
+    // Recover locale for redirects
+    const localeMatch = pathname.match(/^\/(it|en|de|fr|rm)\//);
+    const currentLocale = localeMatch ? localeMatch[1] : defaultLocale;
+
     if (!user) {
       const url = request.nextUrl.clone();
-      // Detect locale from pathname
-      const localeMatch = pathname.match(/^\/(it|en|de|fr|rm)\//);
-      const currentLocale = localeMatch ? localeMatch[1] : defaultLocale;
       url.pathname = `/${currentLocale}/login`;
       return NextResponse.redirect(url);
+    }
+
+    // Check account status (paused or deletion)
+    const { data: userData } = await supabase
+      .from('users')
+      .select('is_paused, deletion_requested_at')
+      .eq('id', user.id)
+      .single();
+
+    if (userData) {
+      const isReactivatePage = pathname.includes('/reactivate');
+      
+      if ((userData.is_paused || userData.deletion_requested_at) && !isReactivatePage) {
+        const url = request.nextUrl.clone();
+        url.pathname = `/${currentLocale}/reactivate`;
+        return NextResponse.redirect(url);
+      }
+      
+      if (!userData.is_paused && !userData.deletion_requested_at && isReactivatePage) {
+        const url = request.nextUrl.clone();
+        url.pathname = `/${currentLocale}/map`;
+        return NextResponse.redirect(url);
+      }
     }
 
     return supabaseResponse;

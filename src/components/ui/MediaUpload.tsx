@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/Button';
 import { createClient } from '@/lib/supabase/client';
 import { RefreshCcw, AlertTriangle, CheckCircle, UploadCloud } from 'lucide-react';
@@ -12,16 +13,13 @@ interface MediaUploadProps {
   aspectRatio?: 'square' | 'video' | 'any';
 }
 
-/**
- * Highly reliable upload component with real progress, offline handling, and retries.
- * Implements Critical System 6.
- */
 export default function MediaUpload({ 
   onUploadComplete, 
   bucket, 
-  label = 'Upload Media',
+  label,
   aspectRatio = 'any'
 }: MediaUploadProps) {
+  const t = useTranslations('upload');
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [status, setStatus] = useState<'idle' | 'uploading' | 'success' | 'error'>('idle');
@@ -54,8 +52,6 @@ export default function MediaUpload({
       setPreview(url);
       setStatus('idle');
       setProgress(0);
-      
-      // Auto-start upload per requirements: "Start immediately"
       startUpload(selectedFile);
     }
   };
@@ -63,7 +59,7 @@ export default function MediaUpload({
   const startUpload = async (fileToUpload: File) => {
     if (isOffline) {
       setStatus('error');
-      setErrorMessage('Network disconnected. Wait for connection.');
+      setErrorMessage(t('errorOffline'));
       return;
     }
 
@@ -75,10 +71,9 @@ export default function MediaUpload({
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
       
       if (sessionError || !session) {
-        throw new Error('User not authenticated');
+        throw new Error(t('errorAuth'));
       }
 
-      // We use XHR to get precise byte-level progress
       const xhr = new XMLHttpRequest();
       xhrRef.current = xhr;
 
@@ -98,30 +93,28 @@ export default function MediaUpload({
 
       xhr.onload = async () => {
         if (xhr.status >= 200 && xhr.status < 300) {
-          // Success
           setProgress(100);
           const { data } = supabase.storage.from(bucket).getPublicUrl(fileName);
           
           setStatus('success');
           setTimeout(() => {
             onUploadComplete(data.publicUrl, fileToUpload);
-          }, 1000); // Give user a moment to see 100%
+          }, 1000);
         } else {
-          // Failure
           setStatus('error');
-          setErrorMessage(`Upload failed: ${xhr.statusText}`);
+          setErrorMessage(`${t('error')} : ${xhr.statusText}`);
         }
       };
 
       xhr.onerror = () => {
         setStatus('error');
-        setErrorMessage('Network error during upload.');
+        setErrorMessage(t('errorNetwork'));
       };
 
       xhr.send(fileToUpload);
     } catch (err: any) {
       setStatus('error');
-      setErrorMessage(err.message || 'Error initializing upload');
+      setErrorMessage(err.message || t('error'));
     }
   };
 
@@ -173,14 +166,14 @@ export default function MediaUpload({
             <div className="w-12 h-12 rounded-full bg-vibe-purple/20 flex items-center justify-center mx-auto mb-3">
               <UploadCloud className="w-6 h-6 text-white" />
             </div>
-            <p className="text-sm font-medium">{label}</p>
-            <p className="text-xs text-vibe-text-secondary mt-1">PNG, JPG or MP4 (max 10MB)</p>
+            <p className="text-sm font-medium">{label || t('placeholder')}</p>
+            <p className="text-xs text-vibe-text-secondary mt-1">{t('helpText')}</p>
           </div>
         )}
         
         {preview && status === 'idle' && (
           <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-            <span className="text-white text-sm font-bold">Change File</span>
+            <span className="text-white text-sm font-bold">{t('changeFile')}</span>
           </div>
         )}
 
@@ -191,18 +184,17 @@ export default function MediaUpload({
                 className="h-full bg-vibe-gradient-yellow-orange transition-all duration-300 relative" 
                 style={{ width: `${progress}%` }}
               >
-                {/* Micro-animation for progress bar */}
                 <div className="absolute top-0 left-0 bottom-0 right-0 bg-white/20 animate-pulse" />
               </div>
             </div>
-            <p className="text-sm font-bold text-white z-10">{progress}% Uploaded</p>
+            <p className="text-sm font-bold text-white z-10">{progress}% {t('uploading')}</p>
           </div>
         )}
 
         {status === 'success' && (
           <div className="absolute inset-0 bg-green-500/80 backdrop-blur-sm flex flex-col items-center justify-center p-6 animate-in fade-in zoom-in duration-300">
             <CheckCircle className="w-12 h-12 text-white mb-2" />
-            <p className="text-sm font-bold text-white">Upload Complete!</p>
+            <p className="text-sm font-bold text-white">{t('success')}</p>
           </div>
         )}
 
@@ -212,7 +204,7 @@ export default function MediaUpload({
             <p className="text-sm font-bold text-white text-center mb-4">{errorMessage}</p>
             <Button onClick={retryUpload} variant="outline" className="gap-2 bg-white/10 hover:bg-white/20 border-white/20 text-white">
               <RefreshCcw className="w-4 h-4" />
-              Retry Upload
+              {t('retry')}
             </Button>
           </div>
         )}
@@ -223,7 +215,7 @@ export default function MediaUpload({
         ref={fileInputRef}
         onChange={handleFileChange}
         accept="image/*,video/*"
-        capture="environment" // Hint for mobile devices to prefer camera
+        capture="environment"
         className="hidden"
       />
     </div>

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { Modal } from '@/components/ui/Modal';
 import MediaUpload from '@/components/ui/MediaUpload';
 import { useToast } from '@/components/ui/ToastProvider';
@@ -9,7 +10,7 @@ import { HashtagInput } from '@/components/ui/HashtagInput';
 import { LocationPicker } from '@/components/ui/LocationPicker';
 import { useCirclesStore } from '@/stores/useCirclesStore';
 import { Users, Lock, Eye, Check } from 'lucide-react';
-
+import { createClient } from '@/lib/supabase/client';
 
 interface CreatePostProps {
   isOpen: boolean;
@@ -17,13 +18,8 @@ interface CreatePostProps {
   onSuccess?: () => void;
 }
 
-/**
- * Componente per creare un nuovo post nel feed.
- * Ora supporta hashtag e location obbligatoria (Phase 16).
- */
-import { createClient } from '@/lib/supabase/client';
-
 export default function CreatePost({ isOpen, onClose, onSuccess }: CreatePostProps) {
+  const t = useTranslations('create');
   const supabase = createClient();
   const [caption, setCaption] = useState('');
   const [hashtags, setHashtags] = useState<string[]>([]);
@@ -37,7 +33,6 @@ export default function CreatePost({ isOpen, onClose, onSuccess }: CreatePostPro
     if (isOpen) fetchCircles();
   }, [isOpen, fetchCircles]);
 
-  
   const { showToast } = useToast();
 
   const handleUploadComplete = async (url: string) => {
@@ -63,7 +58,6 @@ export default function CreatePost({ isOpen, onClose, onSuccess }: CreatePostPro
       if (error) throw error;
 
       if (media) {
-        // Parse hashtags from caption
         const extractHashtags = (text: string) => {
           return (text.match(/#[\w\u00C0-\u024F]+/g) || [])
             .map(tag => tag.slice(1).toLowerCase())
@@ -71,7 +65,6 @@ export default function CreatePost({ isOpen, onClose, onSuccess }: CreatePostPro
         };
 
         const extractedTags = extractHashtags(caption);
-        // Combine manually selected hashtags and extracted ones from caption without duplicates
         const allTags = Array.from(new Set([...extractedTags, ...hashtags]));
         
         for (const tag of allTags) {
@@ -90,7 +83,7 @@ export default function CreatePost({ isOpen, onClose, onSuccess }: CreatePostPro
         }
       }
 
-      showToast('Post pubblicato! 🚀', 'success', '✨');
+      showToast(t('success'), 'success', '✨');
       setCaption('');
       setHashtags([]);
       setLocation(null);
@@ -98,20 +91,18 @@ export default function CreatePost({ isOpen, onClose, onSuccess }: CreatePostPro
       onClose();
     } catch (e: any) {
       console.error(e);
-      showToast(e instanceof Error ? e.message : 'Errore durante la pubblicazione', 'error');
+      showToast(e instanceof Error ? e.message : t('error'), 'error');
     }
   };
 
-  const isFormValid = !!location; // Location is mandatory
+  const isFormValid = !!location;
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Crea un Vibe / Post">
+    <Modal isOpen={isOpen} onClose={onClose} title={t('title')}>
       <div className="space-y-6">
-        
-        {/* Caption */}
         <div>
           <textarea
-            placeholder="Cosa sta succedendo? ✨"
+            placeholder={t('captionPlaceholder')}
             value={caption}
             onChange={(e) => setCaption(e.target.value)}
             className="input-field min-h-[100px] resize-none text-sm mb-2"
@@ -119,21 +110,20 @@ export default function CreatePost({ isOpen, onClose, onSuccess }: CreatePostPro
           <HashtagInput 
             value={hashtags} 
             onChange={setHashtags} 
-            placeholder="Aggiungi hashtag... (es. #zurichnight)"
+            placeholder={t('hashtagPlaceholder')}
           />
         </div>
 
-        {/* Visibility Selector */}
         <div className="space-y-3">
           <label className="text-xs font-bold text-vibe-text-secondary uppercase">
-            Chi può vedere questo Vibe?
+            {t('visibilityLabel')}
           </label>
           <div className="grid grid-cols-2 gap-2">
             {[
-              { id: 'public', label: 'Pubblico', icon: Eye },
-              { id: 'friends', label: 'Amici', icon: Users },
-              { id: 'circles', label: 'Circles', icon: Lock },
-              { id: 'private', label: 'Privato', icon: Lock },
+              { id: 'public', label: t('public'), icon: Eye },
+              { id: 'friends', label: t('friends'), icon: Users },
+              { id: 'circles', label: t('circles'), icon: Lock },
+              { id: 'private', label: t('private'), icon: Lock },
             ].map((opt) => (
               <button
                 key={opt.id}
@@ -153,11 +143,10 @@ export default function CreatePost({ isOpen, onClose, onSuccess }: CreatePostPro
             ))}
           </div>
 
-          {/* Social Circles List (if 'circles' selected) */}
           {visibility === 'circles' && (
             <div className="animate-in fade-in slide-in-from-top-2 duration-300">
               <div className="p-3 bg-white/5 rounded-xl border border-white/10 space-y-2">
-                <p className="text-[10px] text-vibe-text-secondary uppercase font-bold px-1">Seleziona un Circle</p>
+                <p className="text-[10px] text-vibe-text-secondary uppercase font-bold px-1">{t('selectCircle')}</p>
                 {circles.length > 0 ? (
                   <div className="grid grid-cols-1 gap-1">
                     {circles.map(circle => (
@@ -174,41 +163,39 @@ export default function CreatePost({ isOpen, onClose, onSuccess }: CreatePostPro
                     ))}
                   </div>
                 ) : (
-                  <p className="text-xs text-vibe-text-secondary italic px-1 py-1">Nessun Circle creato. Creane uno nelle impostazioni.</p>
+                  <p className="text-xs text-vibe-text-secondary italic px-1 py-1">{t('noCircles')}</p>
                 )}
               </div>
             </div>
           )}
         </div>
 
-        {/* Mandatory Location */}
         <LocationPicker 
           value={location} 
           onChange={setLocation} 
           required 
         />
 
-        {/* Media Upload */}
         <div className="space-y-2">
           <label className="text-xs font-bold text-vibe-text-secondary uppercase">
-            Aggiungi Media
+            {t('addMedia')}
           </label>
           <div className={!isFormValid ? "opacity-50 pointer-events-none transition-opacity" : "transition-opacity"}>
             <MediaUpload 
               bucket="media" 
               onUploadComplete={handleUploadComplete} 
-              label="Trascina qui la tua foto o video"
+              label={t('uploadPlaceholder')}
             />
           </div>
           {!isFormValid && (
             <p className="text-xs text-red-400 mt-1">
-              📍 Seleziona una location per poter caricare il media.
+              {t('locationRequired')}
             </p>
           )}
         </div>
 
         <p className="text-[10px] text-vibe-text-secondary text-center">
-          vibemeet è geo-first. La tua posizione aiuta gli altri a scoprire cosa succede intorno a loro.
+          {t('geoFirstNote')}
         </p>
       </div>
     </Modal>

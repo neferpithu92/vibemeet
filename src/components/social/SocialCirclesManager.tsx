@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { useCirclesStore, SocialCircle } from '@/stores/useCirclesStore';
 import { createClient } from '@/lib/supabase/client';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -12,6 +13,7 @@ import { Button } from '@/components/ui/Button';
  * Integrata nella Privacy Center di VIBE.
  */
 export function SocialCirclesManager() {
+  const t = useTranslations('social.circles');
   const {
     circles, activeCircle, isLoading,
     fetchCircles, createCircle, deleteCircle,
@@ -71,11 +73,11 @@ export function SocialCirclesManager() {
       {/* --- Colonna Sinistra: lista circles --- */}
       <div className="w-56 flex flex-col gap-2">
         <div className="flex items-center justify-between mb-1">
-          <span className="text-xs font-semibold text-vibe-text-secondary uppercase tracking-wider">I tuoi Circles</span>
+          <span className="text-xs font-semibold text-vibe-text-secondary uppercase tracking-wider">{t('title')}</span>
           <button
             onClick={() => setShowCreate(true)}
             className="p-1 rounded-lg hover:bg-white/10 text-vibe-purple transition-colors"
-            title="Crea Circle"
+            title={t('create')}
           >
             <Plus className="w-4 h-4" />
           </button>
@@ -94,24 +96,24 @@ export function SocialCirclesManager() {
                 autoFocus
                 value={newName}
                 onChange={e => setNewName(e.target.value)}
-                placeholder="Nome circle..."
+                placeholder={t('placeholderName')}
                 className="input-field text-sm py-1.5"
                 maxLength={64}
               />
               <input
                 value={newDescription}
                 onChange={e => setNewDescription(e.target.value)}
-                placeholder="Descrizione (opzionale)"
+                placeholder={t('placeholderDesc')}
                 className="input-field text-sm py-1.5"
               />
               <div className="flex gap-2">
-                <Button type="submit" size="sm" className="flex-1 text-xs">Crea</Button>
+                <Button type="submit" size="sm" className="flex-1 text-xs">{t('createBtn')}</Button>
                 <button
                   type="button"
                   onClick={() => setShowCreate(false)}
                   className="text-xs text-vibe-text-secondary hover:text-white"
                 >
-                  Annulla
+                  {t('cancel')}
                 </button>
               </div>
             </motion.form>
@@ -125,7 +127,7 @@ export function SocialCirclesManager() {
               onClick={() => setActiveCircle(circle)}
               className={`w-full text-left flex items-center gap-2 px-3 py-2.5 rounded-xl transition-all text-sm ${
                 activeCircle?.id === circle.id
-                  ? 'bg-vibe-purple/15 text-vibe-purple border border-vibe-purple/20'
+                   ? 'bg-vibe-purple/15 text-vibe-purple border border-vibe-purple/20'
                   : 'hover:bg-white/5 text-vibe-text-secondary border border-transparent'
               }`}
             >
@@ -136,7 +138,7 @@ export function SocialCirclesManager() {
           {circles.length === 0 && !isLoading && (
             <div className="text-center py-8 opacity-40 text-sm">
               <Shield className="w-8 h-8 mx-auto mb-2" />
-              <p>Nessun circle</p>
+              <p>{t('none')}</p>
             </div>
           )}
         </div>
@@ -157,13 +159,13 @@ export function SocialCirclesManager() {
                   <p className="text-sm text-vibe-text-secondary">{activeCircle.description}</p>
                 )}
                 <p className="text-xs text-vibe-text-secondary mt-1">
-                  {activeCircle.members?.length ?? 0} membri
+                  {t('members', { count: activeCircle.members?.length ?? 0 })}
                 </p>
               </div>
               <button
                 onClick={() => deleteCircle(activeCircle.id)}
                 className="p-2 rounded-xl hover:bg-red-500/10 text-red-400 transition-colors"
-                title="Elimina circle"
+                title={t('delete')}
               >
                 <Trash2 className="w-4 h-4" />
               </button>
@@ -175,7 +177,7 @@ export function SocialCirclesManager() {
               <input
                 value={searchQuery}
                 onChange={e => handleSearch(e.target.value)}
-                placeholder="Cerca e aggiungi utenti..."
+                placeholder={t('searchUsers')}
                 className="input-field pl-9 text-sm"
               />
               <AnimatePresence>
@@ -208,9 +210,9 @@ export function SocialCirclesManager() {
                           </span>
                         )}
                         {memberIds.has(u.id) ? (
-                          <span className="text-xs text-vibe-text-secondary">Già dentro</span>
+                          <span className="text-xs text-vibe-text-secondary">{t('alreadyIn')}</span>
                         ) : (
-                          <span className="text-xs text-vibe-purple">+ Aggiungi</span>
+                          <span className="text-xs text-vibe-purple">+ {t('add')}</span>
                         )}
                       </button>
                     ))}
@@ -244,7 +246,7 @@ export function SocialCirclesManager() {
                   <button
                     onClick={() => removeMember(activeCircle.id, member.user_id)}
                     className="p-1.5 rounded-lg hover:bg-red-500/10 text-red-400 transition-colors"
-                    title="Rimuovi membro"
+                    title={t('removeMember')}
                   >
                     <UserMinus className="w-3.5 h-3.5" />
                   </button>
@@ -253,7 +255,7 @@ export function SocialCirclesManager() {
               {(activeCircle.members?.length ?? 0) === 0 && (
                 <div className="text-center py-8 opacity-40 text-sm">
                   <Users className="w-10 h-10 mx-auto mb-2" />
-                  <p>Nessun membro. Cerca e aggiungi utenti.</p>
+                  <p>{t('searchUsers')}</p>
                 </div>
               )}
             </div>
@@ -261,8 +263,8 @@ export function SocialCirclesManager() {
         ) : (
           <div className="flex-1 flex flex-col items-center justify-center text-center opacity-40">
             <Shield className="w-12 h-12 mb-3" />
-            <p className="text-sm font-medium">Seleziona un Circle</p>
-            <p className="text-xs mt-1">oppure creane uno nuovo</p>
+            <p className="text-sm font-medium">{t('select')}</p>
+            <p className="text-xs mt-1">{t('orCreate')}</p>
           </div>
         )}
       </div>

@@ -10,8 +10,7 @@ import { useTranslations } from 'next-intl';
 export function Sidebar() {
   const pathname = usePathname();
   const t = useTranslations('nav');
-  // Se vogliamo gestire il piano e la venue nelle traduzioni (opzionale ma buono)
-  // const tB = useTranslations('business');
+  const td = useTranslations('dashboard');
 
   const sidebarLinks = [
     { href: '/dashboard', label: t('dashboard'), icon: '📊' },
@@ -31,12 +30,12 @@ export function Sidebar() {
             V
           </div>
           <div>
-            <p className="font-semibold text-sm">La Tua Venue</p>
-            <p className="text-xs text-vibe-text-secondary">Piano Pro</p>
+            <p className="font-semibold text-sm">{td('yourVenue')}</p>
+            <p className="text-xs text-vibe-text-secondary">{td('proPlan')}</p>
           </div>
         </div>
         <div className="badge-verified text-[10px]">
-          ✓ Verificato
+          ✓ {td('verified')}
         </div>
       </div>
 
@@ -51,7 +50,7 @@ export function Sidebar() {
               className={cn(
                 'flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300',
                 isActive
-                  ? 'bg-vibe-purple/15 text-vibe-purple border border-vibe-purple/20'
+                   ? 'bg-vibe-purple/15 text-vibe-purple border border-vibe-purple/20'
                   : 'text-vibe-text-secondary hover:text-vibe-text hover:bg-white/5'
               )}
             >

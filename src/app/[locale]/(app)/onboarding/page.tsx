@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/Button';
 import { createClient } from '@/lib/supabase/client';
 import MediaUpload from '@/components/ui/MediaUpload';
@@ -37,6 +38,7 @@ interface OnboardingFormData {
 }
 
 export default function UserOnboardingPage() {
+  const t = useTranslations('onboarding');
   const supabase = createClient();
   const [userId, setUserId] = useState<string | null>(null);
 
@@ -47,7 +49,7 @@ export default function UserOnboardingPage() {
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState<OnboardingFormData>({
     dob: '',
-    gender: '', // male, female, non-binary, prefer-not
+    gender: '',
     selectedInterests: [],
     avatarUrl: '',
   });
@@ -91,7 +93,6 @@ export default function UserOnboardingPage() {
     if (step === 3) {
       setLoading(true);
       
-      // 1. Salva Interessi
       const interestsToSave = formData.selectedInterests.map((id: string) => ({
         user_id: userId,
         category: MOCK_INTERESTS.find((i: Interest) => i.id === id)?.label || id,
@@ -103,10 +104,8 @@ export default function UserOnboardingPage() {
 
       if (interestsError) console.error('Error saving interests:', interestsError);
 
-      // 2. Segna Onboarding come completato
       await supabase.from('users').update({ onboarding_completed: true }).eq('id', userId);
 
-      // 3. Sposta alla mappa
       window.location.href = '/map';
       setLoading(false);
     }
@@ -120,23 +119,21 @@ export default function UserOnboardingPage() {
     <div className="min-h-screen bg-vibe-dark flex flex-col pt-12">
       <div className="max-w-md w-full mx-auto px-6 px-4 flex-1 flex flex-col">
         
-        {/* Header */}
         <div className="text-center mb-10 pt-8 animate-fade-in">
           <h1 className="text-4xl font-display font-bold vibe-gradient-text mb-4">vibemeet</h1>
           <p className="text-vibe-text-secondary text-base">
-            Personalizziamo la tua esperienza.
+            {t('title')}
           </p>
         </div>
 
-        {/* Form Container */}
         <div className="flex-1">
           {step === 1 && (
             <div className="space-y-6 animate-fade-in">
               <div className="text-center mb-8">
                 <span className="text-5xl mb-4 block">🎂</span>
-                <h2 className="text-2xl font-bold text-white mb-2">Quando sei nato?</h2>
+                <h2 className="text-2xl font-bold text-white mb-2">{t('step1Title')}</h2>
                 <p className="text-sm text-vibe-text-secondary">
-                  Devi avere almeno 16 anni per usare vibemeet, in conformità con le leggi svizzere. Questa informazione non sarà pubblica.
+                  {t('step1Subtitle')}
                 </p>
               </div>
               
@@ -155,7 +152,7 @@ export default function UserOnboardingPage() {
                   disabled={!formData.dob || loading}
                   onClick={handleNext}
                 >
-                  {loading ? 'Salvataggio...' : 'Continua'}
+                  {loading ? t('saving') : t('continue')}
                 </Button>
               </div>
             </div>
@@ -165,33 +162,33 @@ export default function UserOnboardingPage() {
             <div className="space-y-6 animate-fade-in">
               <div className="text-center mb-8">
                 <span className="text-5xl mb-4 block">👤</span>
-                <h2 className="text-2xl font-bold text-white mb-2">Come ti identifichi?</h2>
+                <h2 className="text-2xl font-bold text-white mb-2">{t('step2Title')}</h2>
                 <p className="text-sm text-vibe-text-secondary">
-                  Ci aiuta a offrirti contenuti più rilevanti nel feed For You. Puoi saltare questo passaggio.
+                  {t('step2Subtitle')}
                 </p>
               </div>
               
               <div className="px-4 space-y-8">
                 <div>
-                  <label className="text-xs font-bold uppercase text-vibe-text-secondary block mb-3 text-center">Foto Profilo</label>
+                  <label className="text-xs font-bold uppercase text-vibe-text-secondary block mb-3 text-center">{t('uploadAvatar')}</label>
                   <div className="max-w-[160px] mx-auto">
                     <MediaUpload 
                       bucket="avatars" 
                       aspectRatio="square"
                       onUploadComplete={(url) => setFormData({...formData, avatarUrl: url})}
-                      label="Carica Foto"
+                      label={t('uploadButton')}
                     />
                   </div>
                 </div>
 
                 <div className="space-y-3">
-                  <label className="text-xs font-bold uppercase text-vibe-text-secondary block text-center">Genere</label>
+                  <label className="text-xs font-bold uppercase text-vibe-text-secondary block text-center">{t('genderLabel')}</label>
                   <div className="grid grid-cols-2 gap-3">
                     {[
-                      { id: 'female', label: 'Donna' },
-                      { id: 'male', label: 'Uomo' },
-                      { id: 'non-binary', label: 'Non-Binario' },
-                      { id: 'prefer-not', label: 'Altro' },
+                      { id: 'female', label: t('female') },
+                      { id: 'male', label: t('male') },
+                      { id: 'non-binary', label: t('nonBinary') },
+                      { id: 'prefer-not', label: t('other') },
                     ].map(opt => (
                       <button
                         key={opt.id}
@@ -211,10 +208,10 @@ export default function UserOnboardingPage() {
 
               <div className="px-4 pt-8 flex gap-3">
                 <Button variant="outline" className="flex-1" onClick={handleSkip}>
-                  Salta
+                  {t('skip')}
                 </Button>
                 <Button className="flex-1" disabled={!formData.gender} onClick={handleNext}>
-                  Continua
+                  {t('continue')}
                 </Button>
               </div>
             </div>
@@ -224,9 +221,9 @@ export default function UserOnboardingPage() {
             <div className="space-y-6 animate-fade-in">
               <div className="text-center mb-8">
                 <span className="text-5xl mb-4 block">🎧</span>
-                <h2 className="text-2xl font-bold text-white mb-2">Cosa ti piace?</h2>
+                <h2 className="text-2xl font-bold text-white mb-2">{t('step3Title')}</h2>
                 <p className="text-sm text-vibe-text-secondary">
-                  Seleziona almeno 3 generi o stili per impostare l'algoritmo ({formData.selectedInterests.length}/3).
+                  {t('step3Subtitle')} ({formData.selectedInterests.length}/3).
                 </p>
               </div>
               
@@ -253,14 +250,13 @@ export default function UserOnboardingPage() {
                   disabled={formData.selectedInterests.length < 3 || loading}
                   onClick={handleNext}
                 >
-                  {loading ? 'Preparazione del Feed...' : "Iniziamo!"}
+                  {loading ? t('preparingFeed') : t('letsGo')}
                 </Button>
               </div>
             </div>
           )}
         </div>
 
-        {/* Progress dots at bottom */}
         <div className="py-6 flex justify-center gap-2 pb-12">
           {[1, 2, 3].map(i => (
             <div 
