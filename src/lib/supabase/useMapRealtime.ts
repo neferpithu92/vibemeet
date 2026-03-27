@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import { createClient } from './client';
-import { useRouter } from 'next/navigation';
+import { useRouter } from '@/lib/i18n/navigation';
 
 /**
  * Hook per abilitare aggiornamenti in tempo reale sulla mappa.

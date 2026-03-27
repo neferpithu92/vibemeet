@@ -1,20 +1,20 @@
 'use client';
 
 import { useLocale } from 'next-intl';
-import { usePathname, useRouter } from '@/lib/i18n/navigation';
+import { useRouter, usePathname } from '@/lib/i18n/navigation';
 import { locales } from '@/lib/i18n/config';
+import { useTransition } from 'react';
 
-/**
- * Componente per il cambio lingua (it, en, de, fr, rm).
- * Usa next-intl per gestire il routing localizzato.
- */
 export function LanguageSwitcher() {
   const locale = useLocale();
-  const pathname = usePathname();
   const router = useRouter();
+  const pathname = usePathname();
+  const [isPending, startTransition] = useTransition();
 
   const handleLocaleChange = (newLocale: string) => {
-    router.replace(pathname, { locale: newLocale });
+    startTransition(() => {
+      router.replace(pathname, { locale: newLocale });
+    });
   };
 
   const labels: Record<string, string> = {
@@ -31,11 +31,12 @@ export function LanguageSwitcher() {
         <button
           key={l}
           onClick={() => handleLocaleChange(l)}
+          disabled={isPending}
           className={`px-2 py-1 rounded-lg text-[10px] font-bold transition-all ${
-            locale === l 
-              ? 'bg-vibe-purple text-white shadow-lg' 
+            locale === l
+              ? 'bg-vibe-purple text-white shadow-lg'
               : 'text-vibe-text-secondary hover:text-vibe-text hover:bg-white/5'
-          }`}
+          } ${isPending ? 'opacity-50 cursor-wait' : ''}`}
         >
           {labels[l] || l.toUpperCase()}
         </button>

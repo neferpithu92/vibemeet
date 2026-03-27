@@ -1,9 +1,9 @@
 import PricingSection from '@/components/social/PricingSection';
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
+import { Link } from '@/lib/i18n/navigation';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
-import { Link } from '@/lib/i18n/navigation';
 
 /**
  * Pagina di Pricing pubblica (ma autenticata).
