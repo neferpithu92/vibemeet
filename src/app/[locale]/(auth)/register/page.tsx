@@ -101,6 +101,7 @@ export default function RegisterPage() {
     try {
       cryptoKeys = await generateKeyPairFromPassword(formData.password, formData.email);
     } catch (e) {
+      console.error("Security layer init failed:", e);
       setError("Errore durante l'inizializzazione del layer di sicurezza.");
       setIsLoading(false);
       return;

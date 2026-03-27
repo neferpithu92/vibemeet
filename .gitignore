@@ -1,7 +1,9 @@
-.env*.local
-node_modules/
-.next/
+.env*
+node_modules
+.next
+push-env.js
+.env.vercel
 out/
 build/
 *.tsbuildinfo
-next-env.d.ts
+.vercel

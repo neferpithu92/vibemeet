@@ -37,6 +37,7 @@ export async function GET(request: Request) {
     });
 
   if (mapError || usersError) {
+    console.error('Map Data API Error:', { mapError, usersError });
     return NextResponse.json({ 
       error: 'Errore fetching dati',
       details: mapError || usersError

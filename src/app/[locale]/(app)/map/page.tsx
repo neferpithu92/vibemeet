@@ -117,6 +117,38 @@ export default function MapPage() {
   // Attiva il tracciamento posizione utente
   useUserLocation();
 
+  const [userPosition, setUserPosition] = useState<{ lat: number, lng: number } | null>(null);
+  const mapRef = useRef<any>(null);
+  const hasCentered = useRef(false);
+
+  // Ottieni posizione iniziale dell'utente
+  useEffect(() => {
+    if (typeof window !== 'undefined' && navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const coords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+          setUserPosition(coords);
+          console.log('[Map] Posizione utente rilevata:', coords);
+        },
+        (err) => console.warn('[Map] Errore geolocalizzazione iniziale:', err),
+        { enableHighAccuracy: true, timeout: 5000 }
+      );
+    }
+  }, []);
+
+  // Centra la mappa quando la posizione è disponibile e la mappa è pronta
+  useEffect(() => {
+    if (userPosition && mapRef.current && !hasCentered.current) {
+      console.log('[Map] Centramento su posizione utente...');
+      mapRef.current.flyTo({
+        center: [userPosition.lng, userPosition.lat],
+        zoom: 13,
+        duration: 1500
+      });
+      hasCentered.current = true;
+    }
+  }, [userPosition, mapRef.current]);
+
   // Effetto per controllare se l'utente segue la venue selezionata
   useEffect(() => {
     async function checkFollow() {
@@ -186,8 +218,6 @@ export default function MapPage() {
   };
 
   const isLayerActive = (id: string) => activeLayers.find(l => l.id === id)?.active;
-
-  const mapRef = useRef<any>(null);
 
   return (
     <div className="relative h-[calc(100vh-64px)] md:h-[calc(100vh-64px)] w-full overflow-hidden bg-vibe-dark">

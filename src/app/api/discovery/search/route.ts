@@ -27,7 +27,9 @@ export async function GET(request: Request) {
       title,
       description,
       category,
-      venue:venues(name)
+      latitude,
+      longitude,
+      venue:venues(name, latitude, longitude)
     `)
     .ilike('title', `%${query}%`)
     .limit(5);
@@ -35,7 +37,7 @@ export async function GET(request: Request) {
   // Ricerca locali
   const { data: venues } = await supabase
     .from('venues')
-    .select('id, name, description, type, slug')
+    .select('id, name, description, type, slug, latitude, longitude')
     .ilike('name', `%${query}%`)
     .limit(5);
 

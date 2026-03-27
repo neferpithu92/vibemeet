@@ -22,7 +22,7 @@ then
     echo -e "nel Supabase Dashboard SQL Editor."
     
     # Still attempt to sync the app-level state
-    node scripts/antigravity.js sync
+    node scripts/antigravity.js sync "$@"
     exit 0
 fi
 
@@ -32,8 +32,8 @@ supabase db push
 
 if [ $? -eq 0 ]; then
     echo -e "${GREEN}[OK] Database migrations pushed successfully.${NC}"
-    # Force initial sync
-    node scripts/antigravity.js sync
+    # Force initial sync with args
+    node scripts/antigravity.js sync "$@"
 else
     echo -e "${RED}[ERROR] Migration push failed. Check Supabase login status.${NC}"
     exit 1

@@ -63,7 +63,8 @@
     "zoomOut": "Zoom indietro",
     "layers": "Livelli mappa",
     "crowd": "Densità folla",
-    "enableLocation": "Abilita la posizione per vedere eventi vicini"
+    "enableLocation": "Abilita la posizione per vedere eventi vicini",
+    "saved": "Eventi Salvati"
   },
   "events": {
     "title": "Eventi",

@@ -124,6 +124,7 @@ BEGIN
     FOR row IN 
         WITH deleted_shards AS (
             DELETE FROM public.entity_counters_shards
+            WHERE true
             RETURNING entity_id, entity_type, likes_count, views_count
         )
         SELECT 

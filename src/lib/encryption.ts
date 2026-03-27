@@ -1,12 +1,37 @@
-import _sodium from 'libsodium-wrappers';
+let sodiumPromise: Promise<any> | null = null;
 
 /**
- * Inizializza asincronamente libsodium.
- * Va chiamato all'avvio dell'app prima di usare qualsiasi funzione crittografica.
+ * Inizializza asincronamente libsodium (versione SUMO) e restituisce l'istanza.
  */
 export async function initSodium() {
-  await _sodium.ready;
-  return _sodium;
+  if (typeof window === 'undefined') return null;
+
+  if (!sodiumPromise) {
+    sodiumPromise = (async () => {
+      try {
+        const mod = await import('libsodium-wrappers-sumo') as any;
+        // Alcuni bundler mettono l'oggetto in .default, altri no.
+        // Cerchiamo l'oggetto che ha la proprietà 'ready' o le funzioni crypto.
+        let s = mod.default && (mod.default.ready || mod.default.crypto_pwhash) ? mod.default : mod;
+        
+        await s.ready;
+        
+        if (typeof s.crypto_pwhash !== 'function') {
+          console.error("VEL CRITICAL: libsodium caricata ma crypto_pwhash manca!", Object.keys(s));
+          // Prova a recuperare dal modulo se s è sbagliato
+          if (mod.crypto_pwhash) s = mod;
+          else if (mod.default && mod.default.crypto_pwhash) s = mod.default;
+        }
+
+        console.log("VEL: libsodium-wrappers-sumo inizializzata correttamente.");
+        return s;
+      } catch (e) {
+        console.error("VEL: Fallimento caricamento libsodium-wrappers-sumo:", e);
+        throw e;
+      }
+    })();
+  }
+  return sodiumPromise;
 }
 
 /**

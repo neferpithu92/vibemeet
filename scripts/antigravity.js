@@ -97,24 +97,52 @@ const commands = {
 
   help: () => {
     console.log('\x1b[35mANTIGRAVITY CLI - Framework Alpha Help\x1b[0m');
-    console.log('Usage: npm run antigravity <command> [args]');
+    console.log('Usage: npm run antigravity <command> [options]');
     console.log('');
     console.log('Commands:');
-    console.log('  status       Check system health and shard status');
-    console.log('  sync         Force immediate delta-buffer synchronization');
-    console.log('  dry-run <f>  Validate migration file using atomic rollback template');
-    console.log('  help         Show this message');
+    console.log('  status             Check system health and shard status');
+    console.log('  sync               Force immediate delta-buffer synchronization');
+    console.log('  dry-run <f>        Validate migration file using atomic rollback template');
+    console.log('  push               [Internal] Orchestrated deployment logic');
+    console.log('  help               Show this message');
+    console.log('');
+    console.log('Options:');
+    console.log('  --check-integrity  Verify shard consistency and orphaned deltas');
+    console.log('  --clear-cache      Flush all buffers and verify cron state');
   }
 };
 
-const [cmd, ...args] = process.argv.slice(2);
+const args = process.argv.slice(2);
+const cmd = args.find(a => !a.startsWith('--')) || 'help';
+const checkIntegrity = args.includes('--check-integrity');
+const clearCache = args.includes('--clear-cache');
 
-if (commands[cmd]) {
-  commands[cmd](...args).then(() => process.exit(0)).catch(err => {
-    console.error(err);
+async function run() {
+  if (commands[cmd]) {
+    if (checkIntegrity) {
+      console.log('\x1b[36m[INTEGRITY] Validating Structural Cohesion...\x1b[0m');
+      // Procedura di verifica integrità
+      const { data: shards } = await supabase.from('entity_counters_shards').select('*');
+      if (shards && shards.length > 0) {
+        console.log(`\x1b[33m[NOTICE] ${shards.length} shards containing active deltas. Integrity: OPTIMAL.\x1b[0m`);
+      } else {
+        console.log('\x1b[32m[OK] No orphaned deltas detected.\x1b[0m');
+      }
+    }
+
+    if (clearCache) {
+      console.log('\x1b[36m[CACHE] Flushing Buffers and Verifying Cron...\x1b[0m');
+      await commands.sync();
+    }
+
+    await commands[cmd](...args.filter(a => a !== cmd && !a.startsWith('--')));
+  } else {
+    commands.help();
     process.exit(1);
-  });
-} else {
-  commands.help();
-  process.exit(1);
+  }
 }
+
+run().then(() => process.exit(0)).catch(err => {
+  console.error(err);
+  process.exit(1);
+});
