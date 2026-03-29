@@ -302,7 +302,16 @@
     "currentPlan": "Plan actuel",
     "choosePlan": "Choisir un plan",
     "billingAnnual": "Facturation annuelle",
-    "billingMonthly": "Facturation mensuelle"
+    "billingMonthly": "Facturation mensuelle",
+    "launchOffer": "OFFRE DE LANCEMENT",
+    "title": "Choisissez votre forfait VIBE",
+    "subtitle": "Améliorez votre présence sur la carte et accédez à des analyses exclusives en temps réel.",
+    "popular": "LE PLUS POPULAIRE",
+    "subscribe": "S'abonner maintenant",
+    "secureNote": "Tous les paiements sont sécurisés via Stripe. Nous acceptons TWINT et les principales cartes de crédit.",
+    "corporateTitle": "Des questions sur le forfait Corporate ?",
+    "corporateSubtitle": "Nous proposons des solutions personnalisées pour les réseaux d'établissements, les clubs à plusieurs étages et les grands festivals à travers la Suisse.",
+    "corporateContact": "Contacter l'équipe Business"
   },
   "social": {
     "comments": "Commentaires",
@@ -460,7 +469,14 @@
     "deletionPendingTitle": "Suppression en cours",
     "resumePrompt": "Bon retour ! Votre compte est actuellement suspendu. Vous pouvez le réactiver en un clic.",
     "deletionPrompt": "Votre compte est programmé per une suppression définitive dans moins de 30 jours. Voulez-vous annuler la demande ?",
-    "cancel": "Annuler"
+    "cancel": "Annuler",
+    "activity": {
+      "liveTitle": "Activité Live",
+      "checkIn": "a fait son check-in à",
+      "follow": "a commencé à suivre",
+      "participate": "a participé à",
+      "noRecent": "Aucune activité récente"
+    }
   },
   "createHub": {
     "title": "Que voulez-vous créer ?",
@@ -499,7 +515,7 @@
     "decline": "Refuser",
     "friends": "Amis",
     "messages": "Messages",
-    "noMessages": "Pas ancora di conversations.",
+    "noMessages": "Pas encore de conversations.",
     "clickToChat": "Cliquer pour chatter",
     "typeMessage": "Écrire un message...",
     "endToEndEncrypted": "Chiffré E2E",

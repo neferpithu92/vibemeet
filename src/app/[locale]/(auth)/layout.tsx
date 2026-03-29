@@ -9,7 +9,7 @@ export default function AuthLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-vibe-dark bg-grid-pattern flex items-center justify-center p-4 relative overflow-hidden">
+    <div className="min-h-[100dvh] bg-vibe-dark bg-grid-pattern flex items-center justify-center p-4 relative overflow-y-auto">
       {/* Language Switcher */}
       <div className="absolute top-6 right-6 z-50">
         <LanguageSwitcher />

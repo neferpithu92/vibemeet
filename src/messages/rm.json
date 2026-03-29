@@ -333,7 +333,16 @@
     "currentPlan": "Plan actual",
     "choosePlan": "Tscherner in plan",
     "billingAnnual": "Facturaziun annuala",
-    "billingMonthly": "Facturaziun mensila"
+    "billingMonthly": "Facturaziun mensila",
+    "launchOffer": "OFFERTA DA LANZAMENT",
+    "title": "Tscherna tes plan VIBE",
+    "subtitle": "Migliurescha tia preschientscha sin la carta ed hajas access ad analiticas exclusivas en temp real.",
+    "popular": "IL PLI TSCHERNÀ",
+    "subscribe": "S'abunnar ussa",
+    "secureNote": "Tuts ils pajaments vegnan manads bientant tras Stripe. Nus sustegnain TWINT e las principalas cartas da credit.",
+    "corporateTitle": "Has ti dumandas davart il plan Corporate?",
+    "corporateSubtitle": "Nus purschin soluziuns persunalitgadas per rait da locals, discotecas sin plirs plauns e gronds festivals en tut la Svizra.",
+    "corporateContact": "Contactar l'equipa Business"
   },
   "errors": {
     "generic": "Insatge è ì mal. Empruvai pli tard anc ina giada.",
@@ -460,7 +469,14 @@
     "deletionPendingTitle": "Stizzada en curs",
     "resumePrompt": "Benvegni enavos! Tes conto è actualmain pauseschà. Ti al reatctivar cun in clic.",
     "deletionPrompt": "Tes conto vegn stizzà definitivamain en main che 30 dis. Vuls ti annullar la dumanda?",
-    "cancel": "Annullar"
+    "cancel": "Annullar",
+    "activity": {
+      "liveTitle": "Activitad Live",
+      "checkIn": "ha fatg check-in tar",
+      "follow": "ha cumenzà a suandar",
+      "participate": "ha participà a",
+      "noRecent": "Nagina activitad recenta"
+    }
   },
   "createHub": {
     "title": "Tge vuls ti crear?",

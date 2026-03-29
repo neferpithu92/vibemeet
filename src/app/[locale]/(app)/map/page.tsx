@@ -220,7 +220,7 @@ export default function MapPage() {
   const isLayerActive = (id: string) => activeLayers.find(l => l.id === id)?.active;
 
   return (
-    <div className="relative h-[calc(100vh-64px)] md:h-[calc(100vh-64px)] w-full overflow-hidden bg-vibe-dark">
+    <div className="relative min-h-[calc(100vh-64px)] w-full bg-vibe-dark">
       {/* MAPPA REALE */}
       <MapView onBoundsChange={handleBoundsChange} ref={mapRef}>
         {/* Indicatore di caricamento asincrono */}

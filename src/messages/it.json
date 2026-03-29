@@ -302,7 +302,16 @@
     "currentPlan": "Piano attuale",
     "choosePlan": "Scegli piano",
     "billingAnnual": "Fatturazione annuale",
-    "billingMonthly": "Fatturazione mensile"
+    "billingMonthly": "Fatturazione mensile",
+    "launchOffer": "OFFERTA LANCIO",
+    "title": "Scegli il tuo piano VIBE",
+    "subtitle": "Migliora la tua presenza sulla mappa e accedi ad analitiche esclusive in tempo reale.",
+    "popular": "IL PIÙ SCELTO",
+    "subscribe": "Abbonati Ora",
+    "secureNote": "Tutti i pagamenti sono gestiti in modo sicuro tramite Stripe. Supportiamo TWINT e le principali carte di credito.",
+    "corporateTitle": "Hai domande sul piano Corporate?",
+    "corporateSubtitle": "Offriamo soluzioni personalizzate per reti di locali, discoteche su più piani e grandi festival in tutta la Svizzera.",
+    "corporateContact": "Contatta il team Business"
   },
   "social": {
     "comments": "Commenti",

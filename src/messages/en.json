@@ -302,7 +302,16 @@
     "currentPlan": "Current plan",
     "choosePlan": "Choose plan",
     "billingAnnual": "Annual billing",
-    "billingMonthly": "Monthly billing"
+    "billingMonthly": "Monthly billing",
+    "launchOffer": "LAUNCH OFFER",
+    "title": "Choose your VIBE plan",
+    "subtitle": "Improve your map presence and access exclusive real-time analytics.",
+    "popular": "MOST POPULAR",
+    "subscribe": "Subscribe Now",
+    "secureNote": "All payments are securely handled via Stripe. We support TWINT and all major credit cards.",
+    "corporateTitle": "Questions about the Corporate plan?",
+    "corporateSubtitle": "We offer custom solutions for venue networks, multi-floor clubs, and large festivals across Switzerland.",
+    "corporateContact": "Contact Business Team"
   },
   "social": {
     "comments": "Comments",

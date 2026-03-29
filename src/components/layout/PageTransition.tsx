@@ -23,7 +23,7 @@ export default function PageTransition({ children }: { children: React.ReactNode
           duration: 0.35, 
           ease: [0.22, 1, 0.36, 1] // Custom cubic-bezier for a premium feel
         }}
-        className="w-full h-full"
+        className="w-full"
       >
         {children}
       </motion.div>

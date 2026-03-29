@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { PLAN_LIMITS } from '../../lib/plans';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -56,6 +57,7 @@ interface PricingProps {
  * Gestisce l'integrazione con l'API di checkout Stripe.
  */
 export default function PricingSection({ entityId, entityType }: PricingProps) {
+  const t = useTranslations('subscription');
   const [loading, setLoading] = useState<string | null>(null);
 
   const handleSubscribe = async (planId: string) => {
@@ -86,10 +88,10 @@ export default function PricingSection({ entityId, entityType }: PricingProps) {
     <div className="py-12 px-4 max-w-6xl mx-auto">
       <div className="text-center mb-12">
         <h2 className="text-3xl md:text-4xl font-display font-bold mb-4 vibe-gradient-text">
-          Scegli il tuo piano VIBE
+          {t('title')}
         </h2>
         <p className="text-vibe-text-secondary max-w-xl mx-auto">
-          Migliora la tua presenza sulla mappa e accedi ad analitiche esclusive in tempo reale.
+          {t('subtitle')}
         </p>
       </div>
 
@@ -103,7 +105,7 @@ export default function PricingSection({ entityId, entityType }: PricingProps) {
           >
             {plan.popular && (
               <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2">
-                <Badge variant="premium">I PIÙ SCELTO</Badge>
+                <Badge variant="premium">{t('popular')}</Badge>
               </div>
             )}
 
@@ -111,7 +113,7 @@ export default function PricingSection({ entityId, entityType }: PricingProps) {
               <h3 className="text-xl font-bold mb-2">{plan.name}</h3>
               <div className="flex items-baseline gap-1">
                 <span className="text-4xl font-bold">{plan.price} CHF</span>
-                <span className="text-vibe-text-secondary">/mese</span>
+                <span className="text-vibe-text-secondary">{t('perMonth')}</span>
               </div>
               <p className="text-sm text-vibe-text-secondary mt-4">{plan.description}</p>
             </div>
@@ -131,14 +133,14 @@ export default function PricingSection({ entityId, entityType }: PricingProps) {
               isLoading={loading === plan.id}
               onClick={() => handleSubscribe(plan.id)}
             >
-              Abbonati Ora
+              {t('subscribe')}
             </Button>
           </Card>
         ))}
       </div>
       
       <p className="text-center text-xs text-vibe-text-secondary mt-12">
-        Tutti i pagamenti sono gestiti in modo sicuro tramite Stripe. Supportiamo TWINT e le principali carte di credito.
+        {t('secureNote')}
       </p>
     </div>
   );

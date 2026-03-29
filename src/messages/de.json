@@ -302,7 +302,16 @@
     "currentPlan": "Aktueller Plan",
     "choosePlan": "Plan wählen",
     "billingAnnual": "Jährliche Abrechnung",
-    "billingMonthly": "Monatliche Abrechnung"
+    "billingMonthly": "Monatliche Abrechnung",
+    "launchOffer": "EINFÜHRUNGSANGEBOT",
+    "title": "Wähle deinen VIBE-Plan",
+    "subtitle": "Verbessere deine Präsenz auf der Karte und erhalte exklusive Echtzeit-Analysen.",
+    "popular": "RECOMENDIERT",
+    "subscribe": "Jetzt abonnieren",
+    "secureNote": "Alle Zahlungen werden sicher über Stripe abgewickelt. Wir unterstützen TWINT und alle gängigen Kreditkarten.",
+    "corporateTitle": "Fragen zum Corporate-Plan?",
+    "corporateSubtitle": "Wir bieten maßgeschneiderte Lösungen für Locations-Netzwerke, mehrstöckige Clubs und große Festivals in der ganzen Schweiz.",
+    "corporateContact": "Business-Team kontaktieren"
   },
   "social": {
     "comments": "Kommentare",
@@ -460,7 +469,14 @@
     "deletionPendingTitle": "Löschung ausstehend",
     "resumePrompt": "Willkommen zurück! Dein Konto ist derzeit pausiert. Du kannst es mit einem Klick reaktivieren.",
     "deletionPrompt": "Dein Konto wird in weniger als 30 Tagen endgültig gelöscht. Möchtest du den Antrag stornieren?",
-    "cancel": "Abbrechen"
+    "cancel": "Abbrechen",
+    "activity": {
+      "liveTitle": "Live-Aktivität",
+      "checkIn": "hat eingecheckt bei",
+      "follow": "hat angefangen zu folgen",
+      "participate": "hat teilgenommen an",
+      "noRecent": "Keine aktuellen Aktivitäten"
+    }
   },
   "createHub": {
     "title": "Was möchtest du erstellen?",
