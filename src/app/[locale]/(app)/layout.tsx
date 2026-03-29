@@ -1,9 +1,7 @@
 import { Navbar } from '@/components/layout/Navbar';
 import { BottomNav } from '@/components/layout/BottomNav';
+import { UsageTracker } from '@/components/layout/UsageTracker';
 
-/**
- * Layout per le route autenticate — include Navbar (desktop) e BottomNav (mobile).
- */
 export default function AppLayout({
   children,
 }: {
@@ -11,6 +9,7 @@ export default function AppLayout({
 }) {
   return (
     <div className="min-h-screen bg-vibe-dark">
+      <UsageTracker />
       <Navbar />
       <main className="md:pt-16 pb-20 md:pb-0">
         {children}

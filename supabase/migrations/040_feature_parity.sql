@@ -105,3 +105,14 @@ CREATE TRIGGER on_user_created_extensions
 -- Backfill
 INSERT INTO cross_posting_settings (user_id) SELECT id FROM users ON CONFLICT DO NOTHING;
 INSERT INTO story_settings (user_id) SELECT id FROM users ON CONFLICT DO NOTHING;
+
+-- RPC for incrementing stats atomically
+CREATE OR REPLACE FUNCTION increment_usage(p_user_id UUID, p_date DATE, p_seconds INTEGER)
+RETURNS VOID AS $$
+BEGIN
+  INSERT INTO usage_stats (user_id, date, total_seconds)
+  VALUES (p_user_id, p_date, p_seconds)
+  ON CONFLICT (user_id, date) 
+  DO UPDATE SET total_seconds = usage_stats.total_seconds + p_seconds;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
