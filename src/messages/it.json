@@ -413,6 +413,8 @@
     "privacy": "Privacy",
     "notifications": "Notifiche",
     "security": "Sicurezza",
+    "usage": "Utilizzo App",
+    "subscription": "Abbonamento",
     "editProfile": "Modifica Profilo",
     "avatar": "Avatar",
     "username": "Username",
@@ -464,6 +466,25 @@
     "pauseAccount": "Metti in pausa account",
     "resumeAccount": "Riattiva account",
     "deletionWarning": "Il tuo account è programmato per l'eliminazione definitiva tra meno di 30 giorni.",
+    "usageStats": {
+      "title": "Uso dell'App",
+      "daily": "Uso oggi",
+      "weekly": "Media settimanale",
+      "limit": "Limite giornaliero",
+      "setLimit": "Imposta Limite"
+    },
+    "crossPosting": {
+      "title": "Cross-Posting",
+      "instagram": "Collega Instagram",
+      "facebook": "Collega Facebook",
+      "tiktok": "Collega TikTok"
+    },
+    "storySettings": {
+      "title": "Storie e Live",
+      "allowReplies": "Risposte alle storie",
+      "liveComments": "Commenti Live",
+      "locationSharing": "Condividi Posizione"
+    },
     "plans": {
       "starter": {
         "name": "Starter",

@@ -36,7 +36,16 @@ export default function SettingsPage({ initialSettings, user }: SettingsPageProp
     language: 'it',
     location_radius: '500m',
     event_anon_mode: false,
-    checkin_visibility: 'followers'
+    checkin_visibility: 'followers',
+    usage_limit: 0,
+    daily_usage: 0,
+    weekly_usage: 0,
+    instagram_linked: false,
+    facebook_linked: false,
+    tiktok_linked: false,
+    allow_replies: 'everyone',
+    live_comments: true,
+    location_sharing: true
   });
   
   const [isSaving, setIsSaving] = useState(false);
@@ -75,6 +84,29 @@ export default function SettingsPage({ initialSettings, user }: SettingsPageProp
         username: username || undefined,
         display_name: fullName || undefined,
       }).eq('id', user?.id);
+
+      // Usage limit
+      await supabase.from('usage_stats').upsert({
+        user_id: user?.id,
+        date: new Date().toISOString().split('T')[0],
+        daily_limit: settings.usage_limit
+      }, { onConflict: 'user_id,date' });
+
+      // Cross posting
+      await supabase.from('cross_posting_settings').upsert({
+        user_id: user?.id,
+        instagram_linked: settings.instagram_linked,
+        facebook_linked: settings.facebook_linked,
+        tiktok_linked: settings.tiktok_linked
+      });
+
+      // Story settings
+      await supabase.from('story_settings').upsert({
+        user_id: user?.id,
+        allow_replies: settings.allow_replies,
+        allow_live_comments: settings.live_comments,
+        location_sharing_enabled: settings.location_sharing
+      });
 
       alert(t('saveSuccess'));
     } catch (e) {
@@ -161,8 +193,10 @@ export default function SettingsPage({ initialSettings, user }: SettingsPageProp
   const tabs = [
     { id: 'profile', label: t('profile') },
     { id: 'subscription', label: t('subscription', { fallback: 'Abbonamento' }) },
+    { id: 'usage', label: t('usage', { fallback: 'Uso App' }) },
     { id: 'privacy', label: t('privacy') },
     { id: 'notifications', label: t('notifications') },
+    { id: 'crossposting', label: t('crossPosting', { fallback: 'Social Connection' }) },
     { id: 'security', label: t('security') },
   ];
 
@@ -313,6 +347,39 @@ export default function SettingsPage({ initialSettings, user }: SettingsPageProp
                 </div>
               </div>
 
+              <div className="pt-4 border-t border-white/10 space-y-6">
+                <h3 className="font-bold text-vibe-text">{t('storySettings.title', { fallback: 'Storie e Interazioni' })}</h3>
+                
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="font-semibold text-vibe-text">{t('storySettings.allowReplies')}</h3>
+                  </div>
+                  <select 
+                    value={settings.allow_replies} 
+                    onChange={e => setSettings((prev: any) => ({ ...prev, allow_replies: e.target.value }))} 
+                    className="input-field py-2 w-32"
+                  >
+                    <option value="everyone">{t('everyone')}</option>
+                    <option value="friends">{t('followers')}</option>
+                    <option value="none">{t('none')}</option>
+                  </select>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="font-semibold text-vibe-text">{t('storySettings.liveComments')}</h3>
+                  </div>
+                  <Switch checked={settings.live_comments} onChange={() => handleToggle('live_comments')} />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="font-semibold text-vibe-text">{t('storySettings.locationSharing')}</h3>
+                  </div>
+                  <Switch checked={settings.location_sharing} onChange={() => handleToggle('location_sharing')} />
+                </div>
+              </div>
+
               <div className="pt-4 border-t border-white/10 mt-6 space-y-2">
                 <Button 
                   onClick={() => router.push('/settings/privacy')}
@@ -412,7 +479,80 @@ export default function SettingsPage({ initialSettings, user }: SettingsPageProp
           </div>
         )}
 
-        {/* Save Button */}
+        {/* Usage Tab */}
+        {activeTab === 'usage' && (
+          <div className="space-y-6 animate-fade-in">
+            <h2 className="text-xl font-bold mb-4 border-b border-white/10 pb-4">{t('usageStats.title', { fallback: 'Utilizzo App' })}</h2>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="bg-white/5 p-4 rounded-xl border border-white/5">
+                <p className="text-xs text-vibe-text-secondary uppercase font-bold">{t('usageStats.daily')}</p>
+                <p className="text-2xl font-display font-bold mt-1 text-vibe-cyan">{Math.floor(settings.daily_usage / 60)}m</p>
+              </div>
+              <div className="bg-white/5 p-4 rounded-xl border border-white/5">
+                <p className="text-xs text-vibe-text-secondary uppercase font-bold">{t('usageStats.weekly')}</p>
+                <p className="text-2xl font-display font-bold mt-1 text-vibe-purple">{Math.floor(settings.weekly_usage / 60)}m</p>
+              </div>
+            </div>
+            <div className="pt-4">
+              <label className="font-semibold text-vibe-text block mb-2">{t('usageStats.limit')}</label>
+              <div className="flex gap-3">
+                <select 
+                  value={settings.usage_limit} 
+                  onChange={e => setSettings((prev: any) => ({ ...prev, usage_limit: parseInt(e.target.value) }))} 
+                  className="input-field py-2 flex-1"
+                >
+                  <option value="0">{t('none')}</option>
+                  <option value="1800">30 min</option>
+                  <option value="3600">1 ora</option>
+                  <option value="7200">2 ore</option>
+                  <option value="10800">3 ore</option>
+                </select>
+                <Button variant="outline">{t('usageStats.setLimit')}</Button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Cross-Posting Tab */}
+        {activeTab === 'crossposting' && (
+          <div className="space-y-6 animate-fade-in">
+            <h2 className="text-xl font-bold mb-4 border-b border-white/10 pb-4">{t('crossPosting.title', { fallback: 'Social Connection' })}</h2>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between p-4 bg-white/5 rounded-xl border border-white/5">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-yellow-400 via-red-500 to-purple-600 flex items-center justify-center text-white">📸</div>
+                  <div>
+                    <h3 className="font-bold text-sm">Instagram</h3>
+                    <p className="text-xs text-vibe-text-secondary">Condividi VIBE Stories su Instagram</p>
+                  </div>
+                </div>
+                <Switch checked={settings.instagram_linked} onChange={() => handleToggle('instagram_linked')} />
+              </div>
+              
+              <div className="flex items-center justify-between p-4 bg-white/5 rounded-xl border border-white/5">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white text-xl">f</div>
+                  <div>
+                    <h3 className="font-bold text-sm">Facebook</h3>
+                    <p className="text-xs text-vibe-text-secondary">Condividi eventi sul tuo profilo</p>
+                  </div>
+                </div>
+                <Switch checked={settings.facebook_linked} onChange={() => handleToggle('facebook_linked')} />
+              </div>
+
+              <div className="flex items-center justify-between p-4 bg-white/5 rounded-xl border border-white/5">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-black flex items-center justify-center text-white">🎵</div>
+                  <div>
+                    <h3 className="font-bold text-sm">TikTok</h3>
+                    <p className="text-xs text-vibe-text-secondary">Cross-post su TikTok VIBEs</p>
+                  </div>
+                </div>
+                <Switch checked={settings.tiktok_linked} onChange={() => handleToggle('tiktok_linked')} />
+              </div>
+            </div>
+          </div>
+        )}
         <div className="mt-8 flex justify-end">
           <Button onClick={handleSave} disabled={isSaving}>
             {isSaving ? t('saving') : t('save')}
