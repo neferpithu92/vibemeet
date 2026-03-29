@@ -342,7 +342,24 @@
     "secureNote": "Tuts ils pajaments vegnan manads bientant tras Stripe. Nus sustegnain TWINT e las principalas cartas da credit.",
     "corporateTitle": "Has ti dumandas davart il plan Corporate?",
     "corporateSubtitle": "Nus purschin soluziuns persunalitgadas per rait da locals, discotecas sin plirs plauns e gronds festivals en tut la Svizra.",
-    "corporateContact": "Contactar l'equipa Business"
+    "corporateContact": "Contactar l'equipa Business",
+    "plans": {
+      "basic": {
+        "name": "Basic",
+        "description": "Perfett per pitschens locals u artists che creschan.",
+        "features": ["Visibilità da la carta prioritaria", "Analiticas da basa", "1 Post en evidenza / mais", "Sustegn per e-mail"]
+      },
+      "pro": {
+        "name": "Pro",
+        "description": "La megliura tscherna per locals activs ed organisaturs.",
+        "features": ["Tut dal plan Starter", "Analiticas avanzadas (heatmap live)", "5 Posts en evidenza / mais", "RSVP illimitads", "Badge Pro verifitgà"]
+      },
+      "enterprise": {
+        "name": "Enterprise",
+        "description": "Gestiun cumpletta per festivals e gronds occurrenzas.",
+        "features": ["Tut dal plan Pro", "Sustegn deditgà 24/7", "Integraziuns API externas", "Posts en evidenza illimitads", "Occurrenzas sponsuradas garantidas"]
+      }
+    }
   },
   "errors": {
     "generic": "Insatge è ì mal. Empruvai pli tard anc ina giada.",

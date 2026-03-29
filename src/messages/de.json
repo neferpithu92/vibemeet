@@ -311,7 +311,24 @@
     "secureNote": "Alle Zahlungen werden sicher über Stripe abgewickelt. Wir unterstützen TWINT und alle gängigen Kreditkarten.",
     "corporateTitle": "Fragen zum Corporate-Plan?",
     "corporateSubtitle": "Wir bieten maßgeschneiderte Lösungen für Locations-Netzwerke, mehrstöckige Clubs und große Festivals in der ganzen Schweiz.",
-    "corporateContact": "Business-Team kontaktieren"
+    "corporateContact": "Business-Team kontaktieren",
+    "plans": {
+      "basic": {
+        "name": "Basic",
+        "description": "Perfekt für kleine Locations oder aufstrebende Künstler.",
+        "features": ["Priorisierte Kartensichtbarkeit", "Basis-Analysen", "1 Hervorgehobener Post / Monat", "E-Mail-Support"]
+      },
+      "pro": {
+        "name": "Pro",
+        "description": "Am besten für aktive Locations und Veranstalter.",
+        "features": ["Alles im Starter", "Erweiterte Analysen (Live-Heatmap)", "5 Hervorgehobene Posts / Monat", "Unbegrenzte RSVPs", "Verifiziertes Pro-Badge"]
+      },
+      "enterprise": {
+        "name": "Enterprise",
+        "description": "Komplettes Management für Festivals und Großveranstaltungen.",
+        "features": ["Alles im Pro", "Rund-um-die-Uhr Support", "Externe API-Integrationen", "Unbegrenzte hervorgehobene Posts", "Garantierte gesponserte Events"]
+      }
+    }
   },
   "social": {
     "comments": "Kommentare",

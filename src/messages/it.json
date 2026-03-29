@@ -311,7 +311,24 @@
     "secureNote": "Tutti i pagamenti sono gestiti in modo sicuro tramite Stripe. Supportiamo TWINT e le principali carte di credito.",
     "corporateTitle": "Hai domande sul piano Corporate?",
     "corporateSubtitle": "Offriamo soluzioni personalizzate per reti di locali, discoteche su più piani e grandi festival in tutta la Svizzera.",
-    "corporateContact": "Contatta il team Business"
+    "corporateContact": "Contatta il team Business",
+    "plans": {
+      "basic": {
+        "name": "Basic",
+        "description": "Perfetto per piccoli locali o artisti emergenti.",
+        "features": ["Visibilità mappa prioritaria", "Analitiche base", "1 Post in evidenza / mese", "Supporto email"]
+      },
+      "pro": {
+        "name": "Pro",
+        "description": "La scelta migliore per locali attivi e organizzatori.",
+        "features": ["Tutto dallo Starter", "Analitiche avanzate (heatmap live)", "5 Post in evidenza / mese", "RSVP illimitati", "Badge Pro verificato"]
+      },
+      "enterprise": {
+        "name": "Enterprise",
+        "description": "Gestione completa per festival e grandi eventi.",
+        "features": ["Tutto dal Pro", "Supporto dedicato 24/7", "Integrazioni API esterne", "Post in evidenza illimitati", "Eventi sponsorizzati garantiti"]
+      }
+    }
   },
   "social": {
     "comments": "Commenti",

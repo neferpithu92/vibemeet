@@ -311,7 +311,24 @@
     "secureNote": "All payments are securely handled via Stripe. We support TWINT and all major credit cards.",
     "corporateTitle": "Questions about the Corporate plan?",
     "corporateSubtitle": "We offer custom solutions for venue networks, multi-floor clubs, and large festivals across Switzerland.",
-    "corporateContact": "Contact Business Team"
+    "corporateContact": "Contact Business Team",
+    "plans": {
+      "basic": {
+        "name": "Basic",
+        "description": "Perfect for small venues or emerging artists.",
+        "features": ["Priority map visibility", "Basic analytics", "1 Featured post / month", "Email support"]
+      },
+      "pro": {
+        "name": "Pro",
+        "description": "Best for active venues and event organizers.",
+        "features": ["Everything in Starter", "Advanced analytics (live heatmap)", "5 Featured posts / month", "Unlimited RSVPs", "Verified Pro badge"]
+      },
+      "enterprise": {
+        "name": "Enterprise",
+        "description": "Complete management for festivals and large events.",
+        "features": ["Everything in Pro", "24/7 dedicated support", "External API integrations", "Unlimited featured posts", "Guaranteed sponsored events"]
+      }
+    }
   },
   "social": {
     "comments": "Comments",

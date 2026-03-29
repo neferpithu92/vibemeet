@@ -110,16 +110,16 @@ export default function PricingSection({ entityId, entityType }: PricingProps) {
             )}
 
             <div className="mb-8">
-              <h3 className="text-xl font-bold mb-2">{plan.name}</h3>
+              <h3 className="text-xl font-bold mb-2">{t(`plans.${plan.id}.name`)}</h3>
               <div className="flex items-baseline gap-1">
                 <span className="text-4xl font-bold">{plan.price} CHF</span>
                 <span className="text-vibe-text-secondary">{t('perMonth')}</span>
               </div>
-              <p className="text-sm text-vibe-text-secondary mt-4">{plan.description}</p>
+              <p className="text-sm text-vibe-text-secondary mt-4">{t(`plans.${plan.id}.description`)}</p>
             </div>
 
             <ul className="space-y-4 mb-8 flex-1">
-              {plan.features.map((feature, i) => (
+              {(t.raw(`plans.${plan.id}.features`) as string[]).map((feature, i) => (
                 <li key={i} className="flex items-start gap-3 text-sm text-vibe-text">
                   <span className={`text-${plan.color} font-bold`}>✓</span>
                   {feature}

@@ -311,7 +311,24 @@
     "secureNote": "Tous les paiements sont sécurisés via Stripe. Nous acceptons TWINT et les principales cartes de crédit.",
     "corporateTitle": "Des questions sur le forfait Corporate ?",
     "corporateSubtitle": "Nous proposons des solutions personnalisées pour les réseaux d'établissements, les clubs à plusieurs étages et les grands festivals à travers la Suisse.",
-    "corporateContact": "Contacter l'équipe Business"
+    "corporateContact": "Contacter l'équipe Business",
+    "plans": {
+      "basic": {
+        "name": "Basic",
+        "description": "Parfait pour les petits établissements ou les artistes émergents.",
+        "features": ["Visibilité prioritaire sur la carte", "Analyses de base", "1 Publication à la une / mois", "Support par e-mail"]
+      },
+      "pro": {
+        "name": "Pro",
+        "description": "Le meilleur choix pour les établissements actifs et les organisateurs.",
+        "features": ["Tout du forfait Starter", "Analyses avancées (heatmap en direct)", "5 Publications à la une / mois", "RSVPs illimités", "Badge Pro vérifié"]
+      },
+      "enterprise": {
+        "name": "Enterprise",
+        "description": "Gestion complète pour les festivals et les grands événements.",
+        "features": ["Tout du forfait Pro", "Support dédié 24/7", "Intégrations API externes", "Publications à la une illimitées", "Événements sponsorisés garantis"]
+      }
+    }
   },
   "social": {
     "comments": "Commentaires",
