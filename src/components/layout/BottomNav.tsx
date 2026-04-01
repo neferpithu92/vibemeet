@@ -16,7 +16,7 @@ export function BottomNav() {
     { href: '/map', label: t('map'), Icon: Map },
     { href: '/reels', label: 'Reels', Icon: Clapperboard },
     { href: '/create', label: t('create'), Icon: Plus, isCreate: true },
-    { href: '/chat', label: 'Chat', Icon: MessageSquare },
+    { href: '/chat', label: t('chat'), Icon: MessageSquare },
     { href: '/profile', label: t('profile'), Icon: User },
   ];
 

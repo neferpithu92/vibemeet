@@ -36,7 +36,8 @@
     "dashboard": "Dashboard",
     "settings": "Parameters",
     "logout": "Sortir",
-    "createVibe": "Crear in Vibe / Post"
+    "createVibe": "Crear in Vibe / Post",
+    "chat": "Chat"
   },
   "auth": {
     "login": "S'annunziar",
@@ -535,7 +536,20 @@
     "noMessages": "Naginas conversaziuns anc.",
     "clickToChat": "Cliccar per chattar",
     "typeMessage": "Scriver in messagi...",
-    "endToEndEncrypted": "Criptà E2E",
-    "chatSecurityWarning": "Ils messagis èn protegids tras la criptaziun end-to-end VIBE (VEL)."
+    "endToEndEncrypted": "Cifradira E2E",
+    "chatSecurityWarning": "Ils messadis èn protegids tras la cifradira da bout en bout VIBE (VEL)."
+  },
+  "chat": {
+    "title": "Messadis",
+    "e2e": "Protegia cul E2E",
+    "decrypting": "Tocca per dechiffrar l'ultima activitad...",
+    "noConversations": "Anc nagina conversaziun.",
+    "velConnection": "Connexiun VEL activa",
+    "placeholder": "Trametter in messadi VEL...",
+    "send": "Trametter",
+    "securityTitle": "Securadad Fort Knox",
+    "securityDescription": "Tuts ils messadis sin VIBE èn protegiads tras la cifradira asimetrica Curve25519. Be ti ed il destinatari avais las clavs per dechiffrar ils cuntegns.",
+    "seeConversations": "Vair conversaziuns",
+    "encrypted": "[Cifradira en curs...]"
   }
 }

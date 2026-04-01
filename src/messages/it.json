@@ -36,7 +36,8 @@
     "dashboard": "Dashboard",
     "settings": "Impostazioni",
     "logout": "Esci",
-    "createVibe": "Crea un Vibe / Post"
+    "createVibe": "Crea un Vibe / Post",
+    "chat": "Chat"
   },
   "auth": {
     "login": "Accedi",
@@ -158,19 +159,30 @@
     }
   },
   "venues": {
-    "title": "Venue",
-    "open": "Aperto",
+    "title": "Locali",
+    "backToExplore": "Torna a Scopri",
+    "verified": "Verificato",
+    "vibeScore": "Vibe Score",
+    "presentNow": "Presenti ora",
+    "status": "Stato",
+    "info": "Informazioni",
+    "upcomingEvents": "Prossimi eventi",
+    "all": "Tutti",
+    "noEvents": "Nessun evento in programma.",
+    "hours": "Orari",
     "closed": "Chiuso",
+    "location": "Posizione",
+    "directions": "Indicazioni",
+    "category": "Categoria",
+    "follow": "Segui",
+    "following": "Seguendo",
+    "unfollow": "Smetti di seguire",
     "rating": "Valutazione",
     "reviews": "Recensioni",
-    "follow": "Segui",
-    "following": "Segui già",
-    "upcomingEvents": "Prossimi eventi",
     "openingHours": "Orari",
     "amenities": "Servizi",
     "musicGenres": "Generi musicali",
     "contactInfo": "Contatti",
-    "directions": "Indicazioni",
     "gallery": "Galleria",
     "noVenues": "Nessuna venue trovata"
   },
@@ -558,5 +570,18 @@
     "typeMessage": "Scrivi un messaggio...",
     "endToEndEncrypted": "Criptato E2E",
     "chatSecurityWarning": "I messaggi sono protetti dalla crittografia end-to-end VIBE (VEL)."
+  },
+  "chat": {
+    "title": "Messaggi",
+    "e2e": "Protetto da E2E",
+    "decrypting": "Tocca per decifrare l'ultima attività...",
+    "noConversations": "Nessuna conversazione ancora.",
+    "velConnection": "Connessione VEL Attiva",
+    "placeholder": "Invia un messaggio VEL...",
+    "send": "Invia",
+    "securityTitle": "Sicurezza Fort Knox",
+    "securityDescription": "Tutti i messaggi su VIBE sono protetti dalla cifratura asimmetrica Curve25519. Solo tu e il destinatario avete le chiavi per decifrare i contenuti.",
+    "seeConversations": "Vedi conversazioni",
+    "encrypted": "[Cifratura in corso...]"
   }
 }

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter, usePathname } from '@/lib/i18n/navigation';
+import { useRouter, usePathname, Link } from '@/lib/i18n/navigation';
 import { useParams } from 'next/navigation';
 import { useTranslations, useLocale } from 'next-intl';
 import { locales } from '@/lib/i18n/config';
@@ -436,22 +436,21 @@ export default function ProfilePage() {
           <h3 className="font-display font-bold text-sm mb-4">⚙️ {t('quickSettings')}</h3>
           <div className="space-y-2">
             {[
-              { label: t('language'), value: localeNames[locale as keyof typeof localeNames] || locale, icon: '🌐', action: handleLanguageToggle },
-              { label: t('privacy'), value: t(`status.${privacy}`), icon: '🔒', action: handlePrivacyToggle },
-              { label: t('notifications'), value: isNotificationsActive ? t('status.active') : t('status.inactive'), icon: '🔔', action: handleNotificationsToggle },
-              { label: t('theme'), value: theme === 'dark' ? t('status.dark') : t('status.light'), icon: '🌙', action: handleThemeToggle },
-              { label: t('exportData'), value: '', icon: '📥', action: () => alert('Request sent! 📧') },
+              { label: t('language'), icon: '🌐', href: '/settings?tab=lingua' },
+              { label: t('privacy'), icon: '🔒', href: '/settings?tab=privacy' },
+              { label: t('notifications'), icon: '🔔', href: '/settings?tab=notifiche' },
+              { label: 'GDPR / Dati', icon: '📥', href: '/settings?tab=account' },
+              { label: t('settings'), icon: '⚙️', href: '/settings' },
             ].map((setting) => (
-              <button 
+              <Link 
                 key={setting.label} 
-                onClick={setting.action}
+                href={setting.href as any}
                 className="w-full flex items-center gap-3 px-3 py-3 rounded-xl bg-white/5 hover:bg-white/10 transition-all group"
               >
                 <span className="group-hover:scale-125 transition-transform">{setting.icon}</span>
                 <span className="text-sm font-medium flex-1 text-left">{setting.label}</span>
-                <span className="text-sm text-vibe-text-secondary">{setting.value}</span>
                 <svg className="w-4 h-4 text-vibe-text-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
-              </button>
+              </Link>
             ))}
           </div>
         </Card>

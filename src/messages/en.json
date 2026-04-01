@@ -36,7 +36,8 @@
     "dashboard": "Dashboard",
     "settings": "Settings",
     "logout": "Log out",
-    "createVibe": "Create a Vibe / Post"
+    "createVibe": "Create a Vibe / Post",
+    "chat": "Chat"
   },
   "auth": {
     "login": "Log in",
@@ -413,6 +414,8 @@
     "privacy": "Privacy",
     "notifications": "Notifications",
     "security": "Security",
+    "usage": "App Usage",
+    "subscription": "Subscription",
     "editProfile": "Edit Profile",
     "avatar": "Avatar",
     "username": "Username",
@@ -464,6 +467,25 @@
     "pauseAccount": "Pause account",
     "resumeAccount": "Resume account",
     "deletionWarning": "Your account is scheduled for permanent deletion in less than 30 days.",
+    "usageStats": {
+      "title": "App Usage",
+      "daily": "Usage today",
+      "weekly": "Weekly media",
+      "limit": "Daily limit",
+      "setLimit": "Set Limit"
+    },
+    "crossPosting": {
+      "title": "Cross-Posting",
+      "instagram": "Connect Instagram",
+      "facebook": "Connect Facebook",
+      "tiktok": "Connect TikTok"
+    },
+    "storySettings": {
+      "title": "Story Settings",
+      "allowReplies": "Allow Replies",
+      "liveComments": "Live Comments",
+      "locationSharing": "Location Sharing"
+    },
     "plans": {
       "starter": {
         "name": "Starter",
@@ -537,5 +559,18 @@
     "typeMessage": "Type a message...",
     "endToEndEncrypted": "E2E Encrypted",
     "chatSecurityWarning": "Messages are secured by VIBE End-to-End encryption (VEL)."
+  },
+  "chat": {
+    "title": "Messages",
+    "e2e": "E2E Protected",
+    "decrypting": "Tap to decrypt last activity...",
+    "noConversations": "No conversations yet.",
+    "velConnection": "VEL Connection Active",
+    "placeholder": "Send a VEL message...",
+    "send": "Send",
+    "securityTitle": "Fort Knox Security",
+    "securityDescription": "All messages on VIBE are protected by Curve25519 asymmetric encryption. Only you and the recipient have the keys to decrypt the content.",
+    "seeConversations": "See conversations",
+    "encrypted": "[Encrypting...]"
   }
 }

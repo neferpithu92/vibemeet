@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server';
+import { getTranslations } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
@@ -52,6 +53,9 @@ interface Venue {
 }
 
 async function VenueDetailRender({ venue, user }: { venue: Venue, user: any }) {
+  const t = await getTranslations('venues');
+  const tc = await getTranslations('common');
+  const te = await getTranslations('events');
   const supabase = await createClient();
 
   // Verifica se l'utente segue la venue
@@ -87,7 +91,7 @@ async function VenueDetailRender({ venue, user }: { venue: Venue, user: any }) {
         {/* Back */}
         <Link href="/explore" className="flex items-center gap-2 text-vibe-text-secondary hover:text-vibe-text mb-4 transition-colors">
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
-          <span className="text-sm">Torna a Scopri</span>
+          <span className="text-sm">{t('backToExplore')}</span>
         </Link>
 
         {/* Header / Cover */}
@@ -100,9 +104,9 @@ async function VenueDetailRender({ venue, user }: { venue: Venue, user: any }) {
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-1">
                 <h1 className="font-display text-2xl md:text-3xl font-bold text-white">{venue.name}</h1>
-                <Badge variant="verified">Verificato</Badge>
+                <Badge variant="verified">{t('verified')}</Badge>
               </div>
-              <p className="text-sm text-white/70">Locale · Zurigo</p>
+              <p className="text-sm text-white/70">{t('title')} · Switzerland</p>
             </div>
             <div className="hidden sm:flex gap-2">
               <FollowButton 
@@ -120,15 +124,15 @@ async function VenueDetailRender({ venue, user }: { venue: Venue, user: any }) {
         <div className="grid grid-cols-3 gap-3 mb-6">
           <Card className="p-3 text-center">
             <p className="text-xl font-bold text-amber-400">⭐ {venue.vibe_score || '9.5'}</p>
-            <p className="text-xs text-vibe-text-secondary">Vibe Score</p>
+            <p className="text-xs text-vibe-text-secondary">{t('vibeScore')}</p>
           </Card>
           <Card className="p-3 text-center">
             <p className="text-xl font-bold text-vibe-purple">{liveCrowd || 0}</p>
-            <p className="text-xs text-vibe-text-secondary">Presenti ora</p>
+            <p className="text-xs text-vibe-text-secondary">{t('presentNow')}</p>
           </Card>
           <Card className="p-3 text-center">
-            <p className="text-xl font-bold text-green-400">● Aperto</p>
-            <p className="text-xs text-vibe-text-secondary">Stato</p>
+            <p className="text-xl font-bold text-green-400">● {t('open', { fallback: 'Aperto' })}</p>
+            <p className="text-xs text-vibe-text-secondary">{t('status')}</p>
           </Card>
         </div>
 
@@ -137,8 +141,8 @@ async function VenueDetailRender({ venue, user }: { venue: Venue, user: any }) {
           <div className="md:col-span-2 space-y-6">
             {/* Info */}
             <Card>
-              <h2 className="font-display font-bold text-lg mb-3">Info</h2>
-              <p className="text-sm text-vibe-text-secondary leading-relaxed mb-4">{venue.description || 'Benvenuti al ' + venue.name}</p>
+              <h2 className="font-display font-bold text-lg mb-3">{t('info')}</h2>
+              <p className="text-sm text-vibe-text-secondary leading-relaxed mb-4">{venue.description || 'Welcome to ' + venue.name}</p>
               <div className="flex flex-wrap gap-2">
                 <Badge variant="default">Techno</Badge>
                 <Badge variant="default">House</Badge>
@@ -148,8 +152,8 @@ async function VenueDetailRender({ venue, user }: { venue: Venue, user: any }) {
             {/* Eventi */}
             <Card>
               <div className="flex items-center justify-between mb-4">
-                <h2 className="font-display font-bold text-lg">🎉 Prossimi eventi</h2>
-                <button className="text-sm text-vibe-purple font-medium">Tutti</button>
+                <h2 className="font-display font-bold text-lg">{t('upcomingEvents')}</h2>
+                <button className="text-sm text-vibe-purple font-medium">{t('all')}</button>
               </div>
               <div className="space-y-3">
                 {upcomingEvents?.map((event) => (
@@ -160,14 +164,14 @@ async function VenueDetailRender({ venue, user }: { venue: Venue, user: any }) {
                     <div className="flex-1">
                       <p className="font-semibold text-sm">{event.title}</p>
                       <p className="text-xs text-vibe-text-secondary">
-                        {new Date(event.starts_at).toLocaleDateString('it-IT')}
+                        {new Date(event.starts_at).toLocaleDateString()}
                       </p>
                     </div>
                     <Badge variant="default">{event.category || 'Event'}</Badge>
                   </Link>
                 ))}
                 {!upcomingEvents?.length && (
-                  <p className="text-sm text-vibe-text-secondary text-center py-4">Nessun evento in programma.</p>
+                  <p className="text-sm text-vibe-text-secondary text-center py-4">{t('noEvents')}</p>
                 )}
               </div>
             </Card>
@@ -182,25 +186,25 @@ async function VenueDetailRender({ venue, user }: { venue: Venue, user: any }) {
           <div className="space-y-4">
             {/* Orari (Placeholder) */}
             <Card className="p-4">
-              <h3 className="font-semibold text-sm mb-3">🕐 Orari</h3>
+              <h3 className="font-semibold text-sm mb-3">🕐 {t('hours')}</h3>
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
-                  <span className="text-vibe-text-secondary">Ven-Sab</span>
+                  <span className="text-vibe-text-secondary">Fri-Sat</span>
                   <span className="text-vibe-text">23:00 - 06:00</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-vibe-text-secondary">Dom-Gio</span>
-                  <span className="text-red-400">Chiuso</span>
+                  <span className="text-vibe-text-secondary">Sun-Thu</span>
+                  <span className="text-red-400">{t('closed')}</span>
                 </div>
               </div>
             </Card>
 
-            {/* Contatti */}
+            {/* Posizione */}
             <Card className="p-4">
-              <h3 className="font-semibold text-sm mb-3">📍 Posizione</h3>
-              <p className="text-sm text-vibe-text-secondary mb-3">{venue.address || 'Indirizzo non disponibile'}</p>
+              <h3 className="font-semibold text-sm mb-3">📍 {t('location')}</h3>
+              <p className="text-sm text-vibe-text-secondary mb-3">{venue.address || 'Address not available'}</p>
               <Button variant="secondary" className="w-full text-sm">
-                🗺️ Indicazioni
+                🗺️ {t('directions')}
               </Button>
             </Card>
           </div>

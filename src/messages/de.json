@@ -36,7 +36,8 @@
     "dashboard": "Dashboard",
     "settings": "Einstellungen",
     "logout": "Abmelden",
-    "createVibe": "Vibe / Post erstellen"
+    "createVibe": "Vibe / Post erstellen",
+    "chat": "Chat"
   },
   "auth": {
     "login": "Anmelden",
@@ -536,6 +537,19 @@
     "clickToChat": "Klicken zum Chatten",
     "typeMessage": "Nachricht schreiben...",
     "endToEndEncrypted": "E2E verschlüsselt",
-    "chatSecurityWarning": "Nachrichten sind durch VIBE End-to-End-Verschlüsselung (VEL) gesichert."
+    "chatSecurityWarning": "Nachrichten sind durch die VIBE End-to-End-Verschlüsselung (VEL) gesichert."
+  },
+  "chat": {
+    "title": "Nachrichten",
+    "e2e": "E2E geschützt",
+    "decrypting": "Tippen, um die letzte Aktivität zu entschlüsseln...",
+    "noConversations": "Noch keine Konversationen.",
+    "velConnection": "VEL-Verbindung aktiv",
+    "placeholder": "VEL-Nachricht senden...",
+    "send": "Senden",
+    "securityTitle": "Fort Knox Sicherheit",
+    "securityDescription": "Alle Nachrichten auf VIBE sind durch Curve25519 asymmetrische Verschlüsselung geschützt. Nur Sie und der Empfänger haben die Schlüssel zum Entschlüsseln der Inhalte.",
+    "seeConversations": "Konversationen ansehen",
+    "encrypted": "[Verschlüsselung läuft...]"
   }
 }

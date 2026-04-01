@@ -29,7 +29,7 @@ export async function middleware(request: NextRequest) {
 
   // Public paths (without locale prefix)
   const isPublicPath =
-    /^\/(it|en|de|fr|rm)?\/?$/.test(pathname) ||
+    /^\/(it|en|de|fr|rm|es|pt)?\/?$/.test(pathname) ||
     pathname.includes('/login') ||
     pathname.includes('/register') ||
     pathname.includes('/privacy') ||
@@ -60,7 +60,7 @@ export async function middleware(request: NextRequest) {
     const { data: { user } } = await supabase.auth.getUser();
 
     // Recover locale for redirects
-    const localeMatch = pathname.match(/^\/(it|en|de|fr|rm)\//);
+    const localeMatch = pathname.match(/^\/(it|en|de|fr|rm|es|pt)\//);
     const currentLocale = localeMatch ? localeMatch[1] : defaultLocale;
 
     if (!user) {
