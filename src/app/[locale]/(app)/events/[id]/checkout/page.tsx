@@ -39,15 +39,26 @@ export default function CheckoutPage({ params }: { params: Promise<{ id: string 
     // Simula ritardo transazione
     setTimeout(async () => {
       if (paymentId) {
-        // Mocking successful update
+        // Aggiorna pagamento
         await supabase
           .from('payments')
           .update({ status: 'succeeded' })
           .eq('id', paymentId);
           
-        // Mocking RSVP creation
+        // Crea biglietto (Ticket Instance)
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
+          // Genera hash QR unico (Simulazione)
+          const qrHash = `vibe_tk_${id.slice(0,4)}_${user.id.slice(0,4)}_${Math.random().toString(36).substring(7)}`;
+          
+          await supabase.from('ticket_instances').insert({
+            event_id: id,
+            user_id: user.id,
+            qr_code_hash: qrHash,
+            status: 'valid'
+          });
+
+          // RSVP automatico (Legacy support per il feed)
           await supabase.from('likes').insert({
             user_id: user.id,
             entity_type: 'event',

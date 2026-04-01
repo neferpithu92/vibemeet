@@ -33,14 +33,15 @@ import {
   MessageSquare,
   ChevronRight,
   ShieldCheck,
-  Calendar
+  Calendar,
+  PackageCheck
 } from 'lucide-react';
 import { BackButton } from '@/components/ui/BackButton';
 import { EmptyState } from '@/components/ui/EmptyState';
 import PostModal from '@/components/feed/PostModal';
 import { localeNames } from '@/lib/i18n/config';
 
-const tabs = ['Post', 'Vibe', 'Saved', 'Check-in'] as const;
+const tabs = ['Post', 'Vibe', 'Saved', 'Check-in', 'Tickets'] as const;
 
 const userPosts = [
   { id: '1', type: 'photo', likes: 45, comments: 8, venue: 'Club Paradiso' },
@@ -356,7 +357,6 @@ export default function ProfilePage() {
             </Button>
           </div>
         </Card>
-
         {/* Content Tabs (System 14 - Premium Interactions) */}
         <div className="flex gap-1 mb-6 p-1 rounded-xl bg-white/5 relative">
           {tabs.map((tab) => (
@@ -378,6 +378,7 @@ export default function ProfilePage() {
                 {tab === 'Post' ? <Grid className="w-4 h-4" /> : 
                  tab === 'Vibe' ? <Play className="w-4 h-4" /> : 
                  tab === 'Saved' ? <Bookmark className="w-4 h-4" /> : 
+                 tab === 'Tickets' ? <PackageCheck className="w-4 h-4" /> :
                  <MapPin className="w-4 h-4" />} 
                 <span className="hidden sm:inline">{tab}</span>
               </span>
@@ -503,6 +504,46 @@ export default function ProfilePage() {
                 />
               </div>
             )}
+          </div>
+        ) : activeTab === 'Tickets' ? (
+          <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            {[1].map((tk) => (
+              <Card key={tk} className="p-0 overflow-hidden border-vibe-purple/20 bg-vibe-purple/5 group">
+                <div className="flex flex-col md:flex-row divide-y md:divide-y-0 md:divide-x divide-white/10">
+                  <div className="p-6 flex-1 flex flex-col justify-between">
+                    <div>
+                      <div className="flex items-center gap-2 mb-3">
+                         <Badge variant="premium">VIP TICKET</Badge>
+                         <span className="text-[10px] font-bold text-white/40 uppercase">#8A24F9C2</span>
+                      </div>
+                      <h3 className="text-xl font-black uppercase tracking-tighter vibe-gradient-text mb-1">Neon Nights Festival</h3>
+                      <p className="text-xs text-vibe-text-secondary flex items-center gap-2">
+                         <MapPin className="w-3 h-3" /> Zurich, Switzerland
+                      </p>
+                    </div>
+                    <div className="mt-8 pt-4 border-t border-white/10 flex items-center justify-between">
+                       <div className="flex -space-x-2">
+                          {[1,2,3].map(i => <div key={i} className="w-6 h-6 rounded-full border-2 border-vibe-dark bg-gray-500" />)}
+                          <span className="ml-4 text-[10px] text-vibe-text-secondary font-bold">+ 249 others going</span>
+                       </div>
+                    </div>
+                  </div>
+                  <div className="p-6 bg-white/5 flex flex-col items-center justify-center gap-4 text-center">
+                    <div className="w-32 h-32 bg-white rounded-2xl p-2 shadow-[0_0_30px_rgba(157,78,221,0.2)] group-hover:scale-105 transition-transform duration-500">
+                       {/* Mock QR Code representation */}
+                       <div className="w-full h-full bg-[url('https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=vibe_sample_ticket')] bg-cover opacity-90 mix-blend-multiply" />
+                    </div>
+                    <div>
+                       <p className="text-[10px] font-black uppercase text-vibe-purple tracking-widest">Scan to Validate</p>
+                       <p className="text-[9px] text-vibe-text-secondary mt-1">Valid only for single entry</p>
+                    </div>
+                  </div>
+                </div>
+              </Card>
+            ))}
+            <div className="p-8 text-center border-2 border-dashed border-white/5 rounded-3xl">
+               <p className="text-sm text-vibe-text-secondary">Hai altri biglietti? Verranno visualizzati automaticamente dopo l'acquisto.</p>
+            </div>
           </div>
         ) : (
           <div className="py-20 text-center glass-card border-dashed">
