@@ -1,73 +1,63 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
 
-/**
- * API Route per la ricerca globale di eventi, locali e artisti.
- */
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const query = searchParams.get('q');
-
   if (!query || query.length < 2) {
-    return NextResponse.json({ results: [] });
+    return NextResponse.json({ 
+      users: [],
+      events: [],
+      venues: [],
+      artists: [],
+      hashtags: [] 
+    });
   }
 
   const supabase = await createClient();
 
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) {
-    return NextResponse.json({ error: 'Unauthorized - Login required' }, { status: 401 });
-  }
+  // Search users
+  const { data: users } = await supabase
+    .from('users')
+    .select('id, username, display_name, avatar_url, is_verified, bio')
+    .or(`username.ilike.%${query}%,display_name.ilike.%${query}%`)
+    .eq('is_active', true)
+    .limit(8);
 
-  // Ricerca eventi
+  // Search events
   const { data: events } = await supabase
     .from('events')
-    .select(`
-      id,
-      title,
-      description,
-      category,
-      latitude,
-      longitude,
-      venue:venues(name, latitude, longitude)
-    `)
+    .select('id, title, description, category, starts_at, venue:venues(name)')
     .ilike('title', `%${query}%`)
     .limit(5);
 
-  // Ricerca locali
+  // Search venues
   const { data: venues } = await supabase
     .from('venues')
-    .select('id, name, description, type, slug, latitude, longitude')
+    .select('id, name, description, type, slug, city')
     .ilike('name', `%${query}%`)
     .limit(5);
 
-  // Ricerca artisti
+  // Search artists
   const { data: artists } = await supabase
     .from('artists')
-    .select('id, name, bio, avatar_url')
+    .select('id, name, bio, avatar_url, genres')
     .ilike('name', `%${query}%`)
     .limit(5);
 
-  // Ricerca profili utenti (Amici)
-  const { data: users_profiles } = await supabase
-    .from('users')
-    .select('id, username, display_name, avatar_url, last_location')
-    .or(`username.ilike.%${query}%,display_name.ilike.%${query}%`)
+  // Search hashtags
+  const { data: hashtags } = await supabase
+    .from('hashtags')
+    .select('id, tag, post_count')
+    .ilike('tag', `%${query}%`)
+    .order('post_count', { ascending: false })
     .limit(5);
 
-  // Converti i profili in un formato compatibile con il frontend
-  const users = (users_profiles || []).map(u => ({
-    id: u.id,
-    displayName: u.display_name || u.username,
-    type: 'user',
-    longitude: (u.last_location as any)?.coordinates?.[0],
-    latitude: (u.last_location as any)?.coordinates?.[1]
-  }));
-
   return NextResponse.json({
+    users: users || [],
     events: events || [],
     venues: venues || [],
     artists: artists || [],
-    users: users
+    hashtags: hashtags || []
   });
 }

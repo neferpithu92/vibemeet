@@ -5,7 +5,7 @@ import { useChatStore } from '@/stores/useChatStore';
 import { Avatar } from '@/components/ui/Avatar';
 import { Button } from '@/components/ui/Button';
 import { useTranslations } from 'next-intl';
-import { Send, ArrowLeft, ShieldCheck, Lock } from 'lucide-react';
+import { Send, ArrowLeft, ShieldCheck, Lock, Check } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 
 export function ChatWindow({ conversationId, onBack }: { conversationId: string, onBack?: () => void }) {
@@ -53,6 +53,24 @@ export function ChatWindow({ conversationId, onBack }: { conversationId: string,
     return () => { supabase.removeChannel(channel); };
   }, [conversationId, fetchMessages, handleRealtimeMessage, supabase]);
 
+  const markMessagesAsRead = async () => {
+    if (!currentUser || !messages.length) return;
+    const unreadIds = messages
+      .filter(m => m.sender_id !== currentUser.id && !m.read_at)
+      .map(m => m.id);
+    
+    if (unreadIds.length > 0) {
+      await supabase
+        .from('direct_messages')
+        .update({ read_at: new Date().toISOString() })
+        .in('id', unreadIds);
+    }
+  };
+
+  useEffect(() => {
+    markMessagesAsRead();
+  }, [messages, currentUser]);
+
   useEffect(() => {
     scrollRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
@@ -95,16 +113,22 @@ export function ChatWindow({ conversationId, onBack }: { conversationId: string,
           </p>
         </div>
 
-        {messages.map((msg, i) => {
+        {messages.map((msg: any, i) => {
           const isOwn = msg.sender_id === currentUser?.id;
           return (
             <div key={msg.id || i} className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}>
-              <div className={`max-w-[80%] p-3 rounded-2xl text-sm ${
-                isOwn ? 'bg-vibe-purple text-white rounded-br-none' : 'bg-white/10 text-vibe-text rounded-bl-none'
+              <div className={`max-w-[80%] p-3 rounded-2xl text-sm relative group ${
+                isOwn ? 'bg-vibe-purple text-white rounded-br-none shadow-[0_4px_15px_rgba(157,78,221,0.2)]' : 'bg-white/10 text-vibe-text rounded-bl-none'
               }`}>
                 {msg.decrypted_content || (msg.sender_id === currentUser?.id ? msg.encrypted_content : '[Cifratura in corso...]')}
-                <div className={`text-[9px] mt-1 ${isOwn ? 'text-white/60' : 'text-white/40'}`}>
+                <div className={`text-[9px] mt-1 flex items-center justify-end gap-1 ${isOwn ? 'text-white/60' : 'text-white/40'}`}>
                   {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  {isOwn && (
+                    <span className="flex items-center">
+                      <Check className={`w-3 h-3 ${msg.read_at ? 'text-vibe-cyan font-bold' : ''}`} />
+                      {msg.read_at && <Check className="w-3 h-3 -ml-2 text-vibe-cyan font-bold" />}
+                    </span>
+                  )}
                 </div>
               </div>
             </div>

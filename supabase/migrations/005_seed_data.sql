@@ -6,8 +6,8 @@
 -- Insert a test owner user if not exists
 INSERT INTO users (id, email, username, display_name, role, is_verified)
 VALUES 
-  ('00000000-0000-0000-0000-000000000001', 'owner@vibe.ch', 'vibe_owner', 'VIBE Owner', 'venue', true)
-ON CONFLICT (email) DO NOTHING;
+  ('00000000-0000-0000-0000-000000000001', 'owner@vibe.ch', 'vibe_premium', 'VIBE Premium Club', 'venue', true)
+ON CONFLICT (email) DO UPDATE SET is_verified = true, role = 'venue';
 
 -- Insert Venues
 INSERT INTO venues (id, owner_id, name, slug, description, type, address, city, location, music_genres, is_verified, avg_rating)

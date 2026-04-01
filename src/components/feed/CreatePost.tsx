@@ -16,9 +16,11 @@ interface CreatePostProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess?: () => void;
+  initialMediaUrl?: string;
+  initialType?: 'photo' | 'video';
 }
 
-export default function CreatePost({ isOpen, onClose, onSuccess }: CreatePostProps) {
+export default function CreatePost({ isOpen, onClose, onSuccess, initialMediaUrl, initialType }: CreatePostProps) {
   const t = useTranslations('create');
   const supabase = createClient();
   const [caption, setCaption] = useState('');
@@ -26,6 +28,7 @@ export default function CreatePost({ isOpen, onClose, onSuccess }: CreatePostPro
   const [location, setLocation] = useState<{ lat: number; lng: number; name?: string; venue_id?: string } | null>(null);
   const [visibility, setVisibility] = useState<'public' | 'friends' | 'circles' | 'private'>('public');
   const [selectedCircleId, setSelectedCircleId] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { circles, fetchCircles } = useCirclesStore();
 
@@ -35,10 +38,11 @@ export default function CreatePost({ isOpen, onClose, onSuccess }: CreatePostPro
 
   const { showToast } = useToast();
 
-  const handleUploadComplete = async (url: string) => {
+  const savePost = async (url: string) => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
+    setIsSubmitting(true);
     try {
       const lng = Number(location?.lng);
       const lat = Number(location?.lat);
@@ -46,11 +50,15 @@ export default function CreatePost({ isOpen, onClose, onSuccess }: CreatePostPro
 
       const { data: media, error } = await supabase.from('media').insert({
         user_id: user.id,
+        author_id: user.id, // Ensure author_id is set
+        url: url, // DB uses 'url' and 'type' in newer schema? Let me check.
         media_url: url,
         thumbnail_url: url,
-        media_type: url.includes('mp4') || url.includes('webm') ? 'video' : 'photo',
+        media_type: initialType || (url.includes('mp4') || url.includes('webm') ? 'video' : 'photo'),
+        type: initialType || (url.includes('mp4') || url.includes('webm') ? 'video' : 'photo'),
         caption: caption,
         location: `POINT(${lng} ${lat})`,
+        location_name: location?.name,
         visibility: visibility,
         allowed_circle_id: visibility === 'circles' ? selectedCircleId : null
       }).select().single();
@@ -92,8 +100,13 @@ export default function CreatePost({ isOpen, onClose, onSuccess }: CreatePostPro
     } catch (e: any) {
       console.error(e);
       showToast(e instanceof Error ? e.message : t('error'), 'error');
+    } finally {
+      setIsSubmitting(false);
     }
   };
+
+  const handleUploadComplete = (url: string) => savePost(url);
+  const handlePublishCaptured = () => initialMediaUrl && savePost(initialMediaUrl);
 
   const isFormValid = !!location;
 
@@ -177,16 +190,39 @@ export default function CreatePost({ isOpen, onClose, onSuccess }: CreatePostPro
         />
 
         <div className="space-y-2">
-          <label className="text-xs font-bold text-vibe-text-secondary uppercase">
-            {t('addMedia')}
-          </label>
-          <div className={!isFormValid ? "opacity-50 pointer-events-none transition-opacity" : "transition-opacity"}>
-            <MediaUpload 
-              bucket="media" 
-              onUploadComplete={handleUploadComplete} 
-              label={t('uploadPlaceholder')}
-            />
-          </div>
+          {initialMediaUrl ? (
+            <div className="space-y-4">
+              <div className="relative aspect-video rounded-2xl overflow-hidden bg-black/40 border border-white/10 group">
+                {initialType === 'video' ? (
+                  <video src={initialMediaUrl} className="w-full h-full object-cover" controls />
+                ) : (
+                  <img src={initialMediaUrl} className="w-full h-full object-cover" alt="Captured" />
+                )}
+              </div>
+              <Button 
+                variant="primary" 
+                className="w-full" 
+                onClick={handlePublishCaptured}
+                disabled={!isFormValid || isSubmitting}
+                isLoading={isSubmitting}
+              >
+                Pubblica Post
+              </Button>
+            </div>
+          ) : (
+            <>
+              <label className="text-xs font-bold text-vibe-text-secondary uppercase">
+                {t('addMedia')}
+              </label>
+              <div className={!isFormValid ? "opacity-50 pointer-events-none transition-opacity" : "transition-opacity"}>
+                <MediaUpload 
+                  bucket="media" 
+                  onUploadComplete={handleUploadComplete} 
+                  label={t('uploadPlaceholder')}
+                />
+              </div>
+            </>
+          )}
           {!isFormValid && (
             <p className="text-xs text-red-400 mt-1">
               {t('locationRequired')}

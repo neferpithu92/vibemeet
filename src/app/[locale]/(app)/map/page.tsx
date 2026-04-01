@@ -2,7 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { Link, usePathname, useRouter } from '@/lib/i18n/navigation';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
@@ -12,6 +12,7 @@ import { VenueMarker, EventMarker, StoryMarker, PresenceMarker, MediaMarker } fr
 import MapSearch from '@/components/map/MapSearch';
 import HeatmapLayer from '@/components/map/HeatmapLayer';
 import ActivityFeed from '@/components/social/ActivityFeed';
+import { Compass, Crosshair, Map as MapIcon, Layers, Calendar, Users, TrendingUp, Clock, Navigation, Share2, Building2 } from 'lucide-react';
 
 import { useMapRealtime } from '@/lib/supabase/useMapRealtime';
 import { useUserLocation } from '@/hooks/useUserLocation';
@@ -137,17 +138,24 @@ export default function MapPage() {
   }, []);
 
   // Centra la mappa quando la posizione è disponibile e la mappa è pronta
-  useEffect(() => {
-    if (userPosition && mapRef.current && !hasCentered.current) {
+  const centerOnMe = useCallback(() => {
+    if (userPosition && mapRef.current) {
       console.log('[Map] Centramento su posizione utente...');
       mapRef.current.flyTo({
         center: [userPosition.lng, userPosition.lat],
-        zoom: 13,
-        duration: 600
+        zoom: 15,
+        duration: 1000,
+        pitch: 45, // Dynamic look
       });
       hasCentered.current = true;
     }
-  }, [userPosition, mapRef.current]);
+  }, [userPosition]);
+
+  useEffect(() => {
+    if (userPosition && mapRef.current && !hasCentered.current) {
+      centerOnMe();
+    }
+  }, [userPosition, centerOnMe]);
 
   // Effetto per controllare se l'utente segue la venue selezionata
   useEffect(() => {
@@ -324,14 +332,26 @@ export default function MapPage() {
           ))}
         </Card>
 
+        {/* Tasto Centra su di me */}
+        <Button 
+          variant="secondary" 
+          size="sm" 
+          onClick={centerOnMe}
+          className="shadow-xl bg-vibe-dark/80 backdrop-blur-md border-white/10"
+        >
+          <Crosshair className="w-4 h-4 mr-2" />
+          Centra su di me
+        </Button>
+
         {/* Tasto Filtri */}
         <Button 
           variant="secondary" 
           size="sm" 
           onClick={() => setShowFilters(!showFilters)}
-          className="shadow-xl"
+          className="shadow-xl bg-vibe-dark/80 backdrop-blur-md border-white/10"
         >
-          🔍 {t('filters')}
+          <Layers className="w-4 h-4 mr-2" />
+          {t('filters')}
         </Button>
 
         {/* Tasto Eventi Salvi */}
@@ -339,9 +359,10 @@ export default function MapPage() {
           <Button 
             variant="secondary" 
             size="sm" 
-            className="shadow-xl"
+            className="shadow-xl bg-vibe-dark/80 backdrop-blur-md border-white/10"
           >
-            🔖 {t('saved')}
+            <MapIcon className="w-4 h-4 mr-2" />
+            {t('saved')}
           </Button>
         </Link>
       </div>
@@ -427,59 +448,86 @@ export default function MapPage() {
           ) : (
             <>
               <div className="mb-6">
-                <div className="w-full aspect-video rounded-2xl bg-vibe-gradient/20 mb-4 overflow-hidden relative group">
-                  <div className="absolute inset-0 flex items-center justify-center text-4xl">
-                    {selectedItem.type === 'venue' ? '🏢' : '🎉'}
+                <div className="w-full aspect-[16/10] rounded-2xl bg-vibe-gradient/20 mb-4 overflow-hidden relative group shadow-2xl">
+                  {selectedItem.type === 'venue' ? (
+                     <div className="absolute inset-0 flex items-center justify-center bg-vibe-dark/40 backdrop-blur-[2px]">
+                        <Building2 className="w-16 h-16 text-vibe-purple/40" />
+                     </div>
+                  ) : (
+                     <div className="absolute inset-0 flex items-center justify-center bg-vibe-dark/40 backdrop-blur-[2px]">
+                        <Calendar className="w-16 h-16 text-vibe-pink/40" />
+                     </div>
+                  )}
+                  <div className="absolute top-3 left-3 flex gap-2">
+                    <Badge variant="live" className="animate-pulse">LIVE</Badge>
+                    <Badge variant="verified">OFFICIAL</Badge>
                   </div>
-                  <Badge variant="live" className="absolute top-3 right-3 animate-pulse">LIVE</Badge>
+                  <div className="absolute bottom-3 right-3">
+                    <div className="bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-xl">
+                      <TrendingUp className="w-3.5 h-3.5 text-vibe-cyan" />
+                      <span className="text-xs font-bold text-white">Vibe High</span>
+                    </div>
+                  </div>
                 </div>
                 
-                <h2 className="font-display text-2xl font-bold mb-1">{selectedItem.name || selectedItem.title}</h2>
-                <p className="text-vibe-text-secondary text-sm flex items-center gap-2">
-                   📍 {selectedItem.address || selectedItem.venue?.address || '—'}
-                </p>
+                <h2 className="font-display text-2xl font-bold mb-1 tracking-tight">{selectedItem.name || selectedItem.title}</h2>
+                <div className="flex flex-col gap-1.5">
+                  <p className="text-vibe-text-secondary text-sm flex items-center gap-2">
+                    <Navigation className="w-3.5 h-3.5 text-vibe-purple" />
+                    {selectedItem.address || selectedItem.venue?.address || 'Indirizzo non disponibile'}
+                  </p>
+                  <p className="text-[11px] text-vibe-text-secondary font-medium flex items-center gap-2">
+                    <Clock className="w-3.5 h-3.5 text-green-400" />
+                    <span className="text-green-400 font-bold uppercase tracking-wider">Aperto ora</span> • Chiusura ore 04:00
+                  </p>
+                </div>
               </div>
 
               <div className="space-y-6">
                 <div className="flex gap-4">
-                  <div className="flex-1 p-3 rounded-2xl bg-white/5 text-center">
-                    <p className="text-[10px] text-vibe-text-secondary uppercase font-bold">Vibe Score</p>
-                    <p className="text-lg font-bold text-vibe-pink">9.8/10</p>
+                  <div className="flex-1 p-3.5 rounded-2xl bg-white/5 border border-white/10 text-center group hover:bg-vibe-pink/5 transition-colors">
+                    <p className="text-[10px] text-vibe-text-secondary uppercase font-bold tracking-widest mb-1 group-hover:text-vibe-pink transition-colors">Vibe Score</p>
+                    <p className="text-xl font-bold text-white flex items-center justify-center gap-1.5">
+                       <span className="text-vibe-pink">9.8</span>
+                       <span className="text-xs opacity-40">/10</span>
+                    </p>
                   </div>
-                  <div className="flex-1 p-3 rounded-2xl bg-white/5 text-center">
-                    <p className="text-[10px] text-vibe-text-secondary uppercase font-bold">{t('crowd')}</p>
-                    <p className="text-lg font-bold text-vibe-cyan">75%</p>
+                  <div className="flex-1 p-3.5 rounded-2xl bg-white/5 border border-white/10 text-center group hover:bg-vibe-cyan/5 transition-colors">
+                    <p className="text-[10px] text-vibe-text-secondary uppercase font-bold tracking-widest mb-1 group-hover:text-vibe-cyan transition-colors">{t('crowd')}</p>
+                    <p className="text-xl font-bold text-white flex items-center justify-center gap-1.5">
+                       <span className="text-vibe-cyan">75%</span>
+                       <Users className="w-3.5 h-3.5 opacity-40" />
+                    </p>
                   </div>
                 </div>
 
-                <div>
-                  <h3 className="font-bold text-sm mb-3">{te('details')}</h3>
-                  <p className="text-sm text-vibe-text-secondary leading-relaxed">
-                    {selectedItem.description || '—'}
+                <div className="p-4 rounded-2xl bg-white/5 border border-white/5">
+                  <h3 className="font-bold text-sm mb-2 uppercase tracking-widest text-vibe-text-secondary flex items-center gap-2">
+                    <TrendingUp className="w-3.5 h-3.5" /> Info
+                  </h3>
+                  <p className="text-sm text-vibe-text leading-relaxed">
+                    {selectedItem.description || 'Nessuna descrizione disponibile per questo locale. Carica un Vibe per mostrarci l\'atmosfera!'}
                   </p>
                 </div>
 
-                <div className="flex gap-3">
+                <div className="grid grid-cols-2 gap-3">
                   <Link 
                     href={selectedItem.type === 'venue' ? `/venues/${selectedItem.slug || selectedItem.id}` : `/events/${selectedItem.id}`}
                     className="flex-1"
                   >
-                    <Button variant="primary" className="w-full">
-                      {selectedItem.type === 'venue' ? tv('title') : te('title')}
+                    <Button variant="outline" className="w-full font-bold">
+                       Profilo
                     </Button>
                   </Link>
-                  {selectedItem.type === 'venue' && (
-                    <FollowButton 
-                      targetId={selectedItem.id} 
-                      entityType="venue" 
-                      initialIsFollowing={isFollowing} 
-                    />
-                  )}
+                  <Button variant="secondary" className="w-full font-bold flex items-center justify-center gap-2">
+                    <Share2 className="w-4 h-4" /> Condividi
+                  </Button>
                 </div>
 
                 <CheckInButton 
                   venueId={selectedItem.type === 'venue' ? selectedItem.id : undefined} 
                   eventId={selectedItem.type === 'event' ? selectedItem.id : undefined} 
+                  className="w-full py-4 text-base font-bold shadow-vibe-purple/20 shadow-lg"
                 />
               </div>
             </>

@@ -2,7 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
+import { useRouter } from '@/lib/i18n/navigation';
 import { Card } from '@/components/ui/Card';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { Bookmark, Search } from 'lucide-react';
 
 interface SavedMedia {
   id: string;
@@ -13,6 +16,7 @@ interface SavedMedia {
 }
 
 export default function SavedPage() {
+  const router = useRouter();
   const supabase = createClient();
   const [savedMedia, setSavedMedia] = useState<SavedMedia[]>([]);
   const [loading, setLoading] = useState(true);
@@ -50,9 +54,13 @@ export default function SavedPage() {
       <p className="text-vibe-text-secondary mb-8">I tuoi Vibe e post preferiti.</p>
 
       {savedMedia.length === 0 ? (
-        <div className="text-center py-20 bg-white/5 rounded-2xl border border-white/10">
-          <p className="text-vibe-text-secondary">Non hai ancora salvato nulla.</p>
-        </div>
+        <EmptyState 
+          icon={Bookmark}
+          title="Nessun elemento salvato"
+          description="Inizia a salvare i tuoi post e Vibe preferiti per ritrovarli facilmente qui."
+          actionLabel="Esplora Feed"
+          onAction={() => router.push('/feed')}
+        />
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
           {savedMedia.map((m, idx) => (

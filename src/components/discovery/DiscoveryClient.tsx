@@ -5,8 +5,10 @@ import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Avatar } from '@/components/ui/Avatar';
 import { HashtagBadge } from '@/components/ui/HashtagBadge';
-import { Link } from '@/lib/i18n/navigation';
-import { useTranslations } from 'next-intl';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { Link, useRouter } from '@/lib/i18n/navigation';
+import { useTranslations, useLocale } from 'next-intl';
+import { ChevronRight, Compass, Users, MapPin, Calendar, Music, Hash, Search } from 'lucide-react';
 
 interface DiscoveryVenue {
   id: string;
@@ -38,9 +40,11 @@ interface DiscoveryClientProps {
 }
 
 interface SearchResults {
-  events: DiscoveryEvent[];
-  venues: DiscoveryVenue[];
-  artists: { id: string; name: string }[];
+  users: any[];
+  events: any[];
+  venues: any[];
+  artists: any[];
+  hashtags: any[];
 }
 
 interface TrendingHashtag {
@@ -58,7 +62,9 @@ export default function DiscoveryClient({ venues, events, categories }: Discover
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState('all');
   const [searchResults, setSearchResults] = useState<SearchResults | null>(null);
+  const [activeTab, setActiveTab] = useState<'all' | 'users' | 'venues' | 'events' | 'artists' | 'hashtags'>('all');
   const [isSearching, setIsSearching] = useState(false);
+  const locale = useLocale();
   const [trendingHashtags, setTrendingHashtags] = useState<TrendingHashtag[]>([]);
 
   // Fetch trending hashtags on mount
@@ -118,9 +124,7 @@ export default function DiscoveryClient({ venues, events, categories }: Discover
             onChange={(e) => setSearchQuery(e.target.value)}
             className="input-field pl-12 py-4 text-base"
           />
-          <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-vibe-text-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-vibe-text-secondary" />
           {isSearching && (
             <div className="absolute right-4 top-1/2 -translate-y-1/2">
               <div className="w-5 h-5 border-2 border-vibe-purple border-t-transparent rounded-full animate-spin" />
@@ -131,51 +135,149 @@ export default function DiscoveryClient({ venues, events, categories }: Discover
 
       {/* Search Results Overlay / Section */}
       {searchResults && searchQuery.length >= 2 && (
-        <div className="mb-12 space-y-8 animate-fade-in">
-          {searchResults.events.length > 0 && (
-            <section>
-              <h2 className="section-title mb-4 text-left">{te('title')}</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {searchResults.events.map(event => {
-                  const v = Array.isArray(event.venue) ? event.venue[0] : event.venue;
-                  return (
+        <div className="mb-12 space-y-6 animate-fade-in">
+          {/* Tabs di Ricerca */}
+          <div className="flex gap-2 overflow-x-auto hide-scrollbar pb-2">
+            {[
+              { id: 'all', label: 'TUTTO', icon: <Search className="w-3.5 h-3.5" /> },
+              { id: 'users', label: 'PERSONE', icon: <Users className="w-3.5 h-3.5" /> },
+              { id: 'venues', label: 'VENUE', icon: <MapPin className="w-3.5 h-3.5" /> },
+              { id: 'events', label: 'EVENTI', icon: <Calendar className="w-3.5 h-3.5" /> },
+              { id: 'artists', label: 'ARTISTI', icon: <Music className="w-3.5 h-3.5" /> },
+              { id: 'hashtags', label: 'HASHTAG', icon: <Hash className="w-3.5 h-3.5" /> },
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id as any)}
+                className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all ${
+                  activeTab === tab.id
+                    ? 'bg-vibe-purple text-white'
+                    : 'bg-white/5 text-vibe-text-secondary hover:bg-white/10'
+                }`}
+              >
+                {tab.icon}
+                {tab.label}
+              </button>
+            ))}
+          </div>
+
+          <div className="space-y-8 mt-4">
+            {/* Sezione PERSONE */}
+            {(activeTab === 'all' || activeTab === 'users') && searchResults.users.length > 0 && (
+              <section>
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-sm font-bold uppercase tracking-wider text-vibe-text-secondary">Persone</h2>
+                  {activeTab === 'all' && (
+                    <button onClick={() => setActiveTab('users')} className="text-xs text-vibe-purple">Vedi tutti</button>
+                  )}
+                </div>
+                <div className="space-y-1">
+                  {searchResults.users.map((user) => (
+                    <Link key={user.id} href={`/u/${user.username}`}>
+                      <div className="flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 transition-colors">
+                        <div className="relative">
+                          <Avatar 
+                            src={user.avatar_url} 
+                            fallback={user.username[0]} 
+                            size="md" 
+                          />
+                          {user.is_verified && (
+                            <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-vibe-purple rounded-full flex items-center justify-center border-2 border-vibe-dark">
+                              <span className="text-[8px] text-white">✓</span>
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-1">
+                            <p className="font-semibold text-sm truncate">
+                              {user.display_name || user.username}
+                            </p>
+                            {user.is_verified && (
+                              <span className="text-vibe-purple text-xs">✓</span>
+                            )}
+                          </div>
+                          <p className="text-xs text-vibe-text-secondary">
+                            @{user.username}
+                          </p>
+                          {user.bio && (
+                            <p className="text-xs text-vibe-text-secondary truncate mt-0.5">
+                              {user.bio}
+                            </p>
+                          )}
+                        </div>
+                        <ChevronRight className="w-4 h-4 text-vibe-text-secondary" />
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* Sezione EVENTI */}
+            {(activeTab === 'all' || activeTab === 'events') && searchResults.events.length > 0 && (
+              <section>
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-sm font-bold uppercase tracking-wider text-vibe-text-secondary">Eventi</h2>
+                  {activeTab === 'all' && (
+                    <button onClick={() => setActiveTab('events')} className="text-xs text-vibe-purple">Vedi tutti</button>
+                  )}
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {searchResults.events.map(event => (
                     <Link key={event.id} href={`/events/${event.id}`}>
                       <Card hover className="p-4 flex gap-4 items-center">
                         <div className="w-12 h-12 rounded-xl bg-vibe-purple/10 flex items-center justify-center text-xl">🎉</div>
-                        <div className="text-left">
-                          <h4 className="font-semibold text-sm">{event.title}</h4>
-                          <p className="text-xs text-vibe-text-secondary">{v?.name || 'VIBE Venue'}</p>
+                        <div className="text-left flex-1 min-w-0">
+                          <h4 className="font-semibold text-sm truncate">{event.title}</h4>
+                          <p className="text-xs text-vibe-text-secondary truncate">{event.venue?.name || 'VIBE Venue'}</p>
                         </div>
+                        <ChevronRight className="w-4 h-4 text-vibe-text-secondary" />
                       </Card>
                     </Link>
-                  );
-                })}
-              </div>
-            </section>
-          )}
+                  ))}
+                </div>
+              </section>
+            )}
 
-          {searchResults.venues.length > 0 && (
-            <section>
-              <h2 className="section-title mb-4 text-left">{tv('title')}</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {searchResults.venues.map(v => (
-                  <Link key={v.id} href={`/venues/${v.slug || v.id}`}>
-                    <Card hover className="p-4 flex gap-4 items-center">
-                      <div className="w-12 h-12 rounded-xl bg-vibe-cyan/10 flex items-center justify-center text-xl">🏢</div>
-                      <div className="text-left">
-                        <h4 className="font-semibold text-sm">{v.name}</h4>
-                        <p className="text-xs text-vibe-text-secondary">{v.type || tv('title')}</p>
-                      </div>
-                    </Card>
-                  </Link>
-                ))}
-              </div>
-            </section>
-          )}
+            {/* Sezione VENUE */}
+            {(activeTab === 'all' || activeTab === 'venues') && searchResults.venues.length > 0 && (
+              <section>
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-sm font-bold uppercase tracking-wider text-vibe-text-secondary">Venue</h2>
+                  {activeTab === 'all' && (
+                    <button onClick={() => setActiveTab('venues')} className="text-xs text-vibe-purple">Vedi tutti</button>
+                  )}
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {searchResults.venues.map(v => (
+                    <Link key={v.id} href={`/venues/${v.slug || v.id}`}>
+                      <Card hover className="p-4 flex gap-4 items-center">
+                        <div className="w-12 h-12 rounded-xl bg-vibe-cyan/10 flex items-center justify-center text-xl">🏢</div>
+                        <div className="text-left flex-1 min-w-0">
+                          <h4 className="font-semibold text-sm truncate">{v.name}</h4>
+                          <p className="text-xs text-vibe-text-secondary truncate">{v.city || 'Zurigo'}</p>
+                        </div>
+                        <ChevronRight className="w-4 h-4 text-vibe-text-secondary" />
+                      </Card>
+                    </Link>
+                  ))}
+                </div>
+              </section>
+            )}
 
-          {searchResults.events.length === 0 && searchResults.venues.length === 0 && (
-            <p className="text-center py-12 text-vibe-text-secondary">{tc('noContent')}</p>
-          )}
+            {/* Empty State Ricerca */}
+            {searchResults.events.length === 0 && 
+             searchResults.venues.length === 0 && 
+             searchResults.users.length === 0 && 
+             searchResults.artists.length === 0 && 
+             searchResults.hashtags.length === 0 && (
+              <EmptyState
+                icon={Search}
+                title={tc('noContent')}
+                description={t('tryDifferentQuery')}
+              />
+            )}
+          </div>
         </div>
       )}
 

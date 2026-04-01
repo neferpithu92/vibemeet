@@ -2,8 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/Card';
+import { Avatar } from '@/components/ui/Avatar';
+import { Button } from '@/components/ui/Button';
+import { Link } from '@/lib/i18n/navigation';
 import { useMap } from 'react-map-gl/mapbox';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
+import { User, MapPin, Calendar, Building2 } from 'lucide-react';
 
 interface MapSearchResult {
   id: string;
@@ -24,9 +28,11 @@ interface MapSearchResult {
 export default function MapSearch() {
   const t = useTranslations('map');
   const tn = useTranslations('nav');
+  const locale = useLocale();
   const { current: map } = useMap();
   const [query, setQuery] = useState('');
-  const [results, setResults] = useState<MapSearchResult[]>([]);
+  const [results, setResults] = useState<any[]>([]);
+  const [users, setUsers] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
 
   useEffect(() => {
@@ -40,9 +46,12 @@ export default function MapSearch() {
       try {
         const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
         
-        // 1. Ricerca interna (Solo Venues ed Eventi per la mappa)
         const res = await fetch(`/api/discovery/search?q=${encodeURIComponent(query)}`);
         const data = await res.json();
+        
+        // Users results
+        setUsers(data.users || []);
+
         const internalResults = [
           ...(data.venues || []), 
           ...(data.events || [])
@@ -52,7 +61,6 @@ export default function MapSearch() {
           source: 'internal'
         }));
 
-        // 2. Ricerca Geocoding (Città/Indirizzi)
         let geocodingResults: any[] = [];
         if (token) {
           const geoRes = await fetch(
@@ -117,27 +125,52 @@ export default function MapSearch() {
         )}
       </div>
 
-      {results.length > 0 && (
-        <Card className="absolute top-12 left-0 right-0 z-50 max-h-60 overflow-y-auto p-2 bg-vibe-dark/90 backdrop-blur-xl border-white/10 shadow-2xl">
-          {results.map((item) => (
-            <button
-              key={item.id}
-              onClick={() => handleSelect(item)}
-              className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-white/10 text-left transition-colors group"
-            >
-              <span className="text-xl">
-                {item.source === 'mapbox' ? '📍' : (item.name ? '🏢' : '🎉')}
-              </span>
-              <div className="min-w-0">
-                <p className="text-sm font-semibold truncate group-hover:text-vibe-purple transition-colors">
-                  {item.displayName}
-                </p>
-                <p className="text-[10px] text-vibe-text-secondary truncate uppercase tracking-wider">
-                  {item.source === 'mapbox' ? tn('map') : (item.type || item.venue?.name || tn('events'))}
-                </p>
-              </div>
-            </button>
-          ))}
+      {(results.length > 0 || users.length > 0) && (
+        <Card className="absolute top-12 left-0 right-0 z-50 max-h-80 overflow-y-auto p-2 bg-vibe-dark/95 backdrop-blur-2xl border-white/10 shadow-2xl space-y-4">
+          {/* Section Users */}
+          {users.length > 0 && (
+            <div className="space-y-1">
+              <p className="text-[10px] font-bold text-vibe-text-secondary px-2 uppercase tracking-widest mb-1">Persone</p>
+              {users.map((user) => (
+                <div key={user.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-white/5 transition-colors">
+                  <Avatar src={user.avatar_url} fallback={user.username[0]} size="sm" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold truncate">{user.display_name || user.username}</p>
+                    <p className="text-[10px] text-vibe-text-secondary">@{user.username}</p>
+                  </div>
+                  <Link href={`/u/${user.username}`} onClick={() => { setQuery(''); setUsers([]); setResults([]); }}>
+                    <Button size="xs" variant="secondary" className="text-[10px] py-1 h-auto">Vedi profilo</Button>
+                  </Link>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Section Map Results */}
+          {results.length > 0 && (
+            <div className="space-y-1">
+              <p className="text-[10px] font-bold text-vibe-text-secondary px-2 uppercase tracking-widest mb-1">Luoghi ed Eventi</p>
+              {results.map((item) => (
+                <button
+                  key={item.id}
+                  onClick={() => handleSelect(item)}
+                  className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-white/10 text-left transition-colors group"
+                >
+                  <span className="text-lg">
+                    {item.source === 'mapbox' ? '📍' : (item.name ? '🏢' : '🎉')}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-semibold truncate group-hover:text-vibe-purple transition-colors">
+                      {item.displayName}
+                    </p>
+                    <p className="text-[10px] text-vibe-text-secondary truncate uppercase tracking-wider">
+                      {item.source === 'mapbox' ? tn('map') : (item.type || item.venue?.name || tn('events'))}
+                    </p>
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
         </Card>
       )}
     </div>

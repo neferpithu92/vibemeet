@@ -14,6 +14,7 @@
     "next": "Avanti",
     "confirm": "Conferma",
     "close": "Chiudi",
+    "noContent": "Nessun contenuto trovato",
     "location": {
       "title": "Posizione",
       "useGps": "Usa GPS",
@@ -59,6 +60,7 @@
     "welcomeBack": "Bentornato su VIBE",
     "joinTitle": "Unisciti a VIBE",
     "joinSubtitle": "Scopri il mondo intorno a te",
+    "subtitle": "Accedi per scoprire cosa succede intorno a te.",
     "stepAccount": "Account",
     "stepProfile": "Profilo",
     "stepInterests": "Interessi",
@@ -217,7 +219,8 @@
       "sport": "Sport"
     },
     "recommended": "Consigliati per te",
-    "newInArea": "Novità nella tua zona"
+    "newInArea": "Novità nella tua zona",
+    "tryDifferentQuery": "Prova a cercare qualcos'altro o cambia filtri."
   },
   "create": {
     "title": "Crea un Vibe / Post",

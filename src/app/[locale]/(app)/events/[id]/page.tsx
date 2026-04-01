@@ -8,6 +8,7 @@ import { Link } from '@/lib/i18n/navigation';
 import RSVPButton from '@/components/events/RSVPButton';
 import CheckInButton from '@/components/social/CheckInButton';
 import CommentThread from '@/components/social/CommentThread';
+import { BackButton } from '@/components/ui/BackButton';
 
 export const revalidate = 3600; // Static revalidation every hour
 
@@ -57,10 +58,7 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
     <div className="page-container">
       <div className="max-w-3xl mx-auto px-4 py-4">
         {/* Back */}
-        <Link href="/events" className="flex items-center gap-2 text-vibe-text-secondary hover:text-vibe-text mb-4 transition-colors">
-          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
-          <span className="text-sm">Torna agli eventi</span>
-        </Link>
+        <BackButton className="!static mb-4" />
 
         {/* Hero/Cover */}
         <div className="relative h-64 md:h-80 rounded-2xl overflow-hidden mb-6 bg-vibe-gradient-subtle">
@@ -141,6 +139,8 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
                 eventId={event.id} 
                 initialRsvpCount={event.rsvp_count || 0} 
                 initialIsAttending={isAttending} 
+                price={event.ticket_price}
+                ticketUrl={event.ticket_url}
               />
               <div className="mt-3">
                 <CheckInButton eventId={event.id} />

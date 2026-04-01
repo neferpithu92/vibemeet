@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Avatar } from '@/components/ui/Avatar';
 import { Link } from '@/lib/i18n/navigation';
+import { BackButton } from '@/components/ui/BackButton';
 
 import FollowButton from '@/components/social/FollowButton';
 import CheckInButton from '@/components/social/CheckInButton';
@@ -89,10 +90,7 @@ async function VenueDetailRender({ venue, user }: { venue: Venue, user: any }) {
     <div className="page-container">
       <div className="max-w-4xl mx-auto px-4 py-4">
         {/* Back */}
-        <Link href="/explore" className="flex items-center gap-2 text-vibe-text-secondary hover:text-vibe-text mb-4 transition-colors">
-          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
-          <span className="text-sm">{t('backToExplore')}</span>
-        </Link>
+        <BackButton className="!static mb-4" />
 
         {/* Header / Cover */}
         <div className="relative h-48 md:h-64 rounded-2xl overflow-hidden mb-6 bg-vibe-gradient-subtle">

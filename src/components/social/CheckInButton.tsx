@@ -7,9 +7,10 @@ import { useToast } from '@/components/ui/ToastProvider';
 interface CheckInButtonProps {
   venueId?: string;
   eventId?: string;
+  className?: string;
 }
 
-export default function CheckInButton({ venueId, eventId }: CheckInButtonProps) {
+export default function CheckInButton({ venueId, eventId, className }: CheckInButtonProps) {
   const [isLoading, setIsLoading] = useState(false);
   const { showToast } = useToast();
 
@@ -57,7 +58,7 @@ export default function CheckInButton({ venueId, eventId }: CheckInButtonProps) 
   return (
     <Button 
       variant="secondary" 
-      className="w-full"
+      className={className || "w-full"}
       onClick={handleCheckIn}
       disabled={isLoading}
     >

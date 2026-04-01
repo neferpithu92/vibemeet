@@ -14,10 +14,33 @@ import AvatarCropperModal from '@/components/ui/AvatarCropperModal';
 import EditProfileModal from '@/components/profile/EditProfileModal';
 import { createClient } from '@/lib/supabase/client';
 import { Skeleton } from '@/components/ui/Skeleton';
-import { Share2, Edit3, Settings, LogOut } from 'lucide-react';
+import { 
+  Share2, 
+  Edit3, 
+  Settings, 
+  LogOut, 
+  Camera, 
+  Video, 
+  Bookmark, 
+  MapPin, 
+  Grid, 
+  Play, 
+  Heart, 
+  Ghost,
+  Users,
+  LayoutGrid,
+  CheckCircle2,
+  MessageSquare,
+  ChevronRight,
+  ShieldCheck,
+  Calendar
+} from 'lucide-react';
+import { BackButton } from '@/components/ui/BackButton';
+import { EmptyState } from '@/components/ui/EmptyState';
+import PostModal from '@/components/feed/PostModal';
 import { localeNames } from '@/lib/i18n/config';
 
-const tabs = ['Post', 'Events', 'Saved'] as const;
+const tabs = ['Post', 'Vibe', 'Saved', 'Check-in'] as const;
 
 const userPosts = [
   { id: '1', type: 'photo', likes: 45, comments: 8, venue: 'Club Paradiso' },
@@ -52,8 +75,8 @@ interface UserStory {
 interface UserCheckIn {
   id: string;
   created_at: string;
-  venue?: any;
-  event?: any;
+  venue?: { name: string; address: string; slug: string };
+  event?: { title: string; id: string };
 }
 
 /**
@@ -66,6 +89,7 @@ export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState<typeof tabs[number]>('Post');
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [posts, setPosts] = useState<UserPost[]>([]);
+  const [vibe, setVibe] = useState<UserPost[]>([]);
   const [stories, setStories] = useState<UserStory[]>([]);
   const [checkIns, setCheckIns] = useState<UserCheckIn[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -73,6 +97,7 @@ export default function ProfilePage() {
   const [followingCount, setFollowingCount] = useState(0);
   const [isCropperOpen, setIsCropperOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [selectedPost, setSelectedPost] = useState<any>(null);
   const [isNotificationsActive, setIsNotificationsActive] = useState(true);
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
   const [privacy, setPrivacy] = useState<'friends' | 'public' | 'private'>('friends');
@@ -126,7 +151,12 @@ export default function ProfilePage() {
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
       
-      if (mediaData) setPosts(mediaData);
+      if (mediaData) {
+        const photoPosts = mediaData.filter(m => m.media_type === 'photo' || !m.media_url?.includes('.mp4'));
+        const videoPosts = mediaData.filter(m => m.media_type === 'video' || m.media_url?.includes('.mp4'));
+        setPosts(photoPosts);
+        setVibe(videoPosts);
+      }
 
       // 3. Carica Storie attive
       const { data: storiesData } = await supabase
@@ -235,38 +265,8 @@ export default function ProfilePage() {
 
   if (isLoading) {
     return (
-      <div className="page-container">
-        <div className="max-w-2xl mx-auto px-4 py-4">
-          <div className="space-y-6">
-            <Skeleton className="h-8 w-24 rounded-lg" />
-            <div className="glass-card p-6 space-y-4">
-              <div className="flex items-center gap-4">
-                <Skeleton className="w-20 h-20 rounded-full" />
-                <div className="space-y-2 flex-1">
-                  <Skeleton className="h-6 w-40 rounded" />
-                  <Skeleton className="h-4 w-24 rounded opacity-50" />
-                </div>
-              </div>
-              <div className="flex gap-8 pt-4 border-t border-white/5">
-                <Skeleton className="h-12 w-16 rounded-lg" />
-                <Skeleton className="h-12 w-16 rounded-lg" />
-                <Skeleton className="h-12 w-16 rounded-lg" />
-              </div>
-            </div>
-            
-            <div className="flex gap-1 p-1 rounded-xl bg-white/5">
-              {[1, 2, 3].map(i => (
-                <Skeleton key={i} className="flex-1 h-10 rounded-lg" />
-              ))}
-            </div>
-
-            <div className="grid grid-cols-3 gap-1 rounded-xl overflow-hidden">
-              {[1, 2, 3, 4, 5, 6].map(i => (
-                <Skeleton key={i} className="aspect-square" />
-              ))}
-            </div>
-          </div>
-        </div>
+      <div className="page-container flex flex-col items-center justify-center min-h-[60vh]">
+        <div className="w-12 h-12 border-4 border-vibe-purple/30 border-t-vibe-purple rounded-full animate-spin" />
       </div>
     );
   }
@@ -275,16 +275,16 @@ export default function ProfilePage() {
     <div className="page-container">
       <div className="max-w-2xl mx-auto px-4 py-4">
         {/* Header con impostazioni */}
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="font-display text-2xl font-bold vibe-gradient-text">{t('title')}</h1>
+        <div className="flex items-center justify-between mb-6 relative">
+          <div className="flex items-center gap-4">
+             <BackButton className="!static" />
+             <h1 className="font-display text-2xl font-bold vibe-gradient-text">{t('title')}</h1>
+          </div>
           <button 
             onClick={() => router.push('/settings')}
             className="glass-card p-2 hover:bg-white/10 transition-all rounded-xl"
           >
-            <svg className="w-5 h-5 text-vibe-text" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
+            <Settings className="w-5 h-5 text-vibe-text" />
           </button>
         </div>
 
@@ -339,6 +339,14 @@ export default function ProfilePage() {
             >
               <Edit3 className="w-4 h-4" /> {t('editProfile')}
             </Button>
+            <Link href="/profile/circles">
+              <Button 
+                  variant="ghost" 
+                  className="text-sm h-11 w-11 p-0 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 flex items-center justify-center"
+              >
+                <Users className="w-5 h-5 text-vibe-purple" />
+              </Button>
+            </Link>
             <Button 
                 variant="ghost" 
                 className="text-sm h-11 w-11 p-0 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 flex items-center justify-center"
@@ -366,8 +374,12 @@ export default function ProfilePage() {
                   transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                 />
               )}
-              <span className="relative z-10">
-                {tab === 'Post' ? '📷' : tab === 'Events' ? '📍' : '🔖'} {t(tab.toLowerCase() as any)}
+              <span className="relative z-10 flex items-center justify-center gap-2">
+                {tab === 'Post' ? <Grid className="w-4 h-4" /> : 
+                 tab === 'Vibe' ? <Play className="w-4 h-4" /> : 
+                 tab === 'Saved' ? <Bookmark className="w-4 h-4" /> : 
+                 <MapPin className="w-4 h-4" />} 
+                <span className="hidden sm:inline">{tab}</span>
               </span>
             </button>
           ))}
@@ -388,6 +400,7 @@ export default function ProfilePage() {
               <motion.div 
                 key={post.id} 
                 whileHover={{ scale: 1.02 }}
+                onClick={() => setSelectedPost({ ...post, profiles: { ...profile, username: profile?.username } })}
                 className="relative aspect-square bg-white/5 group cursor-pointer overflow-hidden border border-white/5"
               >
                 <img 
@@ -398,38 +411,96 @@ export default function ProfilePage() {
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-300 flex items-center justify-center">
                   <div className="opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center gap-3 text-white">
                     <span className="text-sm font-bold flex items-center gap-1">
-                       <svg className="w-4 h-4 text-red-500 fill-current" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg> 
+                       <Heart className="w-4 h-4 text-vibe-pink fill-current" /> 
                        {post.likes_count || 0}
                     </span>
                   </div>
                 </div>
               </motion.div>
             )) : (
-              <div className="col-span-3 py-20 text-center glass-card border-dashed">
-                <p className="text-vibe-text-secondary text-sm">{t('noContent')} 📷</p>
+              <div className="col-span-3">
+                <EmptyState
+                  icon={Camera}
+                  title="Ancora nessun post"
+                  description="Le tue foto appariranno qui. Inizia a condividere!"
+                  actionLabel="Crea Post"
+                  onAction={() => router.push('/create')}
+                />
               </div>
             )}
           </div>
-        ) : activeTab === 'Events' ? (
+        ) : activeTab === 'Vibe' ? (
+          <div className="grid grid-cols-3 gap-1 rounded-xl overflow-hidden">
+            {vibe.length > 0 ? vibe.map((v) => (
+              <motion.div 
+                key={v.id} 
+                whileHover={{ scale: 1.02 }}
+                onClick={() => setSelectedPost({ ...v, profiles: { ...profile, username: profile?.username } })}
+                className="relative aspect-square bg-black group cursor-pointer overflow-hidden border border-white/5"
+              >
+                <img 
+                  src={v.media_url || '/placeholder.png'} 
+                  alt="" 
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 opacity-70 group-hover:opacity-100" 
+                />
+                <div className="absolute top-2 right-2 z-10">
+                   <Play className="w-4 h-4 text-white drop-shadow-lg" />
+                </div>
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all duration-300 flex items-center justify-center">
+                  <div className="opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center gap-3 text-white">
+                    <span className="text-sm font-bold flex items-center gap-1">
+                       <Heart className="w-4 h-4 text-vibe-pink fill-current" /> 
+                       {v.likes_count || 0}
+                    </span>
+                  </div>
+                </div>
+              </motion.div>
+            )) : (
+              <div className="col-span-3">
+                <EmptyState
+                  icon={Video}
+                  title="Nessun Vibe"
+                  description="I tuoi video verticali appariranno qui. Registra il tuo primo Vibe!"
+                  actionLabel="Registra Vibe"
+                  onAction={() => router.push('/create')}
+                />
+              </div>
+            )}
+          </div>
+        ) : activeTab === 'Check-in' ? (
           <div className="space-y-3">
             {checkIns.length > 0 ? checkIns.map((ci) => {
               const v = Array.isArray(ci.venue) ? ci.venue[0] : ci.venue;
               const e = Array.isArray(ci.event) ? ci.event[0] : ci.event;
               return (
                 <Card key={ci.id} className="p-4 flex items-center justify-between hover:bg-white/10 transition-all cursor-pointer">
-                  <div>
-                    <h4 className="font-bold text-sm">{v?.name || e?.title || t('checkIn')}</h4>
-                    <p className="text-xs text-vibe-text-secondary">{v?.address || t('nearby')}</p>
-                    <p className="text-[10px] text-vibe-purple mt-1 font-medium">
-                      {new Date(ci.created_at).toLocaleDateString(locale, { day: 'numeric', month: 'long' })}
-                    </p>
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-2xl bg-vibe-gradient/20 flex items-center justify-center text-xl">
+                      {v ? '🏢' : '🎉'}
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-sm tracking-tight">{v?.name || e?.title || t('checkIn')}</h4>
+                      <p className="text-xs text-vibe-text-secondary flex items-center gap-1 mt-0.5">
+                        <MapPin className="w-3 h-3" />
+                        {v?.address || t('nearby')}
+                      </p>
+                      <p className="text-[10px] text-vibe-cyan mt-1.5 font-bold uppercase tracking-widest bg-vibe-cyan/10 w-fit px-2 py-0.5 rounded-full">
+                        {new Date(ci.created_at).toLocaleDateString(locale, { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })}
+                      </p>
+                    </div>
                   </div>
-                  <Badge variant="live">CHECK-IN</Badge>
+                  <Badge variant="live" className="animate-pulse">CHECKED-IN</Badge>
                 </Card>
               );
             }) : (
-              <div className="py-20 text-center glass-card border-dashed">
-                <p className="text-vibe-text-secondary text-sm">{t('noContent')} 📍</p>
+              <div className="col-span-3">
+                <EmptyState
+                  icon={MapPin}
+                  title="Nessun check-in"
+                  description="Vai in un locale e fai il check-in per iniziare la tua storia!"
+                  actionLabel="Apri Mappa"
+                  onAction={() => router.push('/map')}
+                />
               </div>
             )}
           </div>
@@ -469,6 +540,12 @@ export default function ProfilePage() {
             {t('logout')}
           </Button>
         </div>
+
+        <PostModal 
+          isOpen={!!selectedPost} 
+          onClose={() => setSelectedPost(null)} 
+          post={selectedPost} 
+        />
 
         <AvatarCropperModal 
           isOpen={isCropperOpen} 
