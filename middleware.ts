@@ -69,27 +69,32 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(url);
     }
 
-    // Check account status (paused or deletion)
-    const { data: userData } = await supabase
-      .from('users')
-      .select('is_paused, deletion_requested_at')
-      .eq('id', user.id)
-      .single();
+    // Check account status (paused or deletion) - Resilient check
+    try {
+      const { data: userData } = await supabase
+        .from('users')
+        .select('is_paused, deletion_requested_at')
+        .eq('id', user.id)
+        .single();
 
-    if (userData) {
-      const isReactivatePage = pathname.includes('/reactivate');
-      
-      if ((userData.is_paused || userData.deletion_requested_at) && !isReactivatePage) {
-        const url = request.nextUrl.clone();
-        url.pathname = `/${currentLocale}/reactivate`;
-        return NextResponse.redirect(url);
+      if (userData) {
+        const isReactivatePage = pathname.includes('/reactivate');
+        
+        if ((userData.is_paused || userData.deletion_requested_at) && !isReactivatePage) {
+          const url = request.nextUrl.clone();
+          url.pathname = `/${currentLocale}/reactivate`;
+          return NextResponse.redirect(url);
+        }
+        
+        if (!userData.is_paused && !userData.deletion_requested_at && isReactivatePage) {
+          const url = request.nextUrl.clone();
+          url.pathname = `/${currentLocale}/map`;
+          return NextResponse.redirect(url);
+        }
       }
-      
-      if (!userData.is_paused && !userData.deletion_requested_at && isReactivatePage) {
-        const url = request.nextUrl.clone();
-        url.pathname = `/${currentLocale}/map`;
-        return NextResponse.redirect(url);
-      }
+    } catch (err) {
+      console.warn('Middleware: account status check failed (columns might be missing)', err);
+      // Fail open: let the user proceed if we can't check status
     }
 
     return supabaseResponse;

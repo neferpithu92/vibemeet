@@ -76,7 +76,10 @@ export default function EditProfileModal({
              <div className="w-10 h-10 rounded-xl bg-vibe-gradient flex items-center justify-center shadow-lg">
                 <User className="w-5 h-5 text-white" />
              </div>
-             <h2 className="font-display font-bold text-xl">Modifica Profilo</h2>
+              <h2 className="font-display font-bold text-xl">Profilo e Identità</h2>
+          </div>
+          <div className="flex flex-col items-center gap-1 group cursor-pointer" onClick={onClose}>
+              <p className="text-[10px] text-vibe-purple font-bold tracking-widest uppercase animate-pulse">Tocca l'avatar nel profilo per cambiare foto</p>
           </div>
           <button 
             onClick={onClose}

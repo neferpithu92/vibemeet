@@ -277,7 +277,10 @@ export default function ProfilePage() {
         {/* Header con impostazioni */}
         <div className="flex items-center justify-between mb-6">
           <h1 className="font-display text-2xl font-bold vibe-gradient-text">{t('title')}</h1>
-          <button className="glass-card p-2 hover:bg-white/10 transition-all rounded-xl">
+          <button 
+            onClick={() => router.push('/settings')}
+            className="glass-card p-2 hover:bg-white/10 transition-all rounded-xl"
+          >
             <svg className="w-5 h-5 text-vibe-text" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -289,9 +292,14 @@ export default function ProfilePage() {
         <Card className="p-6 mb-6">
           <div className="flex flex-col sm:flex-row items-center gap-4">
             <div className="relative group cursor-pointer" onClick={() => setIsCropperOpen(true)}>
-              <Avatar size="xl" src={profile?.avatar_url} fallback={profile?.display_name || 'U'} />
-              <div className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                <span className="text-white text-xs font-bold">{t('editProfile')}</span>
+              <div className="story-ring p-1 rounded-full group-hover:scale-105 transition-transform duration-300">
+                <Avatar size="xl" src={profile?.avatar_url} fallback={profile?.display_name || 'U'} className="border-4 border-vibe-dark" />
+              </div>
+              <div className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-vibe-purple flex items-center justify-center border-2 border-vibe-dark shadow-lg group-hover:scale-110 transition-transform">
+                <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
               </div>
             </div>
             <div className="flex-1 text-center sm:text-left">
