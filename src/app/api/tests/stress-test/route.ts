@@ -8,59 +8,53 @@ import { NextResponse } from 'next/server';
  */
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
+  const mode = searchParams.get('mode') || 'event'; // 'event' or 'map'
   const eventId = searchParams.get('eventId') || 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee'; // Neon Nights Festival
-  const userCount = parseInt(searchParams.get('users') || '300');
-
+  const userCountInput = parseInt(searchParams.get('users') || (mode === 'map' ? '10000' : '300'));
+  
   const supabase = await createClient();
 
-  // 1. Verifica autorizzazione (solo se necessario, qui permettiamo per il test)
+  // 1. Verifica autorizzazione (solo in produzione)
   const { data: { user } } = await supabase.auth.getUser();
   if (!user && process.env.NODE_ENV === 'production') {
     return NextResponse.json({ error: 'Autorizzazione richiesta' }, { status: 401 });
   }
 
-  console.log(`[STRESS-TEST] Avvio simulazione per ${userCount} utenti sull'evento ${eventId}...`);
+  console.log(`[STRESS-TEST] Avvio simulazione ${mode} per ${userCountInput} utenti...`);
 
-  // 2. Chiamata alla RPC di sistema per la simulazione massiva
-  // Questa funzione deve essere creata nel DB tramite la migrazione 998
-  const { data, error } = await supabase.rpc('simulate_event_stress', {
-    p_event_id: eventId,
-    p_user_count: userCount
-  });
+  let rpcName = 'simulate_event_stress';
+  let rpcArgs: any = { p_event_id: eventId, p_user_count: userCountInput };
+
+  if (mode === 'map') {
+    rpcName = 'simulate_map_presence_stress';
+    rpcArgs = { 
+      p_user_count: userCountInput,
+      p_center_lng: 8.5417, // Zurich
+      p_center_lat: 47.3769,
+      p_radius_km: 20.0
+    };
+  }
+
+  // 2. Chiamata alla RPC di sistema
+  const { data, error } = await supabase.rpc(rpcName, rpcArgs);
 
   if (error) {
     console.error('[STRESS-TEST] Errore simulazione:', error);
     return NextResponse.json({ 
       error: 'Simulazione fallita', 
       details: error.message,
-      hint: 'Assicurati di aver eseguito la migrazione 998_stress_test_rpc.sql'
+      hint: `Assicurati di aver eseguito le migrazioni stress_test_rpc.sql`
     }, { status: 500 });
   }
 
-  // Se l'evento non è quello di default, verifichiamo se l'organizzatore è premium
-  const { data: eventData } = await supabase
-    .from('events')
-    .select(`
-       id,
-       title,
-       organizer:users (display_name, role, is_verified)
-    `)
-    .eq('id', eventId)
-    .single();
-
   return NextResponse.json({
     success: true,
+    mode,
     simulation_results: data,
-    event: {
-      id: eventId,
-      title: eventData?.title,
-      organizer: eventData?.organizer,
-      premium_status: (eventData?.organizer as any)?.is_verified ? 'PREMIUM (Verified)' : 'STANDARD'
-    },
     metrics: {
-      batch_size: userCount,
+      batch_size: userCountInput,
       timestamp: new Date().toISOString(),
-      platform_load: 'HIGH'
+      platform_load: userCountInput >= 10000 ? 'EXTREME' : 'HIGH'
     }
   });
 }
