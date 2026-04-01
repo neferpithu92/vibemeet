@@ -8,6 +8,7 @@ import { createClient } from '@/lib/supabase/client';
 import { AlertCircle, CheckCircle, CreditCard, ShieldCheck } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
+import { signTicket } from '@/lib/security/ticketSigner';
 
 export default function CheckoutPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -39,24 +40,32 @@ export default function CheckoutPage({ params }: { params: Promise<{ id: string 
     // Simula ritardo transazione
     setTimeout(async () => {
       if (paymentId) {
-        // Aggiorna pagamento
+        // Aggiorna pagamento (Trigger 044 calcola la commissione del 3%)
         await supabase
           .from('payments')
           .update({ status: 'succeeded' })
           .eq('id', paymentId);
           
-        // Crea biglietto (Ticket Instance)
+        // Crea biglietto (Ticket Instance con firma di sicurezza)
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
-          // Genera hash QR unico (Simulazione)
+          const ticketId = window.crypto.randomUUID();
           const qrHash = `vibe_tk_${id.slice(0,4)}_${user.id.slice(0,4)}_${Math.random().toString(36).substring(7)}`;
           
+          // Genera firma HMAC di sicurezza (System 14)
+          const cryptoSig = signTicket(ticketId, user.id, id);
+
           await supabase.from('ticket_instances').insert({
+            id: ticketId,
             event_id: id,
             user_id: user.id,
             qr_code_hash: qrHash,
+            signature: cryptoSig,
             status: 'valid'
           });
+
+          // Log interno della commissione (già gestita lato DB)
+          console.log(`[PAYMENT-SPLIT] Payout diretto al cliente con commissione 3% piattaforma.`);
 
           // RSVP automatico (Legacy support per il feed)
           await supabase.from('likes').insert({
