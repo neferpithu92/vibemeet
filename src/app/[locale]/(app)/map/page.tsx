@@ -112,6 +112,7 @@ export default function MapPage() {
   const [media, setMedia] = useState<MapMedia[]>([]);
   const [users, setUsers] = useState<MapUser[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isCentering, setIsCentering] = useState(false);
   
   const supabaseClient = createClient();
 
@@ -122,33 +123,73 @@ export default function MapPage() {
   const mapRef = useRef<any>(null);
   const hasCentered = useRef(false);
 
-  // Ottieni posizione iniziale dell'utente (Veloce)
+  // Ottieni posizione iniziale con cache aggressiva (quasi istantaneo)
   useEffect(() => {
-    if (typeof window !== 'undefined' && navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          const coords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-          setUserPosition(coords);
-          console.log('[Map] Posizione utente rilevata:', coords);
-        },
-        (err) => console.warn('[Map] Errore geolocalizzazione iniziale:', err),
-        { enableHighAccuracy: false, timeout: 3000, maximumAge: 60000 }
-      );
-    }
+    if (typeof window === 'undefined' || !navigator.geolocation) return;
+    // Prima prova: posizione cached (risponde in <100ms se disponibile)
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setUserPosition({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+      },
+      () => {
+        // Seconda prova: GPS fresco con timeout aggressivo
+        navigator.geolocation.getCurrentPosition(
+          (pos) => setUserPosition({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+          (err) => console.warn('[Map] GPS non disponibile:', err.message),
+          { enableHighAccuracy: false, timeout: 2500, maximumAge: 0 }
+        );
+      },
+      { enableHighAccuracy: false, timeout: 500, maximumAge: Infinity }
+    );
   }, []);
 
-  // Centra la mappa quando la posizione è disponibile e la mappa è pronta
+  /**
+   * centerOnMe — quasi istantaneo:
+   * - Se la posizione è già in cache → fly immediato (0ms delay)
+   * - Altrimenti → richiede GPS con timeout max 2.5s, poi fly
+   */
   const centerOnMe = useCallback(() => {
-    if (userPosition && mapRef.current) {
-      console.log('[Map] Centramento su posizione utente...');
+    if (!mapRef.current) return;
+
+    // Posizione già disponibile → centra SUBITO
+    if (userPosition) {
       mapRef.current.flyTo({
         center: [userPosition.lng, userPosition.lat],
         zoom: 15,
-        duration: 1000,
-        pitch: 45, // Dynamic look
+        duration: 800,
+        pitch: 45,
       });
       hasCentered.current = true;
+      return;
     }
+
+    // Non disponibile → GPS rapido con feedback visivo
+    if (!navigator.geolocation) return;
+    setIsCentering(true);
+
+    const timeout = setTimeout(() => setIsCentering(false), 3000); // safety
+
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        clearTimeout(timeout);
+        const coords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        setUserPosition(coords);
+        mapRef.current?.flyTo({
+          center: [coords.lng, coords.lat],
+          zoom: 15,
+          duration: 800,
+          pitch: 45,
+        });
+        hasCentered.current = true;
+        setIsCentering(false);
+      },
+      (err) => {
+        clearTimeout(timeout);
+        console.warn('[Map] GPS error:', err.message);
+        setIsCentering(false);
+      },
+      { enableHighAccuracy: false, timeout: 2500, maximumAge: 30000 }
+    );
   }, [userPosition]);
 
   useEffect(() => {
@@ -332,15 +373,19 @@ export default function MapPage() {
           ))}
         </Card>
 
-        {/* Tasto Centra su di me */}
+        {/* Tasto Centra su di me — risposta <100ms se posizione in cache */}
         <Button 
           variant="secondary" 
           size="sm" 
           onClick={centerOnMe}
-          className="shadow-xl bg-vibe-dark/80 backdrop-blur-md border-white/10"
+          disabled={isCentering}
+          className={`shadow-xl backdrop-blur-md border-white/10 transition-all
+            ${isCentering
+              ? 'bg-vibe-purple/20 border-vibe-purple/30'
+              : 'bg-vibe-dark/80'}`}
         >
-          <Crosshair className="w-4 h-4 mr-2" />
-          Centra su di me
+          <Crosshair className={`w-4 h-4 mr-2 ${isCentering ? 'animate-spin text-vibe-purple' : ''}`} />
+          {isCentering ? '...' : t('centerOnMe')}
         </Button>
 
         {/* Tasto Filtri */}
