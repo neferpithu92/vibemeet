@@ -180,11 +180,10 @@ export default function UserProfilePage() {
   );
 
   if (!profile) return (
-    <div className="min-h-screen flex flex-col items-center 
-                    justify-center gap-4">
+    <div className="min-h-screen flex flex-col items-center justify-center gap-4">
       <span className="text-6xl">👤</span>
       <h2 className="text-xl font-bold">Utente non trovato</h2>
-      <BackButton label="Torna indietro" />
+      <BackButton />
     </div>
   );
 

@@ -232,7 +232,24 @@
     "finalizing": "Finalisation de votre story...",
     "success": "Story partagée ! ✨",
     "error": "Erreur lors du partage de la story",
-    "uploadLabel": "Choisissez une photo ou une vidéo verticale"
+    "uploadLabel": "Choisissez une photo ou une vidéo verticale",
+    "addStory": "Ajouter une story",
+    "yourStory": "Ta story",
+    "seenBy": "Vu par {count} personnes",
+    "replyToStory": "Répondre à la story...",
+    "storyExpired": "Cette story a expiré",
+    "highlights": "À la une",
+    "addHighlight": "Ajouter aux highlights",
+    "tapToView": "Appuyer pour voir",
+    "holdToPause": "Maintenir pour pause",
+    "swipeToClose": "Balayer vers le bas pour fermer",
+    "viewCount": "{count} vues",
+    "seenByList": "Vu par",
+    "noStories": "Aucune story disponible",
+    "createHighlight": "Créer un highlight",
+    "highlightTitle": "Titre du highlight",
+    "selectStories": "Sélectionner des stories",
+    "chooseCover": "Choisir couverture"
   },
   "upload": {
     "label": "Charger Média",
@@ -317,17 +334,34 @@
       "basic": {
         "name": "Basic",
         "description": "Parfait pour les petits établissements ou les artistes émergents.",
-        "features": ["Visibilité prioritaire sur la carte", "Analyses de base", "1 Publication à la une / mois", "Support par e-mail"]
+        "features": [
+          "Visibilité prioritaire sur la carte",
+          "Analyses de base",
+          "1 Publication à la une / mois",
+          "Support par e-mail"
+        ]
       },
       "pro": {
         "name": "Pro",
         "description": "Le meilleur choix pour les établissements actifs et les organisateurs.",
-        "features": ["Tout du forfait Starter", "Analyses avancées (heatmap en direct)", "5 Publications à la une / mois", "RSVPs illimités", "Badge Pro vérifié"]
+        "features": [
+          "Tout du forfait Starter",
+          "Analyses avancées (heatmap en direct)",
+          "5 Publications à la une / mois",
+          "RSVPs illimités",
+          "Badge Pro vérifié"
+        ]
       },
       "enterprise": {
         "name": "Enterprise",
         "description": "Gestion complète pour les festivals et les grands événements.",
-        "features": ["Tout du forfait Pro", "Support dédié 24/7", "Intégrations API externes", "Publications à la une illimitées", "Événements sponsorisés garantis"]
+        "features": [
+          "Tout du forfait Pro",
+          "Support dédié 24/7",
+          "Intégrations API externes",
+          "Publications à la une illimitées",
+          "Événements sponsorisés garantis"
+        ]
       }
     }
   },
@@ -469,17 +503,31 @@
       "starter": {
         "name": "Starter",
         "price": "0",
-        "features": ["Visibilité Carte", "Profil de Base", "5 Stories/jour"]
+        "features": [
+          "Visibilité Carte",
+          "Profil de Base",
+          "5 Stories/jour"
+        ]
       },
       "pro": {
         "name": "Pro",
         "price": "9.99",
-        "features": ["Support Prioritaire", "Badge Vérifié", "Stories Illimitées", "Thèmes Personnalisés"]
+        "features": [
+          "Support Prioritaire",
+          "Badge Vérifié",
+          "Stories Illimitées",
+          "Thèmes Personnalisés"
+        ]
       },
       "premium": {
         "name": "Premium",
         "price": "19.99",
-        "features": ["Tutte le fonctions Pro", "Assistant Événements IA", "Mode Incognito", "Partage de Revenus"]
+        "features": [
+          "Tutte le fonctions Pro",
+          "Assistant Événements IA",
+          "Mode Incognito",
+          "Partage de Revenus"
+        ]
       }
     },
     "cancelDeletion": "Annuler la suppression",
@@ -551,5 +599,142 @@
     "securityDescription": "Tous les messages sur VIBE sont protégés par le cryptage asymétrique Curve25519. Seuls vous et le destinataire possédez les clés pour décrypter le contenu.",
     "seeConversations": "Voir les conversations",
     "encrypted": "[Chiffrement en cours...]"
+  },
+  "messages": {
+    "title": "Messages",
+    "newMessage": "Nouveau message",
+    "searchConversations": "Rechercher des conversations",
+    "typeMessage": "Écrire un message...",
+    "online": "En ligne",
+    "lastSeen": "Vu il y a {time}",
+    "delivered": "Livré",
+    "read": "Lu",
+    "requests": "Demandes de messages",
+    "voiceMessage": "Message vocal",
+    "noConversations": "Aucune conversation",
+    "startChat": "Démarrer une conversation",
+    "sendPhoto": "Envoyer photo",
+    "sendVideo": "Envoyer vidéo",
+    "replyTo": "Répondre à",
+    "deleteMessage": "Supprimer le message",
+    "copyMessage": "Copier le message",
+    "forwardMessage": "Transférer",
+    "reactMessage": "Réagir",
+    "typing": "est en train d'écrire...",
+    "pinConversation": "Épingler la conversation",
+    "muteConversation": "Mettre en sourdine",
+    "deleteConversation": "Supprimer la conversation",
+    "messageRequest": "Demande de message",
+    "acceptRequest": "Accepter",
+    "declineRequest": "Refuser"
+  },
+  "scanner": {
+    "title": "Lecteur de billets",
+    "scanQR": "Scanner QR",
+    "validTicket": "Billet valide",
+    "invalidTicket": "Billet invalide",
+    "alreadyUsed": "Déjà utilisé",
+    "markAsUsed": "Marquer comme utilisé",
+    "scanAnother": "Scanner un autre",
+    "pointCamera": "Pointer la caméra sur le QR du billet",
+    "wrongEvent": "Mauvais événement",
+    "cancelled": "Billet annulé",
+    "scanSuccess": "Scan réussi",
+    "scanError": "Erreur de scan"
+  },
+  "gamification": {
+    "vibePoints": "Vibe Points",
+    "badges": "Badges",
+    "weeklyChallenge": "Défi de la semaine",
+    "leaderboard": "Classement",
+    "joinChallenge": "Participer",
+    "earnedBadge": "Vous avez gagné un badge!",
+    "points": "{count} points",
+    "rank": "Rang #{rank}",
+    "topVibers": "Top Vibers cette semaine",
+    "yourScore": "Votre score",
+    "challengeEnds": "Se termine dans {time}",
+    "participants": "{count} participants"
+  },
+  "safety": {
+    "safeHome": "Safe Home",
+    "startSession": "Démarrer session",
+    "iAmSafe": "Je suis rentré(e) sain(e) et sauf(ve)",
+    "sos": "SOS Urgence",
+    "trustedContacts": "Contacts de confiance",
+    "addContact": "Ajouter contact",
+    "sessionActive": "Session active",
+    "routeSharing": "Partage d'itinéraire",
+    "sosConfirm": "Envoyer SOS à tous les contacts de confiance?",
+    "locationShared": "Position partagée",
+    "checkInScheduled": "Check-in prévu dans {time}",
+    "remindMe": "Me rappeler dans",
+    "batteryLevel": "Batterie",
+    "contactAdded": "Contact ajouté",
+    "contactRemoved": "Contact supprimé",
+    "maxContacts": "Maximum 5 contacts de confiance",
+    "trustScore": "Trust Score"
+  },
+  "weather": {
+    "sunny": "Ensoleillé",
+    "cloudy": "Nuageux",
+    "rainy": "Pluvieux",
+    "stormy": "Orageux",
+    "snowy": "Neigeux",
+    "partlyCloudy": "Partiellement nuageux",
+    "umbrella": "Prenez un parapluie!",
+    "rainChance": "{percent}% de risque de pluie",
+    "wind": "Vent {speed} km/h",
+    "feelsLike": "Ressenti {temp}°C"
+  },
+  "artists": {
+    "title": "Artiste",
+    "follow": "Suivre",
+    "following": "Abonné",
+    "upcomingShows": "Prochains spectacles",
+    "bio": "Biographie",
+    "music": "Musique",
+    "photos": "Photos",
+    "vibes": "Vibes",
+    "noArtists": "Aucun artiste trouvé",
+    "verified": "Artiste vérifié",
+    "genres": "Genres",
+    "socialLinks": "Réseaux sociaux"
+  },
+  "discover": {
+    "title": "Découvrir des personnes",
+    "youMightKnow": "Personnes que vous pourriez connaître",
+    "mutualFollowers": "{count} abonnés en commun",
+    "commonInterests": "Intérêts communs",
+    "activeTonight": "Actifs ce soir",
+    "followedArtists": "Artistes suivis par vos abonnés",
+    "dismiss": "Ignorer",
+    "followAll": "Suivre tous",
+    "alsoThere": "Vous y allez aussi?"
+  },
+  "tickets": {
+    "selectType": "Sélectionner le type de billet",
+    "generalAdmission": "Entrée générale",
+    "vipTable": "Table VIP",
+    "earlyBird": "Early bird",
+    "studentDiscount": "Tarif étudiant",
+    "remaining": "{count} restants",
+    "selectQuantity": "Sélectionner quantité",
+    "total": "Total",
+    "attendeeDetails": "Détails du participant",
+    "name": "Nom",
+    "email": "E-mail",
+    "phone": "Téléphone (optionnel)",
+    "specialRequests": "Demandes spéciales",
+    "payment": "Paiement",
+    "confirmation": "Confirmation",
+    "qrCode": "Votre QR code",
+    "addToWallet": "Ajouter au Wallet",
+    "addToCalendar": "Ajouter au calendrier",
+    "shareTicket": "Partager billet",
+    "soldOut": "Épuisé",
+    "waitlist": "Rejoindre la liste d'attente",
+    "waitlistPosition": "Vous êtes #{position} sur la liste d'attente",
+    "notifyWhenAvailable": "Nous vous notifierons quand une place se libère"
   }
 }

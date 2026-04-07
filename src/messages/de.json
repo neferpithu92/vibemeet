@@ -232,7 +232,24 @@
     "finalizing": "Deine Story wird fertiggestellt...",
     "success": "Story geteilt! ✨",
     "error": "Fehler beim Teilen der Story",
-    "uploadLabel": "Wähle ein vertikales Foto oder Video"
+    "uploadLabel": "Wähle ein vertikales Foto oder Video",
+    "addStory": "Geschichte hinzufügen",
+    "yourStory": "Deine Geschichte",
+    "seenBy": "Von {count} Personen gesehen",
+    "replyToStory": "Auf Geschichte antworten...",
+    "storyExpired": "Diese Geschichte ist abgelaufen",
+    "highlights": "Highlights",
+    "addHighlight": "Zu Highlights hinzufügen",
+    "tapToView": "Tippen zum Ansehen",
+    "holdToPause": "Halten zum Pausieren",
+    "swipeToClose": "Nach unten wischen zum Schließen",
+    "viewCount": "{count} Aufrufe",
+    "seenByList": "Gesehen von",
+    "noStories": "Keine Geschichten verfügbar",
+    "createHighlight": "Highlight erstellen",
+    "highlightTitle": "Highlight Titel",
+    "selectStories": "Geschichten auswählen",
+    "chooseCover": "Cover wählen"
   },
   "upload": {
     "label": "Media hochladen",
@@ -317,17 +334,34 @@
       "basic": {
         "name": "Basic",
         "description": "Perfekt für kleine Locations oder aufstrebende Künstler.",
-        "features": ["Priorisierte Kartensichtbarkeit", "Basis-Analysen", "1 Hervorgehobener Post / Monat", "E-Mail-Support"]
+        "features": [
+          "Priorisierte Kartensichtbarkeit",
+          "Basis-Analysen",
+          "1 Hervorgehobener Post / Monat",
+          "E-Mail-Support"
+        ]
       },
       "pro": {
         "name": "Pro",
         "description": "Am besten für aktive Locations und Veranstalter.",
-        "features": ["Alles im Starter", "Erweiterte Analysen (Live-Heatmap)", "5 Hervorgehobene Posts / Monat", "Unbegrenzte RSVPs", "Verifiziertes Pro-Badge"]
+        "features": [
+          "Alles im Starter",
+          "Erweiterte Analysen (Live-Heatmap)",
+          "5 Hervorgehobene Posts / Monat",
+          "Unbegrenzte RSVPs",
+          "Verifiziertes Pro-Badge"
+        ]
       },
       "enterprise": {
         "name": "Enterprise",
         "description": "Komplettes Management für Festivals und Großveranstaltungen.",
-        "features": ["Alles im Pro", "Rund-um-die-Uhr Support", "Externe API-Integrationen", "Unbegrenzte hervorgehobene Posts", "Garantierte gesponserte Events"]
+        "features": [
+          "Alles im Pro",
+          "Rund-um-die-Uhr Support",
+          "Externe API-Integrationen",
+          "Unbegrenzte hervorgehobene Posts",
+          "Garantierte gesponserte Events"
+        ]
       }
     }
   },
@@ -469,17 +503,31 @@
       "starter": {
         "name": "Starter",
         "price": "0",
-        "features": ["Karten-Sichtbarkeit", "Basis-Profil", "5 Storys/Tag"]
+        "features": [
+          "Karten-Sichtbarkeit",
+          "Basis-Profil",
+          "5 Storys/Tag"
+        ]
       },
       "pro": {
         "name": "Pro",
         "price": "9.99",
-        "features": ["Prioritäts-Support", "Verifiziert-Badge", "Unbegrenzte Storys", "Eigene Themes"]
+        "features": [
+          "Prioritäts-Support",
+          "Verifiziert-Badge",
+          "Unbegrenzte Storys",
+          "Eigene Themes"
+        ]
       },
       "premium": {
         "name": "Premium",
         "price": "19.99",
-        "features": ["Alle Pro-Funktionen", "KI-Event-Assistent", "Inkognito-Modus", "Umsatzbeteiligung"]
+        "features": [
+          "Alle Pro-Funktionen",
+          "KI-Event-Assistent",
+          "Inkognito-Modus",
+          "Umsatzbeteiligung"
+        ]
       }
     },
     "cancelDeletion": "Löschung abbrechen",
@@ -551,5 +599,142 @@
     "securityDescription": "Alle Nachrichten auf VIBE sind durch Curve25519 asymmetrische Verschlüsselung geschützt. Nur Sie und der Empfänger haben die Schlüssel zum Entschlüsseln der Inhalte.",
     "seeConversations": "Konversationen ansehen",
     "encrypted": "[Verschlüsselung läuft...]"
+  },
+  "messages": {
+    "title": "Nachrichten",
+    "newMessage": "Neue Nachricht",
+    "searchConversations": "Gespräche suchen",
+    "typeMessage": "Nachricht schreiben...",
+    "online": "Online",
+    "lastSeen": "Zuletzt gesehen vor {time}",
+    "delivered": "Zugestellt",
+    "read": "Gelesen",
+    "requests": "Nachrichtenanfragen",
+    "voiceMessage": "Sprachnachricht",
+    "noConversations": "Noch keine Gespräche",
+    "startChat": "Chat starten",
+    "sendPhoto": "Foto senden",
+    "sendVideo": "Video senden",
+    "replyTo": "Antworten auf",
+    "deleteMessage": "Nachricht löschen",
+    "copyMessage": "Nachricht kopieren",
+    "forwardMessage": "Weiterleiten",
+    "reactMessage": "Reagieren",
+    "typing": "tippt...",
+    "pinConversation": "Gespräch anheften",
+    "muteConversation": "Stumm schalten",
+    "deleteConversation": "Gespräch löschen",
+    "messageRequest": "Nachrichtenanfrage",
+    "acceptRequest": "Annehmen",
+    "declineRequest": "Ablehnen"
+  },
+  "scanner": {
+    "title": "Ticket Scanner",
+    "scanQR": "QR scannen",
+    "validTicket": "Gültiges Ticket",
+    "invalidTicket": "Ungültiges Ticket",
+    "alreadyUsed": "Bereits verwendet",
+    "markAsUsed": "Als verwendet markieren",
+    "scanAnother": "Weiteres scannen",
+    "pointCamera": "Kamera auf Ticket QR-Code richten",
+    "wrongEvent": "Falsches Event",
+    "cancelled": "Ticket storniert",
+    "scanSuccess": "Scan erfolgreich",
+    "scanError": "Scan-Fehler"
+  },
+  "gamification": {
+    "vibePoints": "Vibe Punkte",
+    "badges": "Abzeichen",
+    "weeklyChallenge": "Wöchentliche Challenge",
+    "leaderboard": "Rangliste",
+    "joinChallenge": "Mitmachen",
+    "earnedBadge": "Du hast ein Abzeichen verdient!",
+    "points": "{count} Punkte",
+    "rank": "Rang #{rank}",
+    "topVibers": "Top Vibers diese Woche",
+    "yourScore": "Dein Score",
+    "challengeEnds": "Endet in {time}",
+    "participants": "{count} Teilnehmer"
+  },
+  "safety": {
+    "safeHome": "Safe Home",
+    "startSession": "Sitzung starten",
+    "iAmSafe": "Ich bin sicher zu Hause",
+    "sos": "SOS Notfall",
+    "trustedContacts": "Vertrauenspersonen",
+    "addContact": "Kontakt hinzufügen",
+    "sessionActive": "Sitzung aktiv",
+    "routeSharing": "Route teilen",
+    "sosConfirm": "SOS an alle Vertrauenspersonen senden?",
+    "locationShared": "Standort geteilt",
+    "checkInScheduled": "Check-in geplant in {time}",
+    "remindMe": "Erinnere mich in",
+    "batteryLevel": "Akku",
+    "contactAdded": "Kontakt hinzugefügt",
+    "contactRemoved": "Kontakt entfernt",
+    "maxContacts": "Maximal 5 Vertrauenspersonen",
+    "trustScore": "Trust Score"
+  },
+  "weather": {
+    "sunny": "Sonnig",
+    "cloudy": "Bewölkt",
+    "rainy": "Regen",
+    "stormy": "Gewitter",
+    "snowy": "Schnee",
+    "partlyCloudy": "Teilweise bewölkt",
+    "umbrella": "Nimm einen Regenschirm mit!",
+    "rainChance": "{percent}% Regenwahrscheinlichkeit",
+    "wind": "Wind {speed} km/h",
+    "feelsLike": "Gefühlt {temp}°C"
+  },
+  "artists": {
+    "title": "Künstler",
+    "follow": "Folgen",
+    "following": "Gefolgt",
+    "upcomingShows": "Kommende Shows",
+    "bio": "Biografie",
+    "music": "Musik",
+    "photos": "Fotos",
+    "vibes": "Vibes",
+    "noArtists": "Keine Künstler gefunden",
+    "verified": "Verifizierter Künstler",
+    "genres": "Genres",
+    "socialLinks": "Social"
+  },
+  "discover": {
+    "title": "Personen entdecken",
+    "youMightKnow": "Personen die du kennen könntest",
+    "mutualFollowers": "{count} gemeinsame Follower",
+    "commonInterests": "Gemeinsame Interessen",
+    "activeTonight": "Heute Abend aktiv",
+    "followedArtists": "Künstler denen deine Kontakte folgen",
+    "dismiss": "Ignorieren",
+    "followAll": "Allen folgen",
+    "alsoThere": "Bist du auch dort?"
+  },
+  "tickets": {
+    "selectType": "Ticket-Typ wählen",
+    "generalAdmission": "Normaleintritt",
+    "vipTable": "VIP Tisch",
+    "earlyBird": "Early Bird",
+    "studentDiscount": "Studentenrabatt",
+    "remaining": "Noch {count}",
+    "selectQuantity": "Anzahl wählen",
+    "total": "Gesamt",
+    "attendeeDetails": "Teilnehmerdetails",
+    "name": "Name",
+    "email": "E-Mail",
+    "phone": "Telefon (optional)",
+    "specialRequests": "Besondere Wünsche",
+    "payment": "Zahlung",
+    "confirmation": "Bestätigung",
+    "qrCode": "Dein QR-Code",
+    "addToWallet": "Zu Wallet hinzufügen",
+    "addToCalendar": "Zum Kalender hinzufügen",
+    "shareTicket": "Ticket teilen",
+    "soldOut": "Ausverkauft",
+    "waitlist": "Zur Warteliste hinzufügen",
+    "waitlistPosition": "Du bist #{position} auf der Warteliste",
+    "notifyWhenAvailable": "Wir benachrichtigen dich wenn ein Platz frei wird"
   }
 }

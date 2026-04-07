@@ -263,7 +263,24 @@
     "finalizing": "Finalisar tia story...",
     "success": "Story cundividida! ✨",
     "error": "Errur cun cundivider la story",
-    "uploadLabel": "Tscherna ina foto u in video vertical"
+    "uploadLabel": "Tscherna ina foto u in video vertical",
+    "addStory": "Agiuntar istorgina",
+    "yourStory": "Tia istorgina",
+    "seenBy": "Vis da {count} persunas",
+    "replyToStory": "Respunder a la istorgina...",
+    "storyExpired": "Questa istorgina è scadida",
+    "highlights": "En atgensira",
+    "addHighlight": "Agiuntar en atgensira",
+    "tapToView": "Tuca per vesair",
+    "holdToPause": "Tegna per fer pausa",
+    "swipeToClose": "Glitta en bas per serrar",
+    "viewCount": "{count} visualisaziuns",
+    "seenByList": "Vis da",
+    "noStories": "Naginas istorginas disponiblas",
+    "createHighlight": "Crear colecziun",
+    "highlightTitle": "Titel da la colecziun",
+    "selectStories": "Tscherner istorginas",
+    "chooseCover": "Tscheglier copertina"
   },
   "upload": {
     "label": "Chargiar media",
@@ -348,17 +365,34 @@
       "basic": {
         "name": "Basic",
         "description": "Perfett per pitschens locals u artists che creschan.",
-        "features": ["Visibilità da la carta prioritaria", "Analiticas da basa", "1 Post en evidenza / mais", "Sustegn per e-mail"]
+        "features": [
+          "Visibilità da la carta prioritaria",
+          "Analiticas da basa",
+          "1 Post en evidenza / mais",
+          "Sustegn per e-mail"
+        ]
       },
       "pro": {
         "name": "Pro",
         "description": "La megliura tscherna per locals activs ed organisaturs.",
-        "features": ["Tut dal plan Starter", "Analiticas avanzadas (heatmap live)", "5 Posts en evidenza / mais", "RSVP illimitads", "Badge Pro verifitgà"]
+        "features": [
+          "Tut dal plan Starter",
+          "Analiticas avanzadas (heatmap live)",
+          "5 Posts en evidenza / mais",
+          "RSVP illimitads",
+          "Badge Pro verifitgà"
+        ]
       },
       "enterprise": {
         "name": "Enterprise",
         "description": "Gestiun cumpletta per festivals e gronds occurrenzas.",
-        "features": ["Tut dal plan Pro", "Sustegn deditgà 24/7", "Integraziuns API externas", "Posts en evidenza illimitads", "Occurrenzas sponsuradas garantidas"]
+        "features": [
+          "Tut dal plan Pro",
+          "Sustegn deditgà 24/7",
+          "Integraziuns API externas",
+          "Posts en evidenza illimitads",
+          "Occurrenzas sponsuradas garantidas"
+        ]
       }
     }
   },
@@ -469,17 +503,31 @@
       "starter": {
         "name": "Starter",
         "price": "0",
-        "features": ["Visibilitad Carta", "Profil da Basa", "5 Istorgias/di"]
+        "features": [
+          "Visibilitad Carta",
+          "Profil da Basa",
+          "5 Istorgias/di"
+        ]
       },
       "pro": {
         "name": "Pro",
         "price": "9.99",
-        "features": ["Support Prioritar", "Badge Verifitgà", "Istorgias Illimitadas", "Temas Persunalisads"]
+        "features": [
+          "Support Prioritar",
+          "Badge Verifitgà",
+          "Istorgias Illimitadas",
+          "Temas Persunalisads"
+        ]
       },
       "premium": {
         "name": "Premium",
         "price": "19.99",
-        "features": ["Tuttas funcziuns Pro", "Assistent d'Eveniments AI", "Modus Incognito", "Part da las Entradas"]
+        "features": [
+          "Tuttas funcziuns Pro",
+          "Assistent d'Eveniments AI",
+          "Modus Incognito",
+          "Part da las Entradas"
+        ]
       }
     },
     "cancelDeletion": "Annullar stizzada",
@@ -551,5 +599,142 @@
     "securityDescription": "Tuts ils messadis sin VIBE èn protegiads tras la cifradira asimetrica Curve25519. Be ti ed il destinatari avais las clavs per dechiffrar ils cuntegns.",
     "seeConversations": "Vair conversaziuns",
     "encrypted": "[Cifradira en curs...]"
+  },
+  "messages": {
+    "title": "Messadis",
+    "newMessage": "Nov messadi",
+    "searchConversations": "Tschertgar conversaziuns",
+    "typeMessage": "Scriva in messadi...",
+    "online": "Online",
+    "lastSeen": "Vis avant {time}",
+    "delivered": "Delivrà",
+    "read": "Legì",
+    "requests": "Dumondas da messadi",
+    "voiceMessage": "Messadi vocal",
+    "noConversations": "Anc naginas conversaziuns",
+    "startChat": "Cumenzar chat",
+    "sendPhoto": "Trametter fota",
+    "sendVideo": "Trametter video",
+    "replyTo": "Respunder a",
+    "deleteMessage": "Stizzar messadi",
+    "copyMessage": "Copiar messadi",
+    "forwardMessage": "Transmetter",
+    "reactMessage": "Reagir",
+    "typing": "è en il far scriver...",
+    "pinConversation": "Fixar conversaziun",
+    "muteConversation": "Sieglir conversaziun",
+    "deleteConversation": "Stizzar conversaziun",
+    "messageRequest": "Dumonda da messadi",
+    "acceptRequest": "Acceptar",
+    "declineRequest": "Refusar"
+  },
+  "scanner": {
+    "title": "Scanner da Bigliettas",
+    "scanQR": "Scannar QR",
+    "validTicket": "Biglietta valida",
+    "invalidTicket": "Biglietta nunvalida",
+    "alreadyUsed": "Gia utilisà",
+    "markAsUsed": "Marcar sco dà en diever",
+    "scanAnother": "Scannar ina autra",
+    "pointCamera": "Drizza la camera sin il QR da la biglietta",
+    "wrongEvent": "Evenimaènt sbaglià",
+    "cancelled": "Biglietta annullada",
+    "scanSuccess": "Scannader reussì",
+    "scanError": "Error da scannader"
+  },
+  "gamification": {
+    "vibePoints": "Vibe Points",
+    "badges": "Badges",
+    "weeklyChallenge": "Sfida da la Emna",
+    "leaderboard": "Classifica",
+    "joinChallenge": "Participar",
+    "earnedBadge": "Hai gudagnà in badge!",
+    "points": "{count} puncts",
+    "rank": "Ranc #{rank}",
+    "topVibers": "Top Vibers questa emna",
+    "yourScore": "Tes punct",
+    "challengeEnds": "Finischa en {time}",
+    "participants": "{count} participants"
+  },
+  "safety": {
+    "safeHome": "Safe Home",
+    "startSession": "Cumenzar sessiun",
+    "iAmSafe": "Sun a chasa sains e salfs",
+    "sos": "SOS Urgenza",
+    "trustedContacts": "Contacts da confidenza",
+    "addContact": "Agiuntar contact",
+    "sessionActive": "Sessiun activa",
+    "routeSharing": "Cundivider ruta",
+    "sosConfirm": "Trametter SOS a tuts ils contacts da confidenza?",
+    "locationShared": "Posiziun cundividida",
+    "checkInScheduled": "Check-in planisà en {time}",
+    "remindMe": "Memnader en",
+    "batteryLevel": "Pila",
+    "contactAdded": "Contact agiunità",
+    "contactRemoved": "Contact allontanà",
+    "maxContacts": "Maximum 5 contacts da confidenza",
+    "trustScore": "Trust Score"
+  },
+  "weather": {
+    "sunny": "Suleglià",
+    "cloudy": "Nüglià",
+    "rainy": "Plüvius",
+    "stormy": "Temp",
+    "snowy": "Neiv",
+    "partlyCloudy": "Pauz nüglià",
+    "umbrella": "Porta in parapleiv!",
+    "rainChance": "{percent}% probabilitad da plievgia",
+    "wind": "Vent {speed} km/h",
+    "feelsLike": "Sentida {temp}°C"
+  },
+  "artists": {
+    "title": "Artist",
+    "follow": "Suandar",
+    "following": "Suandà",
+    "upcomingShows": "Prochimas occurrenzas",
+    "bio": "Biografia",
+    "music": "Musica",
+    "photos": "Fotos",
+    "vibes": "Vibes",
+    "noArtists": "Nagins artists chatschads",
+    "verified": "Artist verificà",
+    "genres": "Generas",
+    "socialLinks": "Social"
+  },
+  "discover": {
+    "title": "Discuvrir persunas",
+    "youMightKnow": "Persunas che as pudessas cunuscher",
+    "mutualFollowers": "{count} suandaders en comün",
+    "commonInterests": "Interess en comün",
+    "activeTonight": "Activ questa seira",
+    "followedArtists": "Artists suandads da tes contacts",
+    "dismiss": "Ignorar",
+    "followAll": "Suandar tuts",
+    "alsoThere": "Es era qua?"
+  },
+  "tickets": {
+    "selectType": "Tscheglier tip da biglietta",
+    "generalAdmission": "Entrada generala",
+    "vipTable": "Maisa VIP",
+    "earlyBird": "Early bird",
+    "studentDiscount": "Rabat per students",
+    "remaining": "Anc {count}",
+    "selectQuantity": "Tscheglier quantitad",
+    "total": "Total",
+    "attendeeDetails": "Detagls dal participant",
+    "name": "Num",
+    "email": "Email",
+    "phone": "Telefon (opziunal)",
+    "specialRequests": "Giavüschs spezials",
+    "payment": "Pajament",
+    "confirmation": "Confirmaziun",
+    "qrCode": "Tes QR code",
+    "addToWallet": "Agiuntar a Wallet",
+    "addToCalendar": "Agiuntar al calendar",
+    "shareTicket": "Cundivider biglietta",
+    "soldOut": "Exhaurì",
+    "waitlist": "Agiuntar a la glista d'aspectativa",
+    "waitlistPosition": "Es #{position} sin la glista d'aspectativa",
+    "notifyWhenAvailable": "Avisains cura ch'in plaz sa libera"
   }
 }

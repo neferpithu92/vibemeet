@@ -232,7 +232,24 @@
     "finalizing": "Finalizando sua história...",
     "success": "História compartilhada! ✨",
     "error": "Erro ao compartilhar história",
-    "uploadLabel": "Escolha uma foto ou vídeo vertical"
+    "uploadLabel": "Escolha uma foto ou vídeo vertical",
+    "addStory": "Adicionar história",
+    "yourStory": "Sua história",
+    "seenBy": "Visto por {count} pessoas",
+    "replyToStory": "Responder à história...",
+    "storyExpired": "Esta história expirou",
+    "highlights": "Destaques",
+    "addHighlight": "Adicionar aos destaques",
+    "tapToView": "Toque para ver",
+    "holdToPause": "Segure para pausar",
+    "swipeToClose": "Deslize para baixo para fechar",
+    "viewCount": "{count} visualizações",
+    "seenByList": "Visto por",
+    "noStories": "Nenhuma história disponível",
+    "createHighlight": "Criar destaque",
+    "highlightTitle": "Título do destaque",
+    "selectStories": "Selecionar histórias",
+    "chooseCover": "Escolher capa"
   },
   "upload": {
     "label": "Enviar Mídia",
@@ -317,17 +334,34 @@
       "basic": {
         "name": "Básico",
         "description": "Perfeito para pequenos locais ou artistas emergentes.",
-        "features": ["Visibilidade prioritária no mapa", "Análises básicas", "1 Post em destaque / mês", "Suporte por e-mail"]
+        "features": [
+          "Visibilidade prioritária no mapa",
+          "Análises básicas",
+          "1 Post em destaque / mês",
+          "Suporte por e-mail"
+        ]
       },
       "pro": {
         "name": "Pro",
         "description": "Ideal para locais ativos e organizadores de eventos.",
-        "features": ["Tudo do Starter", "Análises avançadas (heatmap ao vivo)", "5 Posts em destaque / mês", "RSVPs ilimitados", "Selo Verified Pro"]
+        "features": [
+          "Tudo do Starter",
+          "Análises avançadas (heatmap ao vivo)",
+          "5 Posts em destaque / mês",
+          "RSVPs ilimitados",
+          "Selo Verified Pro"
+        ]
       },
       "enterprise": {
         "name": "Enterprise",
         "description": "Gestão completa para festivais e grandes eventos.",
-        "features": ["Tudo do Pro", "Suporte dedicado 24/7", "Integrações de API externas", "Posts em destaque ilimitados", "Eventos patrocinados garantidos"]
+        "features": [
+          "Tudo do Pro",
+          "Suporte dedicado 24/7",
+          "Integrações de API externas",
+          "Posts em destaque ilimitados",
+          "Eventos patrocinados garantidos"
+        ]
       }
     }
   },
@@ -488,17 +522,31 @@
       "starter": {
         "name": "Starter",
         "price": "0",
-        "features": ["Visibilidade no mapa", "Perfil básico", "5 Histórias/dia"]
+        "features": [
+          "Visibilidade no mapa",
+          "Perfil básico",
+          "5 Histórias/dia"
+        ]
       },
       "pro": {
         "name": "Pro",
         "price": "9.99",
-        "features": ["Suporte prioritário", "Selo verificado", "Histórias ilimitadas", "Temas personalizados"]
+        "features": [
+          "Suporte prioritário",
+          "Selo verificado",
+          "Histórias ilimitadas",
+          "Temas personalizados"
+        ]
       },
       "premium": {
         "name": "Premium",
         "price": "19.99",
-        "features": ["Todas as funcionalidades Pro", "Assistente de eventos IA", "Modo incógnito", "Divisão de receita"]
+        "features": [
+          "Todas as funcionalidades Pro",
+          "Assistente de eventos IA",
+          "Modo incógnito",
+          "Divisão de receita"
+        ]
       }
     },
     "cancelDeletion": "Cancelar exclusão",
@@ -570,5 +618,142 @@
     "securityDescription": "Todas as mensagens no VIBE são protegidas por criptografia assimétrica Curve25519. Só você e o destinatário têm as chaves para decifrar o conteúdo.",
     "seeConversations": "Ver conversas",
     "encrypted": "[Criptografando...]"
+  },
+  "messages": {
+    "title": "Mensagens",
+    "newMessage": "Nova mensagem",
+    "searchConversations": "Pesquisar conversas",
+    "typeMessage": "Escreva uma mensagem...",
+    "online": "Online",
+    "lastSeen": "Visto há {time}",
+    "delivered": "Entregue",
+    "read": "Lido",
+    "requests": "Pedidos de mensagem",
+    "voiceMessage": "Mensagem de voz",
+    "noConversations": "Nenhuma conversa ainda",
+    "startChat": "Iniciar conversa",
+    "sendPhoto": "Enviar foto",
+    "sendVideo": "Enviar vídeo",
+    "replyTo": "Responder a",
+    "deleteMessage": "Apagar mensagem",
+    "copyMessage": "Copiar mensagem",
+    "forwardMessage": "Encaminhar",
+    "reactMessage": "Reagir",
+    "typing": "está escrevendo...",
+    "pinConversation": "Fixar conversa",
+    "muteConversation": "Silenciar conversa",
+    "deleteConversation": "Apagar conversa",
+    "messageRequest": "Pedido de mensagem",
+    "acceptRequest": "Aceitar",
+    "declineRequest": "Recusar"
+  },
+  "scanner": {
+    "title": "Scanner de Bilhetes",
+    "scanQR": "Digitalizar QR",
+    "validTicket": "Bilhete Válido",
+    "invalidTicket": "Bilhete Inválido",
+    "alreadyUsed": "Já utilizado",
+    "markAsUsed": "Marcar como usado",
+    "scanAnother": "Digitalizar outro",
+    "pointCamera": "Aponte a câmera para o QR do bilhete",
+    "wrongEvent": "Evento errado",
+    "cancelled": "Bilhete cancelado",
+    "scanSuccess": "Digitalização bem-sucedida",
+    "scanError": "Erro de digitalização"
+  },
+  "gamification": {
+    "vibePoints": "Vibe Points",
+    "badges": "Conquistas",
+    "weeklyChallenge": "Desafio da Semana",
+    "leaderboard": "Classificação",
+    "joinChallenge": "Participar",
+    "earnedBadge": "Você ganhou uma conquista!",
+    "points": "{count} pontos",
+    "rank": "Posição #{rank}",
+    "topVibers": "Top Vibers desta semana",
+    "yourScore": "Sua pontuação",
+    "challengeEnds": "Termina em {time}",
+    "participants": "{count} participantes"
+  },
+  "safety": {
+    "safeHome": "Safe Home",
+    "startSession": "Iniciar sessão",
+    "iAmSafe": "Estou em casa com segurança",
+    "sos": "SOS Emergência",
+    "trustedContacts": "Contatos de confiança",
+    "addContact": "Adicionar contato",
+    "sessionActive": "Sessão ativa",
+    "routeSharing": "Compartilhar rota",
+    "sosConfirm": "Enviar SOS para todos os contatos de confiança?",
+    "locationShared": "Localização compartilhada",
+    "checkInScheduled": "Check-in agendado em {time}",
+    "remindMe": "Me lembre em",
+    "batteryLevel": "Bateria",
+    "contactAdded": "Contato adicionado",
+    "contactRemoved": "Contato removido",
+    "maxContacts": "Máximo 5 contatos de confiança",
+    "trustScore": "Trust Score"
+  },
+  "weather": {
+    "sunny": "Ensolarado",
+    "cloudy": "Nublado",
+    "rainy": "Chuvoso",
+    "stormy": "Tempestuoso",
+    "snowy": "Nevoso",
+    "partlyCloudy": "Parcialmente nublado",
+    "umbrella": "Leve um guarda-chuva!",
+    "rainChance": "{percent}% de chance de chuva",
+    "wind": "Vento {speed} km/h",
+    "feelsLike": "Sensação {temp}°C"
+  },
+  "artists": {
+    "title": "Artista",
+    "follow": "Seguir",
+    "following": "Seguindo",
+    "upcomingShows": "Próximos shows",
+    "bio": "Biografia",
+    "music": "Música",
+    "photos": "Fotos",
+    "vibes": "Vibes",
+    "noArtists": "Nenhum artista encontrado",
+    "verified": "Artista verificado",
+    "genres": "Gêneros",
+    "socialLinks": "Redes sociais"
+  },
+  "discover": {
+    "title": "Descobrir pessoas",
+    "youMightKnow": "Pessoas que você talvez conheça",
+    "mutualFollowers": "{count} seguidores em comum",
+    "commonInterests": "Interesses em comum",
+    "activeTonight": "Ativos esta noite",
+    "followedArtists": "Artistas seguidos por quem você segue",
+    "dismiss": "Ignorar",
+    "followAll": "Seguir todos",
+    "alsoThere": "Você também vai?"
+  },
+  "tickets": {
+    "selectType": "Selecionar tipo de ingresso",
+    "generalAdmission": "Entrada geral",
+    "vipTable": "Mesa VIP",
+    "earlyBird": "Early bird",
+    "studentDiscount": "Desconto estudantil",
+    "remaining": "{count} restantes",
+    "selectQuantity": "Selecionar quantidade",
+    "total": "Total",
+    "attendeeDetails": "Detalhes do participante",
+    "name": "Nome",
+    "email": "Email",
+    "phone": "Telefone (opcional)",
+    "specialRequests": "Pedidos especiais",
+    "payment": "Pagamento",
+    "confirmation": "Confirmação",
+    "qrCode": "Seu QR code",
+    "addToWallet": "Adicionar à carteira",
+    "addToCalendar": "Adicionar ao calendário",
+    "shareTicket": "Compartilhar ingresso",
+    "soldOut": "Esgotado",
+    "waitlist": "Entrar na lista de espera",
+    "waitlistPosition": "Você está na posição #{position} na lista de espera",
+    "notifyWhenAvailable": "Avisaremos quando uma vaga aparecer"
   }
 }
