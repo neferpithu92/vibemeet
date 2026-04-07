@@ -1,213 +1,70 @@
 import { createClient } from '@/lib/supabase/server';
-import { getTranslations } from 'next-intl/server';
+import VenueClient from './VenueClient';
 import { notFound } from 'next/navigation';
-import { Card } from '@/components/ui/Card';
-import { Badge } from '@/components/ui/Badge';
-import { Button } from '@/components/ui/Button';
-import { Avatar } from '@/components/ui/Avatar';
-import { Link } from '@/lib/i18n/navigation';
-import { BackButton } from '@/components/ui/BackButton';
 
-import FollowButton from '@/components/social/FollowButton';
-import CheckInButton from '@/components/social/CheckInButton';
-import CommentThread from '@/components/social/CommentThread';
-
-export const revalidate = 3600; // Static revalidation every hour
-
-/**
- * Pagina profilo venue con dati reali da Supabase.
- */
-export default async function VenueDetailPage({ params }: { params: Promise<{ slug: string }> }) {
+export default async function VenuePage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
-  // Fetch della venue tramite slug
   const { data: venue, error } = await supabase
     .from('venues')
     .select('*')
-    .eq('slug', slug)
+    .or(`slug.eq.${slug},id.eq.${slug}`)
     .single();
 
-  if (error || !venue) {
-    // Se non troviamo per slug, proviamo per ID (fallback)
-    const { data: venueById } = await supabase
-      .from('venues')
-      .select('*')
-      .eq('id', slug)
-      .single();
-    
-    if (!venueById) return notFound();
-    return VenueDetailRender({ venue: venueById, user });
-  }
+  if (error || !venue) return notFound();
 
-  return VenueDetailRender({ venue, user });
-}
-
-interface Venue {
-  id: string;
-  name: string;
-  address: string;
-  slug: string;
-  description: string;
-  vibe_score: number;
-}
-
-async function VenueDetailRender({ venue, user }: { venue: Venue, user: any }) {
-  const t = await getTranslations('venues');
-  const tc = await getTranslations('common');
-  const te = await getTranslations('events');
-  const supabase = await createClient();
-
-  // Verifica se l'utente segue la venue
-  let isFollowing = false;
-  if (user) {
-    const { data: follow } = await supabase
-      .from('followers')
-      .select('follower_id')
-      .match({ 
-        follower_id: user.id, 
-        following_id: venue.id, 
-        entity_type: 'venue' 
-      })
-      .single();
-    isFollowing = !!follow;
-  }
-
-  // Fetch affollamento live (ultime 4 ore) tramite RPC
-  const { data: liveCrowd } = await supabase
-    .rpc('get_venue_crowd', { v_id: venue.id });
-
-  // Fetch eventi in arrivo per questa venue
-  const { data: upcomingEvents } = await supabase
-    .from('events')
-    .select('*')
+  // Live check-ins at this venue
+  const { data: currentCrowd } = await supabase
+    .from('check_ins')
+    .select(`
+      user_id,
+      created_at,
+      users:user_id (id, username, display_name, avatar_url)
+    `)
     .eq('venue_id', venue.id)
-    .gte('ends_at', new Date().toISOString())
-    .order('starts_at', { ascending: true });
+    .gte('created_at', new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString())
+    .order('created_at', { ascending: false })
+    .limit(20);
+
+  // Upcoming events at this venue
+  const { data: events } = await supabase
+    .from('events')
+    .select('id, title, starts_at, cover_url, rsvp_count, ticket_price')
+    .eq('venue_id', venue.id)
+    .gte('starts_at', new Date().toISOString())
+    .order('starts_at', { ascending: true })
+    .limit(5);
+
+  // Weather for venue location
+  let weather = null;
+  if (venue.latitude && venue.longitude) {
+    try {
+      const res = await fetch(
+        `https://api.open-meteo.com/v1/forecast?latitude=${venue.latitude}&longitude=${venue.longitude}&hourly=temperature_2m,precipitation_probability,weathercode&timezone=Europe/Zurich&forecast_days=1`,
+        { next: { revalidate: 3600 } }
+      );
+      if (res.ok) {
+        const d = await res.json();
+        const code = d.hourly?.weathercode?.[new Date().getHours()] || 0;
+        const icons: Record<number, string> = { 0: '☀️', 1: '🌤', 2: '⛅', 3: '☁️', 61: '🌧', 63: '🌧', 80: '🌦', 95: '⛈' };
+        weather = {
+          temp_c: Math.round(d.hourly?.temperature_2m?.[new Date().getHours()] || 0),
+          rain_pct: d.hourly?.precipitation_probability?.[new Date().getHours()] || 0,
+          icon: icons[code] || '🌡️'
+        };
+      }
+    } catch {}
+  }
 
   return (
-    <div className="page-container">
-      <div className="max-w-4xl mx-auto px-4 py-4">
-        {/* Back */}
-        <BackButton className="!static mb-4" />
-
-        {/* Header / Cover */}
-        <div className="relative h-48 md:h-64 rounded-2xl overflow-hidden mb-6 bg-vibe-gradient-subtle">
-          <div className="absolute inset-0 bg-gradient-to-t from-vibe-dark via-vibe-dark/40 to-transparent" />
-          <div className="absolute bottom-6 left-6 right-6 flex items-end gap-4">
-            <div className="w-20 h-20 rounded-2xl bg-vibe-gradient flex items-center justify-center text-3xl text-white font-bold border-4 border-vibe-dark">
-              {venue.name[0]}
-            </div>
-            <div className="flex-1">
-              <div className="flex items-center gap-2 mb-1">
-                <h1 className="font-display text-2xl md:text-3xl font-bold text-white">{venue.name}</h1>
-                <Badge variant="verified">{t('verified')}</Badge>
-              </div>
-              <p className="text-sm text-white/70">{t('title')} · Switzerland</p>
-            </div>
-            <div className="hidden sm:flex gap-2">
-              <FollowButton 
-                targetId={venue.id} 
-                entityType="venue" 
-                initialIsFollowing={isFollowing} 
-                size="sm"
-              />
-              <CheckInButton venueId={venue.id} />
-            </div>
-          </div>
-        </div>
-
-        {/* Stats */}
-        <div className="grid grid-cols-3 gap-3 mb-6">
-          <Card className="p-3 text-center">
-            <p className="text-xl font-bold text-amber-400">⭐ {venue.vibe_score || '9.5'}</p>
-            <p className="text-xs text-vibe-text-secondary">{t('vibeScore')}</p>
-          </Card>
-          <Card className="p-3 text-center">
-            <p className="text-xl font-bold text-vibe-purple">{liveCrowd || 0}</p>
-            <p className="text-xs text-vibe-text-secondary">{t('presentNow')}</p>
-          </Card>
-          <Card className="p-3 text-center">
-            <p className="text-xl font-bold text-green-400">● {t('open', { fallback: 'Aperto' })}</p>
-            <p className="text-xs text-vibe-text-secondary">{t('status')}</p>
-          </Card>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Colonna principale */}
-          <div className="md:col-span-2 space-y-6">
-            {/* Info */}
-            <Card>
-              <h2 className="font-display font-bold text-lg mb-3">{t('info')}</h2>
-              <p className="text-sm text-vibe-text-secondary leading-relaxed mb-4">{venue.description || 'Welcome to ' + venue.name}</p>
-              <div className="flex flex-wrap gap-2">
-                <Badge variant="default">Techno</Badge>
-                <Badge variant="default">House</Badge>
-              </div>
-            </Card>
-
-            {/* Eventi */}
-            <Card>
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="font-display font-bold text-lg">{t('upcomingEvents')}</h2>
-                <button className="text-sm text-vibe-purple font-medium">{t('all')}</button>
-              </div>
-              <div className="space-y-3">
-                {upcomingEvents?.map((event) => (
-                  <Link key={event.id} href={`/events/${event.id}`} className="flex items-center gap-3 p-3 rounded-xl bg-white/5 hover:bg-white/10 transition-all">
-                    <div className="w-10 h-10 rounded-xl bg-vibe-gradient/20 flex items-center justify-center text-lg">
-                      🎵
-                    </div>
-                    <div className="flex-1">
-                      <p className="font-semibold text-sm">{event.title}</p>
-                      <p className="text-xs text-vibe-text-secondary">
-                        {new Date(event.starts_at).toLocaleDateString()}
-                      </p>
-                    </div>
-                    <Badge variant="default">{event.category || 'Event'}</Badge>
-                  </Link>
-                ))}
-                {!upcomingEvents?.length && (
-                  <p className="text-sm text-vibe-text-secondary text-center py-4">{t('noEvents')}</p>
-                )}
-              </div>
-            </Card>
-
-            {/* Sezione Commenti Live */}
-            <Card>
-              <CommentThread entityType="venue" entityId={venue.id} />
-            </Card>
-          </div>
-
-          {/* Sidebar */}
-          <div className="space-y-4">
-            {/* Orari (Placeholder) */}
-            <Card className="p-4">
-              <h3 className="font-semibold text-sm mb-3">🕐 {t('hours')}</h3>
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span className="text-vibe-text-secondary">Fri-Sat</span>
-                  <span className="text-vibe-text">23:00 - 06:00</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-vibe-text-secondary">Sun-Thu</span>
-                  <span className="text-red-400">{t('closed')}</span>
-                </div>
-              </div>
-            </Card>
-
-            {/* Posizione */}
-            <Card className="p-4">
-              <h3 className="font-semibold text-sm mb-3">📍 {t('location')}</h3>
-              <p className="text-sm text-vibe-text-secondary mb-3">{venue.address || 'Address not available'}</p>
-              <Button variant="secondary" className="w-full text-sm">
-                🗺️ {t('directions')}
-              </Button>
-            </Card>
-          </div>
-        </div>
-      </div>
-    </div>
+    <VenueClient
+      venue={venue}
+      currentCrowd={(currentCrowd || []) as any[]}
+      upcomingEvents={(events || []) as any[]}
+      weather={weather}
+      currentUserId={user?.id}
+    />
   );
 }

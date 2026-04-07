@@ -6,5 +6,11 @@
   "regions": ["fra1"],
   "env": {
     "NEXT_PUBLIC_APP_URL": "https://vibemeet-theta.vercel.app"
-  }
+  },
+  "crons": [
+    {
+      "path": "/api/cron/weather",
+      "schedule": "0 */3 * * *"
+    }
+  ]
 }
