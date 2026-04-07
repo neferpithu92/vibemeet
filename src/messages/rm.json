@@ -187,7 +187,9 @@
     "share": "Parter",
     "save": "Memorisar",
     "writeComment": "Scriver in commentari...",
-    "noContent": "Nagin cuntegn da mussar"
+    "noContent": "Nagin cuntegn da mussar",
+    "yourStory": "Tia istorgia",
+    "yourStoryFallback": "Ti"
   },
   "social": {
     "comments": "Commentaris",

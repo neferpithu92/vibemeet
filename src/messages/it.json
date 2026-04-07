@@ -200,7 +200,9 @@
     "share": "Condividi",
     "save": "Salva",
     "writeComment": "Scrivi un commento...",
-    "noContent": "Nessun contenuto da mostrare"
+    "noContent": "Nessun contenuto da mostrare",
+    "yourStory": "La tua storia",
+    "yourStoryFallback": "Tu"
   },
   "explore": {
     "title": "Scopri",

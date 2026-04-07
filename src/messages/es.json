@@ -187,7 +187,9 @@
     "share": "Compartir",
     "save": "Guardar",
     "writeComment": "Escribe un comentario...",
-    "noContent": "No hay contenido para mostrar"
+    "noContent": "No hay contenido para mostrar",
+    "yourStory": "Tu historia",
+    "yourStoryFallback": "Tú"
   },
   "explore": {
     "title": "Explorar",
