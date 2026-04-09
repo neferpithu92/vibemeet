@@ -61,7 +61,7 @@ export async function POST(req: Request) {
       // Registra il biglietto / acquisto singolo
       const amountTotal = session.amount_total ? session.amount_total / 100 : 0;
       
-      const { error } = await supabaseAdmin
+      const { error: paymentError } = await supabaseAdmin
         .from('payments')
         .insert({
           user_id: userId,
@@ -73,8 +73,31 @@ export async function POST(req: Request) {
           metadata: session.metadata
         });
 
-      if (error) {
-         console.error('Errore registrazione pagamento singolo:', error);
+      if (paymentError) {
+         console.error('Errore registrazione pagamento singolo:', paymentError);
+      } else {
+        // Genera il vero biglietto digitale con QR Code
+        const { randomUUID } = require('crypto');
+        const qrCodeString = randomUUID(); // Stringa univoca sicura
+
+        const { error: ticketError } = await supabaseAdmin
+          .from('tickets')
+          .insert({
+             event_id: entityId,
+             user_id: userId,
+             qr_code: qrCodeString,
+             quantity: 1, // Supponiamo 1 ticket per checkout session
+             unit_price: amountTotal,
+             total_price: amountTotal,
+             currency: session.currency?.toUpperCase() || 'CHF',
+             status: 'paid', // Pronto per essere scannerizzato
+             stripe_payment_intent_id: session.payment_intent,
+             purchased_at: new Date().toISOString()
+          });
+        
+        if (ticketError) {
+          console.error('Errore generazione biglietto con QR Code:', ticketError);
+        }
       }
     }
   }

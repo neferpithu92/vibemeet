@@ -7,56 +7,92 @@ export async function POST(request: NextRequest) {
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   try {
+    // 1. Controllo base: ruolo dell'utente
+    const { data: userData } = await supabase
+      .from('users')
+      .select('role')
+      .eq('id', user.id)
+      .single();
+
+    if (!userData || (userData.role !== 'venue' && userData.role !== 'artist' && userData.role !== 'admin')) {
+      return NextResponse.json({ error: 'Solo gli organizzatori possono validare biglietti.' }, { status: 403 });
+    }
+
+    // 2. Controllo piano Premium
+    const { data: subscription } = await supabase
+      .from('subscriptions')
+      .select('plan, status')
+      .eq('entity_id', user.id)
+      .eq('status', 'active')
+      .single();
+
+    if (userData.role !== 'admin' && (!subscription || (subscription.plan !== 'premium' && subscription.plan !== 'enterprise'))) {
+      return NextResponse.json({ error: 'Paywall: Upgrade a Premium richiesto per usare lo scanner.' }, { status: 403 });
+    }
+
     const { qrData } = await request.json();
 
-    // Decode QR payload: base64 JSON { ticketId, eventId, userId }
-    let ticketId: string;
-    try {
-      const decoded = JSON.parse(atob(qrData));
-      ticketId = decoded.ticketId;
-    } catch {
-      return NextResponse.json({ valid: false, reason: 'QR non valido' });
+    if (!qrData) {
+      return NextResponse.json({ error: 'QR Code mancante' }, { status: 400 });
     }
+
+    // Usiamo il qrData come stringa RAW (generata dal nostro webhook)
+    const qrCode = qrData;
 
     // Fetch ticket
     const { data: ticket, error } = await supabase
       .from('tickets')
-      .select('*, events(title, id)')
-      .eq('id', ticketId)
+      .select('*, events(organizer_id, title, id)')
+      .eq('qr_code', qrCode)
       .single();
 
     if (error || !ticket) {
-      return NextResponse.json({ valid: false, reason: 'Biglietto non trovato' });
+      return NextResponse.json({ valid: false, reason: 'Biglietto non trovato o QR invalido.' });
+    }
+
+    // Check se l'evento è suo
+    if (userData.role !== 'admin' && (ticket.events as any)?.organizer_id !== user.id) {
+       return NextResponse.json({ valid: false, reason: 'Questo biglietto appartiene a un altro organizzatore.' });
     }
 
     // Validate
     if (ticket.status === 'used' || ticket.checked_in_at) {
       return NextResponse.json({
-        valid: true,
-        ticket: {
-          id: ticket.id,
-          attendee_name: ticket.attendee_name,
-          ticket_type: ticket.ticket_type,
-          event_title: (ticket.events as any)?.title,
-          status: 'used'
-        }
+        valid: false,
+        reason: 'BIGLIETTO GIÀ UTILIZZATO!',
+        ticket: { id: ticket.id, status: 'used', event_title: (ticket.events as any)?.title }
       });
     }
 
     if (ticket.status === 'cancelled' || ticket.status === 'refunded') {
       return NextResponse.json({ valid: false, reason: 'Biglietto cancellato' });
     }
+    
+    if (ticket.status !== 'paid') {
+      return NextResponse.json({ valid: false, reason: `Biglietto non valido. Stato: ${ticket.status}` });
+    }
+
+    // Marca automaticamente se l'organizzatore sta scansionando
+    const { error: updateError } = await supabase
+      .from('tickets')
+      .update({
+        status: 'used',
+        checked_in_at: new Date().toISOString(),
+        checked_in_by: user.id
+      })
+      .eq('id', ticket.id);
+
+    if (updateError) throw updateError;
 
     return NextResponse.json({
       valid: true,
       ticket: {
         id: ticket.id,
-        attendee_name: ticket.attendee_name,
-        ticket_type: ticket.ticket_type,
         event_title: (ticket.events as any)?.title,
-        status: 'valid'
+        status: 'used'
       }
     });
+
   } catch (err) {
     console.error('Validate error:', err);
     return NextResponse.json({ valid: false, reason: 'Errore di sistema' });
