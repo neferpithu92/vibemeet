@@ -81,10 +81,6 @@ export default function RegisterPage() {
         return false;
       }
     }
-    if (currentStep === 'interests' && selectedInterests.length < 3) {
-      setError(t('errorInterests'));
-      return false;
-    }
     return true;
   };
 
