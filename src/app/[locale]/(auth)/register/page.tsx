@@ -275,66 +275,6 @@ export default function RegisterPage() {
           </div>
         )}
 
-        {currentStep === 'interests' && (
-          <div className="animate-fade-in">
-            <h3 className="font-display font-bold text-lg mb-2 text-center">{t('interestsTitle')}</h3>
-            <p className="text-sm text-vibe-text-secondary text-center mb-4">{t('interestsSubtitle')}</p>
-            <div className="flex flex-wrap gap-2 justify-center">
-              {interests.map((interest) => (
-                <button
-                  key={interest.id}
-                  onClick={() => toggleInterest(interest.id)}
-                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 ${
-                    selectedInterests.includes(interest.id)
-                      ? 'bg-vibe-purple/20 text-vibe-purple border border-vibe-purple/30 shadow-sm'
-                      : 'bg-white/5 text-vibe-text-secondary hover:bg-white/10 border border-transparent'
-                  }`}
-                >
-                  <span>{interest.icon}</span>
-                  <span>{interest.label}</span>
-                </button>
-              ))}
-            </div>
-            <p className="text-xs text-vibe-text-secondary text-center mt-3">
-              {selectedInterests.length} {t('interestsCount')}
-            </p>
-          </div>
-        )}
-
-        {currentStep === 'location' && (
-          <div className="text-center animate-fade-in">
-            <div className="w-24 h-24 rounded-full bg-vibe-gradient/20 flex items-center justify-center mx-auto mb-4">
-              <span className="text-4xl">📍</span>
-            </div>
-            <h3 className="font-display font-bold text-lg mb-2">{t('locationTitle')}</h3>
-            <p className="text-sm text-vibe-text-secondary mb-6">
-              {t('locationSubtitle')}
-            </p>
-            {locationGranted ? (
-              <div className="flex items-center justify-center gap-2 text-green-400 font-bold text-sm">
-                <span>✅</span> {t('locationEnabled')}
-              </div>
-            ) : (
-              <Button 
-                variant="secondary" 
-                className="w-full"
-                onClick={() => {
-                  if (navigator.geolocation) {
-                    navigator.geolocation.getCurrentPosition(
-                      () => setLocationGranted(true),
-                      () => setError(t('errorGpsDenied')),
-                      { enableHighAccuracy: true, timeout: 5000 }
-                    );
-                  } else {
-                    setError(t('errorNotSupported'));
-                  }
-                }}
-              >
-                📍 {t('enableGps')}
-              </Button>
-            )}
-          </div>
-        )}
 
         <div className="flex gap-3 mt-6 pt-4 border-t border-white/5">
           {stepIndex > 0 && (
