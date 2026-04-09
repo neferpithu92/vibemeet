@@ -100,7 +100,7 @@ export default function CircleManager() {
           <Input 
             placeholder="Cerca amici da aggiungere..."
             value={searchQuery}
-            onChange={(e) => handleUserSearch(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleUserSearch(e.target.value)}
             className="pl-12 py-6 bg-white/5 border-white/10 rounded-2xl"
           />
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/20" />
@@ -207,7 +207,7 @@ export default function CircleManager() {
               <Input 
                 placeholder="es. Amici del Sabato" 
                 value={newName} 
-                onChange={(e) => setNewName(e.target.value)} 
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewName(e.target.value)} 
                 className="bg-white/5 border-white/10 rounded-2xl"
               />
             </div>
@@ -216,7 +216,7 @@ export default function CircleManager() {
               <textarea 
                 placeholder="Di cosa si tratta?" 
                 value={newDesc} 
-                onChange={(e) => setNewDesc(e.target.value)} 
+                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setNewDesc(e.target.value)} 
                 className="input-field min-h-[100px] resize-none text-sm"
               />
             </div>

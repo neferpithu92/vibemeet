@@ -7,6 +7,7 @@ interface HashtagBadgeProps {
   count?: number;
   size?: 'sm' | 'md';
   trending?: boolean;
+  className?: string;
 }
 
 /**

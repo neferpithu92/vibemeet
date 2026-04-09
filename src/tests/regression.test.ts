@@ -1,5 +1,4 @@
 import { createClient } from '@/lib/supabase/client';
-import { expect } from 'vitest'; // In a real setup, but I'll write a simulation script
 
 /**
  * VIBE REGRESSION TEST SUITE

@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslations } from 'next-intl';
 import { Avatar } from '@/components/ui/Avatar';
 import { Card } from '@/components/ui/Card';

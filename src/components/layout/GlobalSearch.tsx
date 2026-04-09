@@ -53,7 +53,7 @@ export function GlobalSearch() {
           ...(data.events || [])
         ].map(item => ({
           ...item,
-          displayName: item.displayName || item.name || item.title,
+          displayName: item.displayName || item.display_name || item.name || item.title || 'Unknown',
         }));
 
         setResults(combined);

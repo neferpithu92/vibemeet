@@ -27,6 +27,7 @@ interface NotificationState {
   markAsRead: (notificationId: string) => Promise<void>;
   markAllAsRead: (userId: string) => Promise<void>;
   addNotification: (notification: Notification) => void;
+  subscribeToNotifications: (userId: string) => () => void;
 }
 
 export const useNotificationStore = create<NotificationState>((set, get) => ({

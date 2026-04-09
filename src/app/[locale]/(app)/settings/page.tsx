@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
-import { useRouter, usePathname } from '@/lib/i18n/navigation';
+import { useRouter, usePathname, Link } from '@/lib/i18n/navigation';
 import { useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -50,7 +50,13 @@ export default function SettingsPage() {
     tiktok_linked: false
   });
 
-  const [profileData, setProfileData] = useState({
+  const [profileData, setProfileData] = useState<{
+    username: string;
+    display_name: string;
+    email: string;
+    bio: string;
+    avatar_url?: string;
+  }>({
     username: '',
     display_name: '',
     email: '',
@@ -184,6 +190,12 @@ export default function SettingsPage() {
     const updatedSettings = { ...settings, ...newData };
     setSettings(updatedSettings);
     
+    if (updatedSettings.language !== settings.language) {
+      // Need to change the URL locale for next-intl
+      const newPathname = pathname;
+      router.replace(newPathname, { locale: updatedSettings.language });
+    }
+    
     // Determine which table to sync
     if ('is_private' in newData || 'show_activity' in newData) {
       await saveToDB('privacy', newData);
@@ -197,6 +209,42 @@ export default function SettingsPage() {
     }
     if ('language' in newData) {
       await saveToDB('profile', newData);
+    }
+  };
+
+  const handleImageUpload = async (file: File) => {
+    if (!user) return;
+    setIsSaving(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('bucket', 'media');
+      formData.append('entityType', 'user');
+      formData.append('entityId', user.id);
+
+      const res = await fetch('/api/media/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const { data, error } = await res.json();
+      if (error) throw new Error(error);
+
+      const publicUrl = data.url;
+
+      // Update both table and auth metadata
+      await supabase.from('users').update({ avatar_url: publicUrl }).eq('id', user.id);
+      await supabase.auth.updateUser({
+        data: { avatar_url: publicUrl }
+      });
+
+      setProfileData(prev => ({ ...prev, avatar_url: publicUrl }));
+      showToast(t('saveSuccess'), 'success');
+    } catch (err: any) {
+      console.error(err);
+      showToast(err.message || t('saveError'), 'error');
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -262,9 +310,22 @@ export default function SettingsPage() {
                   <section>
                     <h2 className="text-sm font-bold text-vibe-text-secondary uppercase tracking-widest mb-6">Informazioni Personali</h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
-                      <div className="flex flex-col items-center gap-4 p-6 bg-white/5 rounded-2xl border border-white/5">
-                        <Avatar size="xl" src={user?.user_metadata?.avatar_url} fallback={profileData.display_name[0] || 'U'} />
-                        <Button variant="secondary" size="sm" className="w-full">Cambia Foto</Button>
+                      <div className="flex flex-col items-center gap-4 p-6 bg-white/5 rounded-2xl border border-white/5 relative group">
+                        <Avatar size="xl" src={user?.user_metadata?.avatar_url || profileData.avatar_url} fallback={profileData.display_name[0] || 'U'} />
+                        <label className="w-full">
+                          <Button variant="secondary" size="sm" className="w-full cursor-pointer relative overflow-hidden">
+                            {t('changePhoto', { fallback: 'Cambia Foto' })}
+                            <input 
+                              type="file" 
+                              accept="image/*" 
+                              className="absolute inset-0 opacity-0 cursor-pointer"
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) handleImageUpload(file);
+                              }}
+                            />
+                          </Button>
+                        </label>
                       </div>
                       <div className="space-y-4">
                         <div className="space-y-1.5">

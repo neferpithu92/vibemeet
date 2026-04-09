@@ -10,6 +10,7 @@ interface AvatarProps {
   isOnline?: boolean;
   fallback?: string;
   className?: string;
+  border?: boolean;
 }
 
 const sizeClasses: Record<AvatarSize, string> = {

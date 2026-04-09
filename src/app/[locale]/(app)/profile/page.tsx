@@ -183,8 +183,20 @@ export default function ProfilePage() {
       if (checkInData) setCheckIns(checkInData);
 
       // 5. Conta follower/seguiti
-      setFollowerCount(followers || 0);
-      setFollowingCount(following || 0);
+      const { count: followersCount } = await supabase
+        .from('followers')
+        .select('*', { count: 'exact', head: true })
+        .eq('following_id', user.id)
+        .eq('entity_type', 'user');
+
+      const { count: followingCount } = await supabase
+        .from('followers')
+        .select('*', { count: 'exact', head: true })
+        .eq('follower_id', user.id)
+        .eq('entity_type', 'user');
+
+      setFollowerCount(followersCount || 0);
+      setFollowingCount(followingCount || 0);
 
       // 6. Carica Biglietti Reali (Vibe Pass)
       const { data: ticketsData } = await supabase

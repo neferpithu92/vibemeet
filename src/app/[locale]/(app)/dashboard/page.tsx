@@ -29,7 +29,7 @@ export default function BusinessDashboard() {
   const [venue, setVenue] = useState<any>(null);
   const [events, setEvents] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'overview' | 'events' | 'tickets' | 'settings'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'events' | 'tickets' | 'settings' | 'analytics'>('overview');
   
   const supabase = createClient();
   const router = useRouter();
@@ -202,7 +202,7 @@ export default function BusinessDashboard() {
                 <h3 className="text-sm font-bold text-vibe-text-secondary uppercase mb-1">Revenue (MoM)</h3>
                 <div className="flex items-end gap-2">
                   <span className="text-4xl font-black">CHF 0</span>
-                  <Badge variant="premium">N/A</Badge>
+                  <Badge variant="default">N/A</Badge>
                 </div>
                 <p className="text-[10px] text-vibe-text-secondary mt-2">Active campaigns: 0</p>
               </Card>
@@ -312,7 +312,7 @@ export default function BusinessDashboard() {
                                 <p className="text-[9px] uppercase font-bold text-white/20">Validato alle 22:1{i}</p>
                              </div>
                           </div>
-                          <Badge variant="outline" className="text-[8px] border-green-500/50 text-green-500">SUCCESS</Badge>
+                          <span className="text-[8px] font-bold border border-green-500/50 text-green-500 bg-green-500/10 px-2 py-0.5 rounded-full">SUCCESS</span>
                        </div>
                      ))}
                   </div>
@@ -350,7 +350,7 @@ export default function BusinessDashboard() {
                    </div>
                    <h3 className="text-2xl font-display font-black text-white uppercase tracking-tighter mb-4">Advanced Insights Incoming</h3>
                    <p className="text-white/40 text-sm max-w-md mx-auto mb-8">Stiamo elaborando il tuo AI-driven audience report. Scoprirai chi sono i tuoi clienti più fedeli e come ottimizzare le tue serate.</p>
-                   <Button variant="premium" className="px-10 h-12">Attiva Vibe Pro Intelligence</Button>
+                   <Button variant="primary" className="px-10 h-12">Attiva Vibe Pro Intelligence</Button>
                 </div>
              </Card>
           </div>

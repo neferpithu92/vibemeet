@@ -28,21 +28,21 @@ export async function GET(request: Request) {
   const { data: events } = await supabase
     .from('events')
     .select('id, title, description, category, starts_at, venue:venues(name)')
-    .ilike('title', `%${query}%`)
+    .or(`title.ilike.%${query}%,description.ilike.%${query}%,category.ilike.%${query}%`)
     .limit(5);
 
   // Search venues
   const { data: venues } = await supabase
     .from('venues')
     .select('id, name, description, type, slug, city')
-    .ilike('name', `%${query}%`)
+    .or(`name.ilike.%${query}%,description.ilike.%${query}%,type.ilike.%${query}%`)
     .limit(5);
 
   // Search artists
   const { data: artists } = await supabase
     .from('artists')
     .select('id, name, bio, avatar_url, genres')
-    .ilike('name', `%${query}%`)
+    .or(`name.ilike.%${query}%,bio.ilike.%${query}%,genres.cs.{"${query}"}`)
     .limit(5);
 
   // Search hashtags

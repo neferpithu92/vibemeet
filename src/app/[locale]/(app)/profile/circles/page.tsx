@@ -5,10 +5,11 @@ import { useTranslations } from 'next-intl';
 import { useCirclesStore, SocialCircle } from '@/stores/useCirclesStore';
 import { createClient } from '@/lib/supabase/client';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Users, Plus, Trash2, UserPlus, X, Search, ShieldCheck } from 'lucide-react';
+import { Users, Plus, Trash2, UserPlus, X, Search, ShieldCheck, ChevronRight } from 'lucide-react';
 import { BackButton } from '@/components/ui/BackButton';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
+import { Avatar } from '@/components/ui/Avatar';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { useToast } from '@/components/ui/ToastProvider';
 
