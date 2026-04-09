@@ -175,6 +175,7 @@
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
     min-height: 100dvh;
     overflow-x: hidden;
+    overscroll-behavior-y: none;
   }
 
   /* Scrollbar personalizzata */

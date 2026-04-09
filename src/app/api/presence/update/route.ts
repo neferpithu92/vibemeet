@@ -5,7 +5,28 @@ import { NextResponse } from 'next/server';
  * API per aggiornare la posizione in tempo reale dell'utente (Heartbeat).
  * Riceve lat e lon dal client e aggiorna la tabella users.
  */
+const rateLimit = new Map<string, { count: number; lastUpdate: number }>();
+
 export async function POST(req: Request) {
+  // Simple Rate Limiting: max 5 requests per minute per IP
+  const forwardedFor = req.headers.get('x-forwarded-for') || 'unknown';
+  const ip = typeof forwardedFor === 'string' ? forwardedFor.split(',')[0] : 'unknown';
+  
+  const now = Date.now();
+  const userData = rateLimit.get(ip) || { count: 0, lastUpdate: now };
+  
+  if (now - userData.lastUpdate > 60000) {
+    userData.count = 1;
+    userData.lastUpdate = now;
+  } else {
+    userData.count++;
+  }
+  rateLimit.set(ip, userData);
+
+  if (userData.count > 10) {
+    return NextResponse.json({ error: 'Too Many Requests' }, { status: 429 });
+  }
+
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 

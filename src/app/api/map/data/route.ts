@@ -46,7 +46,14 @@ export async function GET(request: Request) {
     }, { status: 500 });
   }
 
-  const { venues, events, stories } = mapData as any;
+  const { venues, events, stories, media } = mapData as any;
 
-  return NextResponse.json({ venues, events, stories, users });
+  return NextResponse.json(
+    { venues, events, stories, media, users },
+    {
+      headers: {
+        'Cache-Control': 's-maxage=10, stale-while-revalidate=59',
+      },
+    }
+  );
 }
