@@ -34,27 +34,48 @@ export async function POST(req: Request) {
 
   const session = event.data.object as any;
 
-  // 1. Checkout Completato -> Attiva Abbonamento
+  // 1. Checkout Completato -> Attiva Abbonamento/Registra Biglietto
   if (event.type === 'checkout.session.completed') {
-    const subscription = (await stripe.subscriptions.retrieve(session.subscription)) as any;
     const { userId, entityId, entityType, plan } = session.metadata;
-
     const supabaseAdmin = getSupabaseAdmin() as any;
-    // Aggiorna o Inserisce l'abbonamento nel DB
-    const { error } = await supabaseAdmin
-      .from('subscriptions')
-      .upsert({
-        entity_id: entityId,
-        entity_type: entityType,
-        plan: plan,
-        status: 'active',
-        stripe_customer_id: session.customer,
-        stripe_subscription_id: session.subscription,
-        current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
-      }, { onConflict: 'stripe_subscription_id' });
 
-    if (error) {
-      console.error('Errore salvataggio abbonamento:', error);
+    if (session.mode === 'subscription') {
+      const subscription = (await stripe.subscriptions.retrieve(session.subscription)) as any;
+      
+      const { error } = await supabaseAdmin
+        .from('subscriptions')
+        .upsert({
+          entity_id: entityId,
+          entity_type: entityType,
+          plan: plan,
+          status: 'active',
+          stripe_customer_id: session.customer,
+          stripe_subscription_id: session.subscription,
+          current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+        }, { onConflict: 'stripe_subscription_id' });
+
+      if (error) {
+        console.error('Errore salvataggio abbonamento:', error);
+      }
+    } else if (session.mode === 'payment') {
+      // Registra il biglietto / acquisto singolo
+      const amountTotal = session.amount_total ? session.amount_total / 100 : 0;
+      
+      const { error } = await supabaseAdmin
+        .from('payments')
+        .insert({
+          user_id: userId,
+          entity_id: entityId,
+          entity_type: entityType, // 'event_ticket'
+          amount: amountTotal,
+          status: 'succeeded',
+          currency: session.currency?.toUpperCase() || 'CHF',
+          metadata: session.metadata
+        });
+
+      if (error) {
+         console.error('Errore registrazione pagamento singolo:', error);
+      }
     }
   }
 
