@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/Button';
 import { createClient } from '@/lib/supabase/client';
 import { generateKeyPairFromPassword } from '@/lib/encryption';
 
-const steps = ['account', 'profile', 'interests', 'location'] as const;
+const steps = ['account', 'profile'] as const;
 type Step = typeof steps[number];
 
 const interests = [
@@ -180,7 +180,7 @@ export default function RegisterPage() {
                 i <= stepIndex ? 'text-vibe-purple' : 'text-vibe-text-secondary opacity-50'
               }`}
             >
-              {step === 'account' ? t('stepAccount') : step === 'profile' ? t('stepProfile') : step === 'interests' ? t('stepInterests') : t('stepLocation')}
+              {step === 'account' ? t('stepAccount') : t('stepProfile')}
             </span>
           ))}
         </div>
