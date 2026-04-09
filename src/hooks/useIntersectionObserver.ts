@@ -9,7 +9,11 @@ export function useIntersectionObserver(options?: IntersectionObserverInit) {
   useEffect(() => {
     const observer = new IntersectionObserver(([entry]) => {
       setIsIntersecting(entry.isIntersecting);
-    }, options);
+    }, { 
+      root: options?.root, 
+      rootMargin: options?.rootMargin, 
+      threshold: options?.threshold 
+    });
 
     const target = targetRef.current;
     if (target) {
@@ -21,7 +25,7 @@ export function useIntersectionObserver(options?: IntersectionObserverInit) {
         observer.unobserve(target);
       }
     };
-  }, [options]);
+  }, [options?.root, options?.rootMargin, options?.threshold]);
 
   return { targetRef, isIntersecting };
 }
