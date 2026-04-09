@@ -4,9 +4,10 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslations } from 'next-intl';
 import { Search, Plus, MessageCircle, Bell } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { useRouter } from '@/lib/i18n/navigation';
 import { formatDistanceToNow } from 'date-fns';
-import { it } from 'date-fns/locale';
+import { it, enUS, de, fr } from 'date-fns/locale';
+import { useLocale } from 'next-intl';
 
 interface Conversation {
   id: string;
@@ -31,6 +32,7 @@ interface MessagesClientProps {
 export default function MessagesClient({ conversations: initialConversations, currentUserId }: MessagesClientProps) {
   const t = useTranslations('messages');
   const router = useRouter();
+  const locale = useLocale();
   const [search, setSearch] = useState('');
   const [conversations, setConversations] = useState(initialConversations);
 
@@ -48,9 +50,9 @@ export default function MessagesClient({ conversations: initialConversations, cu
     const d = new Date(date);
     const now = new Date();
     if (d.toDateString() === now.toDateString()) {
-      return d.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+      return d.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' });
     }
-    return d.toLocaleDateString('it-IT', { day: 'numeric', month: 'short' });
+    return d.toLocaleDateString(locale, { day: 'numeric', month: 'short' });
   };
 
   return (

@@ -70,7 +70,7 @@ export default function PostModal({ isOpen, onClose, post }: PostModalProps) {
           <div className="flex-1 py-4 border-y border-white/5 overflow-y-auto max-h-[300px]">
             <p className="text-sm text-vibe-text leading-relaxed">
               <span className="font-bold mr-2">@{post.profiles?.username}</span>
-              {post.caption || 'Nessuna descrizione.'}
+              {post.caption || t('noCaption')}
             </p>
             <div className="mt-4 pt-4">
                {/* Comments would go here */}
@@ -106,11 +106,11 @@ export default function PostModal({ isOpen, onClose, post }: PostModalProps) {
             <div className="relative">
                <input 
                  type="text" 
-                 placeholder="Aggiungi un commento..." 
+                 placeholder={t('writeComment')}
                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-vibe-purple/50 transition-all"
                />
                <button className="absolute right-4 top-1/2 -translate-y-1/2 text-vibe-purple font-bold text-xs uppercase hover:text-white transition-colors">
-                 Pubblica
+                 {t('publish')}
                </button>
             </div>
           </div>

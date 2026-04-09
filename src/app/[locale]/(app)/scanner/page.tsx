@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslations } from 'next-intl';
 import { ArrowLeft, Camera, CheckCircle, XCircle, RefreshCw } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { useRouter } from '@/lib/i18n/navigation';
 
 interface ScanResult {
   valid: boolean;
@@ -162,7 +162,7 @@ export default function ScannerPage() {
           <div className="mt-8 flex gap-2 px-8 w-full max-w-xs">
             <input
               type="text"
-              placeholder="Incolla QR data qui (dev)"
+              placeholder={t('manualPlaceholder')}
               className="flex-1 bg-white/10 border border-white/20 rounded-xl px-3 py-2 text-sm text-white placeholder-white/40"
               onKeyDown={e => {
                 if (e.key === 'Enter') {
@@ -200,26 +200,26 @@ export default function ScannerPage() {
                 <div className="glass-card p-5 rounded-2xl text-left space-y-3 w-full">
                   {result.ticket?.attendee_name && (
                     <div>
-                      <p className="text-xs text-vibe-text-secondary">Nome</p>
+                      <p className="text-xs text-vibe-text-secondary">{t('name')}</p>
                       <p className="font-semibold">{result.ticket.attendee_name}</p>
                     </div>
                   )}
                   {result.ticket?.ticket_type && (
                     <div>
-                      <p className="text-xs text-vibe-text-secondary">Tipo</p>
+                      <p className="text-xs text-vibe-text-secondary">{t('type')}</p>
                       <p className="font-semibold">{result.ticket.ticket_type}</p>
                     </div>
                   )}
                   {result.ticket?.event_title && (
                     <div>
-                      <p className="text-xs text-vibe-text-secondary">Evento</p>
+                      <p className="text-xs text-vibe-text-secondary">{t('event')}</p>
                       <p className="font-semibold">{result.ticket.event_title}</p>
                     </div>
                   )}
                   <div>
-                    <p className="text-xs text-vibe-text-secondary">Stato</p>
+                    <p className="text-xs text-vibe-text-secondary">{t('status')}</p>
                     <span className={`text-sm font-semibold ${result.ticket?.status === 'used' ? 'text-orange-400' : 'text-green-400'}`}>
-                      {result.ticket?.status === 'used' ? '⚠️ Già usato' : '✓ Valido'}
+                      {result.ticket?.status === 'used' ? t('alreadyUsedWarning') : t('validSuccess')}
                     </span>
                   </div>
                 </div>
@@ -271,8 +271,8 @@ export default function ScannerPage() {
       {cameraError && (
         <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-vibe-dark px-8 text-center gap-4">
           <Camera className="w-16 h-16 text-vibe-text-secondary" />
-          <p className="text-vibe-text-secondary">Camera non disponibile. Assicurati di aver concesso i permessi.</p>
-          <button onClick={startCamera} className="btn-primary">Riprova</button>
+          <p className="text-vibe-text-secondary">{t('cameraUnavailable')}</p>
+          <button onClick={startCamera} className="btn-primary">{t('retry')}</button>
         </div>
       )}
     </div>

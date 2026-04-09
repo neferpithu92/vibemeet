@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslations } from 'next-intl';
 import { ArrowLeft, Send, Camera, Image, Mic, Smile, Check, CheckCheck, MoreVertical, Reply, Copy, Trash2 } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { useRouter } from '@/lib/i18n/navigation';
 import { createClient } from '@/lib/supabase/client';
 
 interface Message {

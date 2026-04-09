@@ -116,7 +116,7 @@ export default function LoginPage() {
     if (authError) {
       setError(authError.message);
     } else {
-      setMessage('Controlla la tua email per il Magic Link! ✨'); // TODO: Localize these specific feedback messages if needed
+      setMessage(t('magicLinkSent'));
     }
     setIsLoading(false);
   };

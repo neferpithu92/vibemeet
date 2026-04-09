@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, MapPin, Users, Clock, Star, Wifi, Accessibility, Car, Music, Check, ChevronRight, ExternalLink } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { useRouter } from '@/lib/i18n/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { Link } from '@/lib/i18n/navigation';
 

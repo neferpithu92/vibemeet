@@ -1,6 +1,6 @@
 import PricingSection from '@/components/social/PricingSection';
 import { createClient } from '@/lib/supabase/server';
-import { redirect } from 'next/navigation';
+import { redirect } from '@/lib/i18n/navigation';
 import { Link } from '@/lib/i18n/navigation';
 import { useTranslations } from 'next-intl';
 import { Badge } from '@/components/ui/Badge';
@@ -10,22 +10,24 @@ import { getTranslations } from 'next-intl/server';
 /**
  * Pagina di Pricing pubblica (ma autenticata).
  */
-export default async function PricingPage() {
+export default async function PricingPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
   const t = await getTranslations('subscription');
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect('/login');
+    redirect({ href: '/login', locale });
   }
 
   // Carica info extra se necessario, e.g. se l'utente è un proprietario di venue
+  const userId = user.id; // user is guaranteed at this point
   const { data: venues } = await supabase
     .from('venues')
     .select('id, name')
-    .eq('owner_id', user.id);
+    .eq('owner_id', userId);
 
-  const primaryEntityId = venues?.[0]?.id || user.id;
+  const primaryEntityId = venues?.[0]?.id || userId;
   const primaryEntityType = venues?.[0]?.id ? 'venue' : 'user';
 
   return (

@@ -43,24 +43,27 @@ export default function EventsClient({ initialEvents }: EventsClientProps) {
   const locale = useLocale();
   const dateLocale = locale === 'it' ? it : locale === 'de' ? de : locale === 'fr' ? fr : enUS;
 
-  const [activeTimeFilter, setActiveTimeFilter] = useState('Tutti');
-  const [activeGenreFilter, setActiveGenreFilter] = useState('Tutti');
+  const timeFilters = ['all', 'today', 'tomorrow', 'thisWeek'] as const;
+  const genres = ['all', 'Techno', 'House', 'DnB', 'Jazz', 'Hip-Hop', 'Rock', 'Pop'] as const;
+
+  const [activeTimeFilter, setActiveTimeFilter] = useState<typeof timeFilters[number]>('all');
+  const [activeGenreFilter, setActiveGenreFilter] = useState<typeof genres[number]>('all');
 
   const filteredEvents = useMemo(() => {
     return initialEvents.filter(event => {
-      const genreMatch = activeGenreFilter === 'Tutti' || (event.music_genres && event.music_genres.includes(activeGenreFilter));
+      const genreMatch = activeGenreFilter === 'all' || (event.music_genres && event.music_genres.includes(activeGenreFilter));
       
       let timeMatch = true;
       const eventDate = new Date(event.starts_at);
       const now = new Date();
       
-      if (activeTimeFilter === 'Oggi') {
+      if (activeTimeFilter === 'today') {
         timeMatch = eventDate.toDateString() === now.toDateString();
-      } else if (activeTimeFilter === 'Domani') {
+      } else if (activeTimeFilter === 'tomorrow') {
         const tomorrow = new Date();
         tomorrow.setDate(now.getDate() + 1);
         timeMatch = eventDate.toDateString() === tomorrow.toDateString();
-      } else if (activeTimeFilter === 'Questa settimana') {
+      } else if (activeTimeFilter === 'thisWeek') {
         const nextWeek = new Date();
         nextWeek.setDate(now.getDate() + 7);
         timeMatch = eventDate >= now && eventDate <= nextWeek;
@@ -84,7 +87,7 @@ export default function EventsClient({ initialEvents }: EventsClientProps) {
 
       {/* Filtri temporal */}
       <div className="flex gap-2 mb-4 overflow-x-auto hide-scrollbar pb-1">
-        {filters.time.map((f) => (
+        {timeFilters.map((f) => (
           <button
             key={f}
             onClick={() => setActiveTimeFilter(f)}
@@ -94,14 +97,14 @@ export default function EventsClient({ initialEvents }: EventsClientProps) {
                 : 'bg-white/5 text-vibe-text-secondary hover:bg-white/10'
             }`}
           >
-            {f}
+            {t(`filters.${f}`)}
           </button>
         ))}
       </div>
 
       {/* Filtri genere */}
       <div className="flex gap-2 mb-6 overflow-x-auto hide-scrollbar pb-2">
-        {filters.genre.map((g) => (
+        {genres.map((g) => (
           <button
             key={g}
             onClick={() => setActiveGenreFilter(g)}
@@ -111,7 +114,7 @@ export default function EventsClient({ initialEvents }: EventsClientProps) {
                 : 'bg-white/5 text-vibe-text-secondary hover:bg-white/10'
             }`}
           >
-            {g}
+            {g === 'all' ? t('filters.all') : g}
           </button>
         ))}
       </div>
@@ -126,7 +129,7 @@ export default function EventsClient({ initialEvents }: EventsClientProps) {
                 <div className="absolute inset-0 bg-gradient-to-t from-vibe-dark/80 to-transparent" />
                 {event.is_promoted && (
                   <div className="absolute top-3 left-3">
-                    <Badge variant="premium">⚡ Promosso</Badge>
+                    <Badge variant="premium">{t('promoted')}</Badge>
                   </div>
                 )}
                 {event.status === 'live' && (
@@ -135,7 +138,7 @@ export default function EventsClient({ initialEvents }: EventsClientProps) {
                   </div>
                 )}
                 <div className="absolute bottom-3 left-3">
-                  <Badge variant="default">{event.category || 'Event'}</Badge>
+                  <Badge variant="default">{event.category || t('placeholderCategory')}</Badge>
                 </div>
                 <div className="absolute bottom-3 right-3 flex items-center gap-1 text-white/80">
                   <span className="text-sm">👥</span>
@@ -151,7 +154,7 @@ export default function EventsClient({ initialEvents }: EventsClientProps) {
                   {event.title}
                 </h3>
                 <p className="text-sm text-vibe-text-secondary mb-2 line-clamp-1">
-                  {event.venue?.name || 'VIBE'} · {event.venue?.city || 'Svizzera'}
+                   {event.venue?.name || 'VIBE'} · {event.venue?.city || t('placeholderCity')}
                 </p>
                 <div className="flex items-center justify-between">
                   <div className="flex flex-col">
@@ -163,7 +166,7 @@ export default function EventsClient({ initialEvents }: EventsClientProps) {
                     </span>
                   </div>
                   <span className={`text-sm font-semibold ${event.ticket_price === 0 ? 'text-green-400' : 'text-vibe-cyan'}`}>
-                    {event.ticket_price === 0 ? 'Gratuito' : `CHF ${event.ticket_price}`}
+                    {event.ticket_price === 0 ? t('free') : `CHF ${event.ticket_price}`}
                   </span>
                 </div>
               </div>

@@ -89,7 +89,8 @@
     "errorNotSupported": "Geolocalizzazione non supportata",
     "back": "Indietro",
     "next": "Avanti",
-    "start": "Inizia"
+    "start": "Inizia",
+    "magicLinkSent": "Controlla la tua email per il Magic Link! ✨"
   },
   "onboarding": {
     "title": "Personalizziamo la tua esperienza.",
@@ -157,8 +158,15 @@
       "city": "Città",
       "date": "Data",
       "genre": "Genere",
-      "price": "Prezzo"
-    }
+      "price": "Prezzo",
+      "all": "Tutti",
+      "today": "Oggi",
+      "tomorrow": "Domani",
+      "thisWeek": "Questa settimana"
+    },
+    "promoted": "⚡ Promosso",
+    "placeholderCity": "Svizzera",
+    "placeholderCategory": "Evento"
   },
   "venues": {
     "title": "Locali",
@@ -202,7 +210,12 @@
     "writeComment": "Scrivi un commento...",
     "noContent": "Nessun contenuto da mostrare",
     "yourStory": "La tua storia",
-    "yourStoryFallback": "Tu"
+    "yourStoryFallback": "Tu",
+    "noComments": "Ancora nessun commento. Sii il primo!",
+    "loginToComment": "Accedi per lasciare un commento.",
+    "noCaption": "Nessuna descrizione.",
+    "publish": "Pubblica",
+    "comments": "Commenti"
   },
   "explore": {
     "title": "Scopri",
@@ -253,6 +266,9 @@
     "yourStory": "La tua storia",
     "seenBy": "Visto da {count} persone",
     "replyToStory": "Rispondi alla storia...",
+    "secondsAgo": "{count}s fa",
+    "minutesAgo": "{count}m fa",
+    "hoursAgo": "{count}h fa",
     "storyExpired": "Questa storia è scaduta",
     "highlights": "In evidenza",
     "addHighlight": "Aggiungi in evidenza",
@@ -265,7 +281,8 @@
     "createHighlight": "Crea raccolta",
     "highlightTitle": "Titolo raccolta",
     "selectStories": "Seleziona storie",
-    "chooseCover": "Scegli copertina"
+    "chooseCover": "Scegli copertina",
+    "liveComments": "Commenti Live"
   },
   "upload": {
     "label": "Carica Media",
@@ -381,7 +398,7 @@
     "circles": {
       "title": "I tuoi Circles",
       "create": "Crea Circle",
-      "placeholderName": "Nome circle...",
+      "placeholderName": "Nome circle (es. Amici stretti)...",
       "placeholderDesc": "Descrizione (opzionale)",
       "createBtn": "Crea",
       "none": "Nessun circle",
@@ -392,8 +409,74 @@
       "add": "Aggiungi",
       "removeMember": "Rimuovi membro",
       "select": "Seleziona un Circle",
-      "orCreate": "oppure creane uno nuovo"
+      "orCreate": "oppure creane uno nuovo",
+      "manageDescription": "Gestisci chi può vedere i tuoi contenuti privati in questo cerchio.",
+      "membersListTitle": "Membri Attuali",
+      "emptyMembersTitle": "Nessun membro in questo cerchio.",
+      "emptyMembersSubtitle": "Usa la ricerca sopra per invitare qualcuno!",
+      "landingTitle": "I Tuoi Cerchi Esclusivi",
+      "landingSubtitle": "Seleziona un cerchio per gestire i membri o creane uno nuovo per condividere momenti speciali solo con chi vuoi tu.",
+      "createdSuccess": "Cerchio creato con successo!",
+      "userAlreadyIn": "Utente già presente nel cerchio",
+      "memberAdded": "Membro aggiunto!",
+      "noneCreated": "Non hai ancora creato nessun cerchio.",
+      "membersCount": "{count, plural, =0 {Nessun membro} =1 {1 membro} other {# membri}}",
+      "pageTitle": "Cerchi Sociali",
+      "userLabel": "Utente"
     }
+  },
+  "business": {
+    "register": {
+      "title": "Diventa Partner",
+      "subtitle": "Raggiungi il pubblico della vita notturna svizzera.",
+      "requestSent": "Richiesta Inviata!",
+      "processing": "Abbiamo ricevuto i dettagli per {name}. Il nostro team verificherà la tua richiesta e ti contatterà via email entro 24 ore lavorative.",
+      "backToHome": "Torna alla Home",
+      "step": "Passaggio",
+      "steps": {
+        "details": "Dettagli Attività",
+        "legal": "Dati Legali / Fatturazione",
+        "contact": "Contatti Referente",
+        "plan": "Scegli un Piano"
+      },
+      "publicName": "Nome Pubblico",
+      "businessType": "Tipo di Attività",
+      "types": {
+        "club": "Discoteca / Club",
+        "bar": "Bar / Lounge",
+        "promoter": "Promoter",
+        "festival": "Festival"
+      },
+      "legalName": "Ragione Sociale",
+      "uid": "UID Svizzera / P. IVA",
+      "address": "Indirizzo Sede e Città",
+      "addressPlaceholder": "Via",
+      "cityPlaceholder": "Città",
+      "planBasic": "Piano Basic",
+      "planBasicDesc": "Ideale per piccoli locali",
+      "planPro": "Piano Pro",
+      "planProDesc": "Per discoteche e promoter con tanti eventi",
+      "secureCheckout": "Checkout Sicuro:",
+      "checkoutNote": "Cliccando Registrati verrai reindirizzato al checkout Stripe per completare l'abbonamento. La verifica del conto sarà effettuata successivamente.",
+      "error": "Si è verificato un errore durante la registrazione.",
+      "back": "Indietro",
+      "continue": "Continua",
+      "processing_btn": "Elaborazione...",
+      "checkout_btn": "Effettua Checkout"
+    }
+  },
+  "live": {
+    "title": "Live",
+    "activeStreams": "{count} stream attivi",
+    "goLive": "Vai Live",
+    "goLiveNow": "🔴 Inizia Ora",
+    "placeholderTitle": "Titolo dello stream...",
+    "placeholderComment": "Scrivi un commento...",
+    "noStreamsTitle": "Nessuno in diretta ora",
+    "noStreamsSubtitle": "Torna più tardi o vai live tu per primo!",
+    "scheduled": "⏰ In programma",
+    "reminder": "Promemoria",
+    "streaming": "Stream in diretta"
   },
   "errors": {
     "generic": "Qualcosa è andato storto. Riprova più tardi.",
@@ -646,7 +729,16 @@
     "wrongEvent": "Evento sbagliato",
     "cancelled": "Biglietto cancellato",
     "scanSuccess": "Scansione riuscita",
-    "scanError": "Errore scansione"
+    "scanError": "Errore scansione",
+    "manualPlaceholder": "Incolla QR data qui (dev)",
+    "name": "Nome",
+    "type": "Tipo",
+    "event": "Evento",
+    "status": "Stato",
+    "alreadyUsedWarning": "⚠️ Già usato",
+    "validSuccess": "✓ Valido",
+    "cameraUnavailable": "Fotocamera non disponibile. Assicurati di aver concesso i permessi.",
+    "retry": "Riprova"
   },
   "gamification": {
     "vibePoints": "Vibe Points",
@@ -703,9 +795,16 @@
     "photos": "Foto",
     "vibes": "Vibes",
     "noArtists": "Nessun artista trovato",
-    "verified": "Artista verificato",
     "genres": "Generi",
-    "socialLinks": "Social"
+    "socialLinks": "Social",
+    "events": "Eventi",
+    "noBio": "Nessuna biografia disponibile per questo artista.",
+    "noEvents": "Nessun evento in programma",
+    "listenOnSpotify": "Ascolta su Spotify",
+    "noMusic": "Nessun link musicale disponibile",
+    "noPhotos": "Nessuna foto ancora",
+    "noVibes": "Nessun vibe ancora",
+    "followerCount": "{count, plural, =0 {Nessun follower} =1 {1 follower} other {# follower}}"
   },
   "discover": {
     "title": "Scopri persone",
@@ -720,27 +819,63 @@
   },
   "tickets": {
     "selectType": "Seleziona tipo biglietto",
-    "generalAdmission": "Ingresso generale",
+    "generalAdmission": "Ingresso Generale",
     "vipTable": "Tavolo VIP",
-    "earlyBird": "Early bird",
-    "studentDiscount": "Sconto studenti",
+    "earlyBird": "Early Bird",
+    "studentDiscount": "Sconto Studenti",
     "remaining": "{count} rimasti",
     "selectQuantity": "Seleziona quantità",
     "total": "Totale",
     "attendeeDetails": "Dettagli partecipante",
     "name": "Nome",
     "email": "Email",
-    "phone": "Telefono (opzionale)",
-    "specialRequests": "Richieste speciali",
+    "phone": "Telefono",
+    "specialRequests": "Richieste Speciali",
     "payment": "Pagamento",
     "confirmation": "Conferma",
+    "paymentSecure": "Pagamento sicuro con crittografia SSL 256-bit",
+    "processing": "Elaborazione...",
+    "pay": "Paga CHF {total}",
+    "free": "Gratis",
     "qrCode": "Il tuo QR code",
-    "addToWallet": "Aggiungi al Wallet",
+    "addToWallet": "Aggiungi ad Apple Wallet",
     "addToCalendar": "Aggiungi al calendario",
     "shareTicket": "Condividi biglietto",
     "soldOut": "Esaurito",
     "waitlist": "Aggiungi alla lista d'attesa",
     "waitlistPosition": "Sei #{position} in lista d'attesa",
-    "notifyWhenAvailable": "Ti avviseremo quando si libera un posto"
+    "notifyWhenAvailable": "Ti avviseremo quando si libera un posto",
+    "methods": {
+      "creditCard": "Carta di credito / debito",
+      "twint": "TWINT",
+      "applePay": "Apple Pay",
+      "googlePay": "Google Pay"
+    },
+    "types": {
+      "general": "Ingresso Generale",
+      "vip": "Tavolo VIP",
+      "vipDesc": "Tavolo riservato + bottiglia inclusa",
+      "early": "Early Bird",
+      "earlyDesc": "Disponibile fino alle 22:00"
+    }
+  },
+  "checkout": {
+    "title": "Completa Checkout",
+    "securePayment": "Procedura di pagamento sicura",
+    "sslEnabled": "Crittografia SSL a 256-bit abilitata",
+    "cardData": "Dati della carta (Mock)",
+    "payNow": "Paga Ora CHF {total}",
+    "termsNote": "Cliccando su \"Paga Ora\" accetti i termini di servizio e la politica di rimborso di Vibe Platform. Questo è un test di alpha.",
+    "processing": "Elaborazione...",
+    "dontClose": "Non chiudere questa finestra",
+    "successTitle": "Ticket Confermato!",
+    "successText": "Fantastico! Il tuo posto per {event} è riservato. Riceverai un codice QR via email o nella sezione \"I Miei Tickets\".",
+    "backToEvent": "Torna all'evento"
+  },
+  "notFound": {
+    "title": "Questa pagina non esiste... ancora.",
+    "subtitle": "Forse era un evento, una venue o un artista che non è ancora sul radar di Vibemeet. Torna alla mappa e scopri cosa succede vicino a te.",
+    "backToMap": "Torna alla Mappa",
+    "homeFeed": "Home Feed"
   }
 }

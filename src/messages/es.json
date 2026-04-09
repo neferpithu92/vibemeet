@@ -189,7 +189,12 @@
     "writeComment": "Escribe un comentario...",
     "noContent": "No hay contenido para mostrar",
     "yourStory": "Tu historia",
-    "yourStoryFallback": "Tú"
+    "yourStoryFallback": "Tú",
+    "noComments": "Sin comentarios aún. ¡Sé el primero!",
+    "loginToComment": "Inicia sesión para dejar un comentario.",
+    "noCaption": "Sin descripción.",
+    "publish": "Publicar",
+    "comments": "Comentarios"
   },
   "explore": {
     "title": "Explorar",

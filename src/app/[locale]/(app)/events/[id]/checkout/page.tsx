@@ -6,9 +6,11 @@ import { Button } from '@/components/ui/Button';
 import { BackButton } from '@/components/ui/BackButton';
 import { createClient } from '@/lib/supabase/client';
 import { AlertCircle, CheckCircle, CreditCard, ShieldCheck } from 'lucide-react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from '@/lib/i18n/navigation';
+import { useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { signTicket } from '@/lib/security/ticketSigner';
+import { useTranslations } from 'next-intl';
 
 export default function CheckoutPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -19,6 +21,7 @@ export default function CheckoutPage({ params }: { params: Promise<{ id: string 
   const [isLoading, setIsLoading] = useState(true);
   
   const router = useRouter();
+  const t = useTranslations('checkout');
   const supabase = createClient();
 
   useEffect(() => {
@@ -95,11 +98,11 @@ export default function CheckoutPage({ params }: { params: Promise<{ id: string 
               exit={{ opacity: 0, scale: 0.9 }}
             >
               <Card className="p-8 space-y-6 overflow-hidden relative border-vibe-purple/20">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-vibe-purple/10 rounded-full -mr-16 -mt-16 blur-3xl"></div>
+                <div className="absolute top-0 right-1 w-32 h-32 bg-vibe-purple/10 rounded-full -mr-16 -mt-16 blur-3xl"></div>
                 
                 <div className="text-center">
-                  <h1 className="text-3xl font-display font-bold vibe-gradient-text uppercase tracking-tighter mb-1">Completa Checkout</h1>
-                  <p className="text-xs text-vibe-text-secondary uppercase tracking-widest">Procedura di pagamento sicura</p>
+                  <h1 className="text-3xl font-display font-bold vibe-gradient-text uppercase tracking-tighter mb-1">{t('title')}</h1>
+                  <p className="text-xs text-vibe-text-secondary uppercase tracking-widest">{t('securePayment')}</p>
                 </div>
 
                 <div className="p-4 rounded-2xl bg-white/5 border border-white/10">
@@ -113,11 +116,11 @@ export default function CheckoutPage({ params }: { params: Promise<{ id: string 
                 <div className="space-y-4 pt-4 border-t border-white/5">
                   <div className="flex items-center gap-3 text-xs text-vibe-text-secondary">
                     <ShieldCheck className="w-4 h-4 text-green-400" />
-                    Crittografia SSL a 256-bit abilitata
+                    {t('sslEnabled')}
                   </div>
                   
                   <div className="space-y-2">
-                    <label className="text-[10px] uppercase font-black text-vibe-text-secondary tracking-widest">Dati della carta (Mock)</label>
+                    <label className="text-[10px] uppercase font-black text-vibe-text-secondary tracking-widest">{t('cardData')}</label>
                     <div className="flex items-center gap-3 p-4 rounded-xl bg-vibe-dark border border-white/10 text-white/50 cursor-not-allowed">
                        <CreditCard className="w-5 h-5" />
                        <span className="text-sm">4242 4242 4242 4242</span>
@@ -130,11 +133,11 @@ export default function CheckoutPage({ params }: { params: Promise<{ id: string 
                   className="w-full h-14 text-lg font-display uppercase tracking-widest"
                   onClick={handlePayment}
                 >
-                  Paga Ora CHF {event.ticket_price}
+                  {t('payNow', { total: event.ticket_price })}
                 </Button>
 
                 <p className="text-[9px] text-center text-vibe-text-secondary opacity-40 px-4">
-                  Cliccando su "Paga Ora" accetti i termini di servizio e la politica di rimborso di Vibe Platform. Questo è un test di alpha.
+                  {t('termsNote')}
                 </p>
               </Card>
             </motion.div>
@@ -149,8 +152,8 @@ export default function CheckoutPage({ params }: { params: Promise<{ id: string 
               className="text-center p-12"
             >
               <div className="w-20 h-20 border-4 border-vibe-purple border-t-transparent rounded-full animate-spin mx-auto mb-8"></div>
-              <h2 className="text-2xl font-display font-bold uppercase mb-2">Elaborazione...</h2>
-              <p className="text-vibe-text-secondary text-sm">Non chiudere questa finestra</p>
+              <h2 className="text-2xl font-display font-bold uppercase mb-2">{t('processing')}</h2>
+              <p className="text-vibe-text-secondary text-sm">{t('dontClose')}</p>
             </motion.div>
           )}
 
@@ -166,13 +169,13 @@ export default function CheckoutPage({ params }: { params: Promise<{ id: string 
                   <CheckCircle className="w-12 h-12 text-green-500" />
                 </div>
               </div>
-              <h2 className="text-4xl font-display font-black uppercase vibe-gradient-text">Ticket Confermato!</h2>
+              <h2 className="text-4xl font-display font-black uppercase vibe-gradient-text">{t('successTitle')}</h2>
               <p className="text-vibe-text-secondary max-w-sm mx-auto">
-                Fantastico! Il tuo posto per <b>{event.title}</b> è riservato. Riceverai un codice QR via email o nella sezione "I Miei Tickets".
+                {t('successText', { event: event.title })}
               </p>
               <div className="pt-8">
                 <Button variant="primary" className="w-full h-14" onClick={() => router.push(`/events/${id}`)}>
-                   Torna all'evento
+                   {t('backToEvent')}
                 </Button>
               </div>
             </motion.div>

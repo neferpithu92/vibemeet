@@ -4,9 +4,10 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useTranslations } from 'next-intl';
 import { ArrowLeft, CheckCircle, Instagram, ExternalLink, Music, Calendar, Image, Film, Users } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { useRouter, Link } from '@/lib/i18n/navigation';
 import { createClient } from '@/lib/supabase/client';
-import { Link } from '@/lib/i18n/navigation';
+import { it, enUS, de, fr } from 'date-fns/locale';
+import { useLocale } from 'next-intl';
 
 interface Artist {
   id: string;
@@ -42,6 +43,8 @@ type Tab = 'bio' | 'events' | 'music' | 'photos' | 'vibes';
 export default function ArtistClient({ artist, events, isFollowing: initialFollowing, currentUserId }: ArtistClientProps) {
   const t = useTranslations('artists');
   const router = useRouter();
+  const locale = useLocale();
+  const dateLocale = locale === 'it' ? it : locale === 'en' ? enUS : locale === 'de' ? de : fr;
   const supabase = createClient();
   const [activeTab, setActiveTab] = useState<Tab>('bio');
   const [following, setFollowing] = useState(initialFollowing);
@@ -62,7 +65,7 @@ export default function ArtistClient({ artist, events, isFollowing: initialFollo
 
   const tabs: { id: Tab; label: string; icon: React.ReactNode }[] = [
     { id: 'bio', label: t('bio'), icon: <Users className="w-4 h-4" /> },
-    { id: 'events', label: 'Events', icon: <Calendar className="w-4 h-4" /> },
+    { id: 'events', label: t('events'), icon: <Calendar className="w-4 h-4" /> },
     { id: 'music', label: t('music'), icon: <Music className="w-4 h-4" /> },
     { id: 'photos', label: t('photos'), icon: <Image className="w-4 h-4" /> },
     { id: 'vibes', label: t('vibes'), icon: <Film className="w-4 h-4" /> },
@@ -99,7 +102,7 @@ export default function ArtistClient({ artist, events, isFollowing: initialFollo
               <h1 className="font-display text-2xl font-bold">{artist.name}</h1>
               {artist.is_verified && <CheckCircle className="w-5 h-5 text-blue-400 fill-blue-400/20" />}
             </div>
-            <p className="text-vibe-text-secondary text-sm">{followerCount.toLocaleString()} followers</p>
+            <p className="text-vibe-text-secondary text-sm">{t('followerCount', { count: followerCount })}</p>
           </div>
         </div>
 
@@ -159,7 +162,7 @@ export default function ArtistClient({ artist, events, isFollowing: initialFollo
         {activeTab === 'bio' && (
           <div className="glass-card p-5 rounded-2xl">
             <p className="text-vibe-text-secondary leading-relaxed text-sm">
-              {artist.bio || 'Nessuna biografia disponibile per questo artista.'}
+              {artist.bio || t('noBio')}
             </p>
           </div>
         )}
@@ -169,7 +172,7 @@ export default function ArtistClient({ artist, events, isFollowing: initialFollo
             {events.length === 0 ? (
               <div className="text-center py-12 text-vibe-text-secondary">
                 <Calendar className="w-12 h-12 mx-auto mb-3 opacity-30" />
-                <p>Nessun evento in programma</p>
+                <p>{t('noEvents')}</p>
               </div>
             ) : events.map((event, i) => (
               <Link key={event.id} href={`/events/${event.id}`}>
@@ -189,7 +192,7 @@ export default function ArtistClient({ artist, events, isFollowing: initialFollo
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold text-sm truncate">{event.title}</p>
                     <p className="text-xs text-vibe-text-secondary">
-                      {new Date(event.starts_at).toLocaleDateString('it-IT', { weekday: 'short', day: 'numeric', month: 'short' })}
+                      {new Date(event.starts_at).toLocaleDateString(locale, { weekday: 'short', day: 'numeric', month: 'short' })}
                     </p>
                     {event.venue && <p className="text-xs text-vibe-purple">@ {event.venue.name}</p>}
                   </div>
@@ -205,10 +208,10 @@ export default function ArtistClient({ artist, events, isFollowing: initialFollo
             <Music className="w-12 h-12 mx-auto mb-3 text-vibe-text-secondary opacity-50" />
             {artist.spotify_url ? (
               <a href={artist.spotify_url} target="_blank" rel="noopener" className="btn-primary inline-flex items-center gap-2">
-                <Music className="w-4 h-4" /> Ascolta su Spotify
+                <Music className="w-4 h-4" /> {t('listenOnSpotify')}
               </a>
             ) : (
-              <p className="text-vibe-text-secondary text-sm">Nessun link musicale disponibile</p>
+              <p className="text-vibe-text-secondary text-sm">{t('noMusic')}</p>
             )}
           </div>
         )}
@@ -216,7 +219,7 @@ export default function ArtistClient({ artist, events, isFollowing: initialFollo
         {(activeTab === 'photos' || activeTab === 'vibes') && (
           <div className="text-center py-12 text-vibe-text-secondary">
             <p className="text-4xl mb-3">{activeTab === 'photos' ? '📷' : '🎬'}</p>
-            <p className="text-sm">{activeTab === 'photos' ? 'Nessuna foto ancora' : 'Nessun vibe ancora'}</p>
+            <p className="text-sm">{activeTab === 'photos' ? t('noPhotos') : t('noVibes')}</p>
           </div>
         )}
       </div>

@@ -2,9 +2,10 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useTranslations } from 'next-intl';
 import { Radio, Eye, Heart, MessageCircle, Share2, Plus, Zap, X, Send, Users } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
-import { useRouter } from 'next/navigation';
+import { useRouter } from '@/lib/i18n/navigation';
 
 interface Stream {
   id: string;
@@ -26,6 +27,7 @@ interface LiveClientProps {
 const REACTIONS = ['❤️', '🔥', '😂', '😮', '👏', '🎵'];
 
 export default function LiveClient({ streams, scheduled, currentUserId }: LiveClientProps) {
+  const t = useTranslations('live');
   const supabase = createClient();
   const router = useRouter();
   const [activeStreams, setActiveStreams] = useState(streams);
@@ -104,7 +106,7 @@ export default function LiveClient({ streams, scheduled, currentUserId }: LiveCl
           ) : (
             <div className="text-center">
               <div className="text-8xl mb-4">🎙️</div>
-              <p className="text-white/60 text-sm">Stream in diretta</p>
+              <p className="text-white/60 text-sm">{t('streaming')}</p>
             </div>
           )}
 
@@ -183,7 +185,7 @@ export default function LiveClient({ streams, scheduled, currentUserId }: LiveCl
             value={comment}
             onChange={e => setComment(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && sendComment()}
-            placeholder="Scrivi un commento..."
+            placeholder={t('placeholderComment')}
             className="flex-1 bg-white/10 rounded-full px-4 py-2 text-sm text-white placeholder-white/40 outline-none"
           />
           <button onClick={sendComment} className="w-10 h-10 bg-vibe-purple rounded-full flex items-center justify-center">
@@ -201,16 +203,16 @@ export default function LiveClient({ streams, scheduled, currentUserId }: LiveCl
         <div>
           <h1 className="font-display text-2xl font-bold flex items-center gap-2">
             <Radio className="w-6 h-6 text-red-500" />
-            Live
+            {t('title')}
           </h1>
-          <p className="text-vibe-text-secondary text-sm">{activeStreams.length} stream attivi</p>
+          <p className="text-vibe-text-secondary text-sm">{t('activeStreams', { count: activeStreams.length })}</p>
         </div>
         {currentUserId && (
           <button
             onClick={() => setIsGoingLive(true)}
             className="flex items-center gap-2 bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-xl font-semibold text-sm transition-all"
           >
-            <Plus className="w-4 h-4" /> Vai Live
+            <Plus className="w-4 h-4" /> {t('goLive')}
           </button>
         )}
       </div>
@@ -219,8 +221,8 @@ export default function LiveClient({ streams, scheduled, currentUserId }: LiveCl
       {activeStreams.length === 0 ? (
         <div className="text-center py-16">
           <Radio className="w-16 h-16 mx-auto mb-4 text-vibe-text-secondary opacity-30" />
-          <p className="font-bold text-lg mb-2">Nessuno in diretta ora</p>
-          <p className="text-vibe-text-secondary text-sm">Torna più tardi o vai live tu per primo!</p>
+          <p className="font-bold text-lg mb-2">{t('noStreamsTitle')}</p>
+          <p className="text-vibe-text-secondary text-sm">{t('noStreamsSubtitle')}</p>
         </div>
       ) : (
         <div className="grid grid-cols-2 gap-3 mb-8">
@@ -271,7 +273,7 @@ export default function LiveClient({ streams, scheduled, currentUserId }: LiveCl
       {/* Scheduled */}
       {scheduled.length > 0 && (
         <div>
-          <h2 className="font-semibold text-lg mb-4">⏰ In programma</h2>
+          <h2 className="font-semibold text-lg mb-4">{t('scheduled')}</h2>
           <div className="space-y-3">
             {scheduled.map(s => (
               <div key={s.id} className="glass-card p-4 rounded-2xl flex items-center gap-3">
@@ -283,7 +285,7 @@ export default function LiveClient({ streams, scheduled, currentUserId }: LiveCl
                   <p className="text-xs text-vibe-text-secondary">{s.host?.display_name || s.host?.username}</p>
                 </div>
                 <button className="px-3 py-1.5 bg-vibe-purple/20 text-vibe-purple text-xs rounded-xl font-semibold">
-                  Promemoria
+                  {t('reminder')}
                 </button>
               </div>
             ))}
@@ -309,12 +311,12 @@ export default function LiveClient({ streams, scheduled, currentUserId }: LiveCl
               className="w-full max-w-md bg-vibe-surface rounded-t-3xl p-6"
               onClick={e => e.stopPropagation()}
             >
-              <h2 className="font-bold text-xl mb-6 text-center">🔴 Vai in diretta</h2>
+              <h2 className="font-bold text-xl mb-6 text-center">🔴 {t('goLive')}</h2>
               <input
                 type="text"
                 value={liveTitle}
                 onChange={e => setLiveTitle(e.target.value)}
-                placeholder="Titolo dello stream..."
+                placeholder={t('placeholderTitle')}
                 className="input-field mb-4"
                 autoFocus
               />
@@ -323,7 +325,7 @@ export default function LiveClient({ streams, scheduled, currentUserId }: LiveCl
                 disabled={!liveTitle.trim()}
                 className="w-full bg-red-500 hover:bg-red-600 disabled:opacity-50 text-white font-bold py-4 rounded-2xl text-lg transition-all"
               >
-                🔴 Inizia Ora
+                {t('goLiveNow')}
               </button>
             </motion.div>
           </motion.div>

@@ -108,12 +108,19 @@ export default function ChatPage() {
               `}
             >
               <div className="w-12 h-12 rounded-full bg-vibe-gradient p-[2px]">
-                <div className="w-full h-full rounded-full bg-vibe-dark overflow-hidden">
-                  <img 
-                    src={conv.other_user?.avatar_url || 'https://via.placeholder.com/150'} 
-                    alt="avatar"
-                    className="w-full h-full object-cover"
-                  />
+                <div className="w-full h-full rounded-full bg-vibe-dark overflow-hidden flex items-center justify-center">
+                  {conv.other_user?.avatar_url ? (
+                    <img 
+                      src={conv.other_user.avatar_url} 
+                      alt="avatar"
+                      className="w-full h-full object-cover"
+                      onError={(e) => { (e.target as HTMLImageElement).style.display='none'; }}
+                    />
+                  ) : (
+                    <span className="font-bold text-white text-sm">
+                      {(conv.other_user?.display_name || conv.other_user?.username || '?')[0].toUpperCase()}
+                    </span>
+                  )}
                 </div>
               </div>
               <div className="flex-1 text-left overflow-hidden">
@@ -150,12 +157,19 @@ export default function ChatPage() {
               >
                 ←
               </button>
-              <div className="w-10 h-10 rounded-full overflow-hidden border border-white/10">
-                <img 
-                  src={activeConv?.other_user?.avatar_url || 'https://via.placeholder.com/150'} 
-                  alt="avatar"
-                  className="w-full h-full object-cover"
-                />
+              <div className="w-10 h-10 rounded-full overflow-hidden border border-white/10 flex items-center justify-center bg-vibe-surface">
+                {activeConv?.other_user?.avatar_url ? (
+                  <img 
+                    src={activeConv.other_user.avatar_url} 
+                    alt="avatar"
+                    className="w-full h-full object-cover"
+                    onError={(e) => { (e.target as HTMLImageElement).style.display='none'; }}
+                  />
+                ) : (
+                  <span className="font-bold text-vibe-purple text-sm">
+                    {(activeConv?.other_user?.display_name || activeConv?.other_user?.username || '?')[0].toUpperCase()}
+                  </span>
+                )}
               </div>
               <div>
                 <p className="font-bold">{activeConv?.other_user?.display_name}</p>

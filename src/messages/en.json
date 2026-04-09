@@ -87,7 +87,8 @@
     "errorNotSupported": "Geolocation not supported",
     "back": "Back",
     "next": "Next",
-    "start": "Start"
+    "start": "Start",
+    "magicLinkSent": "Check your email for the Magic Link! ✨"
   },
   "onboarding": {
     "title": "Let's personalize your experience.",
@@ -155,23 +156,42 @@
       "city": "City",
       "date": "Date",
       "genre": "Genre",
-      "price": "Price"
-    }
+      "price": "Price",
+      "all": "All",
+      "today": "Today",
+      "tomorrow": "Tomorrow",
+      "thisWeek": "This Week"
+    },
+    "promoted": "⚡ Promoted",
+    "placeholderCity": "Switzerland",
+    "placeholderCategory": "Event"
   },
   "venues": {
     "title": "Venues",
+    "backToExplore": "Back to Explore",
+    "verified": "Verified",
+    "vibeScore": "Vibe Score",
+    "presentNow": "Present now",
+    "status": "Status",
+    "info": "Information",
+    "upcomingEvents": "Upcoming events",
+    "all": "All",
+    "noEvents": "No upcoming events.",
+    "hours": "Hours",
     "open": "Open",
     "closed": "Closed",
+    "location": "Location",
+    "directions": "Directions",
+    "category": "Category",
     "rating": "Rating",
     "reviews": "Reviews",
     "follow": "Follow",
     "following": "Following",
-    "upcomingEvents": "Upcoming events",
+    "unfollow": "Unfollow",
     "openingHours": "Opening hours",
     "amenities": "Amenities",
     "musicGenres": "Music genres",
     "contactInfo": "Contact",
-    "directions": "Directions",
     "gallery": "Gallery",
     "noVenues": "No venues found"
   },
@@ -189,7 +209,12 @@
     "writeComment": "Write a comment...",
     "noContent": "No content to display",
     "yourStory": "Your story",
-    "yourStoryFallback": "You"
+    "yourStoryFallback": "You",
+    "noComments": "No comments yet. Be the first!",
+    "loginToComment": "Sign in to leave a comment.",
+    "noCaption": "No description.",
+    "publish": "Publish",
+    "comments": "Comments"
   },
   "explore": {
     "title": "Explore",
@@ -239,6 +264,9 @@
     "yourStory": "Your story",
     "seenBy": "Seen by {count} people",
     "replyToStory": "Reply to story...",
+    "secondsAgo": "{count}s ago",
+    "minutesAgo": "{count}m ago",
+    "hoursAgo": "{count}h ago",
     "storyExpired": "This story has expired",
     "highlights": "Highlights",
     "addHighlight": "Add to highlights",
@@ -251,7 +279,8 @@
     "createHighlight": "Create highlight",
     "highlightTitle": "Highlight title",
     "selectStories": "Select stories",
-    "chooseCover": "Choose cover"
+    "chooseCover": "Choose cover",
+    "liveComments": "Live Comments"
   },
   "upload": {
     "label": "Upload Media",
@@ -367,7 +396,7 @@
     "circles": {
       "title": "Your Circles",
       "create": "Create Circle",
-      "placeholderName": "Circle name...",
+      "placeholderName": "Circle name (e.g. Close Friends)...",
       "placeholderDesc": "Description (optional)",
       "createBtn": "Create",
       "none": "No circles",
@@ -378,8 +407,74 @@
       "add": "Add",
       "removeMember": "Remove member",
       "select": "Select a Circle",
-      "orCreate": "or create a new one"
+      "orCreate": "or create a new one",
+      "manageDescription": "Manage who can see your private content in this circle.",
+      "membersListTitle": "Current Members",
+      "emptyMembersTitle": "No members in this circle.",
+      "emptyMembersSubtitle": "Use search above to invite someone!",
+      "landingTitle": "Your Exclusive Circles",
+      "landingSubtitle": "Select a circle to manage members or create a new one to share special moments only with those you choose.",
+      "createdSuccess": "Circle created successfully!",
+      "userAlreadyIn": "User already in circle",
+      "memberAdded": "Member added!",
+      "noneCreated": "You haven't created any circles yet.",
+      "membersCount": "{count, plural, =0 {No members} =1 {1 member} other {# members}}",
+      "pageTitle": "Social Circles",
+      "userLabel": "User"
     }
+  },
+  "business": {
+    "register": {
+      "title": "Become a Partner",
+      "subtitle": "Reach the audience of Swiss nightlife.",
+      "requestSent": "Request Sent!",
+      "processing": "We've received the details for {name}. Our team will verify your request and contact you via email within 24 business hours.",
+      "backToHome": "Back to Home",
+      "step": "Step",
+      "steps": {
+        "details": "Business Details",
+        "legal": "Legal Data / Billing",
+        "contact": "Reference Contacts",
+        "plan": "Choose a Plan"
+      },
+      "publicName": "Public Name",
+      "businessType": "Business Type",
+      "types": {
+        "club": "Nightclub / Club",
+        "bar": "Bar / Lounge",
+        "promoter": "Promoter",
+        "festival": "Festival"
+      },
+      "legalName": "Legal Entity Name",
+      "uid": "Swiss UID / VAT",
+      "address": "Address and City",
+      "addressPlaceholder": "Street",
+      "cityPlaceholder": "City",
+      "planBasic": "Basic Plan",
+      "planBasicDesc": "Ideal for small venues",
+      "planPro": "Pro Plan",
+      "planProDesc": "For clubs and promoters with many events",
+      "secureCheckout": "Secure Checkout:",
+      "checkoutNote": "By clicking Register you will be redirected to Stripe checkout to complete the subscription. Account verification will be done afterwards.",
+      "error": "An error occurred during registration.",
+      "back": "Back",
+      "continue": "Continue",
+      "processing_btn": "Processing...",
+      "checkout_btn": "Checkout Now"
+    }
+  },
+  "live": {
+    "title": "Live",
+    "activeStreams": "{count} active streams",
+    "goLive": "Go Live",
+    "goLiveNow": "🔴 Go Live Now",
+    "placeholderTitle": "Stream title...",
+    "placeholderComment": "Write a comment...",
+    "noStreamsTitle": "No one live right now",
+    "noStreamsSubtitle": "Check back later or go live first!",
+    "scheduled": "⏰ Scheduled",
+    "reminder": "Reminder",
+    "streaming": "Live streaming"
   },
   "errors": {
     "generic": "Something went wrong. Please try again later.",
@@ -632,7 +727,16 @@
     "wrongEvent": "Wrong event",
     "cancelled": "Ticket cancelled",
     "scanSuccess": "Scan successful",
-    "scanError": "Scan error"
+    "scanError": "Scan error",
+    "manualPlaceholder": "Paste QR data here (dev)",
+    "name": "Name",
+    "type": "Type",
+    "event": "Event",
+    "status": "Status",
+    "alreadyUsedWarning": "⚠️ Already used",
+    "validSuccess": "✓ Valid",
+    "cameraUnavailable": "Camera unavailable. Please check permissions.",
+    "retry": "Retry"
   },
   "gamification": {
     "vibePoints": "Vibe Points",
@@ -689,9 +793,16 @@
     "photos": "Photos",
     "vibes": "Vibes",
     "noArtists": "No artists found",
-    "verified": "Verified artist",
     "genres": "Genres",
-    "socialLinks": "Social"
+    "socialLinks": "Social",
+    "events": "Events",
+    "noBio": "No biography available for this artist.",
+    "noEvents": "No upcoming events",
+    "listenOnSpotify": "Listen on Spotify",
+    "noMusic": "No music links available",
+    "noPhotos": "No photos yet",
+    "noVibes": "No vibes yet",
+    "followerCount": "{count, plural, =0 {No followers} =1 {1 follower} other {# followers}}"
   },
   "discover": {
     "title": "Discover people",
@@ -706,27 +817,63 @@
   },
   "tickets": {
     "selectType": "Select ticket type",
-    "generalAdmission": "General admission",
+    "generalAdmission": "General Admission",
     "vipTable": "VIP Table",
-    "earlyBird": "Early bird",
-    "studentDiscount": "Student discount",
+    "earlyBird": "Early Bird",
+    "studentDiscount": "Student Discount",
     "remaining": "{count} remaining",
     "selectQuantity": "Select quantity",
     "total": "Total",
     "attendeeDetails": "Attendee details",
     "name": "Name",
     "email": "Email",
-    "phone": "Phone (optional)",
-    "specialRequests": "Special requests",
+    "phone": "Phone",
+    "specialRequests": "Special Requests",
     "payment": "Payment",
     "confirmation": "Confirmation",
+    "paymentSecure": "Safe payment with 256-bit SSL encryption",
+    "processing": "Processing...",
+    "pay": "Pay CHF {total}",
+    "free": "Free",
     "qrCode": "Your QR code",
-    "addToWallet": "Add to Wallet",
-    "addToCalendar": "Add to calendar",
-    "shareTicket": "Share ticket",
+    "addToWallet": "Add to Apple Wallet",
+    "addToCalendar": "Add to Calendar",
+    "shareTicket": "Share Ticket",
     "soldOut": "Sold out",
     "waitlist": "Join waitlist",
     "waitlistPosition": "You are #{position} on the waitlist",
-    "notifyWhenAvailable": "We'll notify you when a spot opens"
+    "notifyWhenAvailable": "We'll notify you when a spot opens",
+    "methods": {
+      "creditCard": "Credit / Debit Card",
+      "twint": "TWINT",
+      "applePay": "Apple Pay",
+      "googlePay": "Google Pay"
+    },
+    "types": {
+      "general": "General Admission",
+      "vip": "VIP Table",
+      "vipDesc": "Reserved table + bottle included",
+      "early": "Early Bird",
+      "earlyDesc": "Available until 10:00 PM"
+    }
+  },
+  "checkout": {
+    "title": "Complete Checkout",
+    "securePayment": "Secure payment procedure",
+    "sslEnabled": "256-bit SSL encryption enabled",
+    "cardData": "Card Data (Mock)",
+    "payNow": "Pay Now CHF {total}",
+    "termsNote": "By clicking \"Pay Now\" you agree to the terms of service and refund policy of Vibe Platform. This is an alpha test.",
+    "processing": "Processing...",
+    "dontClose": "Do not close this window",
+    "successTitle": "Ticket Confirmed!",
+    "successText": "Awesome! Your spot for {event} is reserved. You'll receive a QR code via email or in the 'My Tickets' section.",
+    "backToEvent": "Back to event"
+  },
+  "notFound": {
+    "title": "This page doesn't exist... yet.",
+    "subtitle": "Maybe it was an event, a venue, or an artist that's not yet on Vibemeet's radar. Go back to the map and discover what's happening near you.",
+    "backToMap": "Go back to Map",
+    "homeFeed": "Home Feed"
   }
 }

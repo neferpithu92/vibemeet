@@ -186,10 +186,15 @@
     "comment": "Comentar",
     "share": "Compartilhar",
     "save": "Salvar",
-    "writeComment": "Escrever um comentário...",
+    "writeComment": "Escreva um comentário...",
     "noContent": "Nenhum conteúdo para exibir",
     "yourStory": "Sua história",
-    "yourStoryFallback": "Você"
+    "yourStoryFallback": "Você",
+    "noComments": "Sem comentários ainda. Seja o primeiro!",
+    "loginToComment": "Faça login para deixar um comentário.",
+    "noCaption": "Sem descrição.",
+    "publish": "Publicar",
+    "comments": "Comentários"
   },
   "explore": {
     "title": "Explorar",

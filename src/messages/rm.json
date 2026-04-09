@@ -189,7 +189,12 @@
     "writeComment": "Scriver in commentari...",
     "noContent": "Nagin cuntegn da mussar",
     "yourStory": "Tia istorgia",
-    "yourStoryFallback": "Ti"
+    "yourStoryFallback": "Ti",
+    "noComments": "Nagins commentaris anc. Sii il emprim!",
+    "loginToComment": "Acceda per lasciar in commentari.",
+    "noCaption": "Nagina descripziun.",
+    "publish": "Publitgar",
+    "comments": "Commentaris"
   },
   "social": {
     "comments": "Commentaris",

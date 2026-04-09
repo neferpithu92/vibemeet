@@ -35,7 +35,11 @@ export default function TicketPurchaseFlow({ eventId, eventTitle, ticketTypes, i
   const t = useTranslations('tickets');
   const supabase = createClient();
 
-  const types = ticketTypes?.length ? ticketTypes : DEFAULT_TICKET_TYPES;
+  const types: TicketType[] = ticketTypes?.length ? ticketTypes : [
+    { id: 'general', name: t('types.general'), price: 0, remaining: 100 },
+    { id: 'vip', name: t('types.vip'), price: 50, remaining: 10, description: t('types.vipDesc') },
+    { id: 'early', name: t('types.early'), price: 15, remaining: 20, description: t('types.earlyDesc') }
+  ];
 
   const [step, setStep] = useState<Step>('select');
   const [selectedType, setSelectedType] = useState<TicketType | null>(null);
@@ -144,7 +148,7 @@ export default function TicketPurchaseFlow({ eventId, eventTitle, ticketTypes, i
                     <div className="flex items-center justify-between mb-1">
                       <span className="font-semibold">{type.name}</span>
                       <span className="font-bold text-vibe-purple">
-                        {type.price === 0 ? 'Gratis' : `CHF ${type.price}`}
+                        {type.price === 0 ? t('free') : `CHF ${type.price}`}
                       </span>
                     </div>
                     {type.description && <p className="text-xs text-vibe-text-secondary">{type.description}</p>}
@@ -160,7 +164,7 @@ export default function TicketPurchaseFlow({ eventId, eventTitle, ticketTypes, i
                 <div className="glass-card p-4 rounded-2xl">
                   <p className="text-sm text-vibe-text-secondary mb-1">{selectedType.name}</p>
                   <p className="font-bold text-2xl text-vibe-purple">
-                    {selectedType.price === 0 ? 'Gratis' : `CHF ${selectedType.price} × ${quantity}`}
+                    {selectedType.price === 0 ? t('free') : `CHF ${selectedType.price} × ${quantity}`}
                   </p>
                 </div>
                 <div className="flex items-center justify-between">
@@ -209,10 +213,10 @@ export default function TicketPurchaseFlow({ eventId, eventTitle, ticketTypes, i
                 {/* Payment methods */}
                 <div className="space-y-2">
                   {[
-                    { icon: '💳', label: 'Carta di credito / debito' },
-                    { icon: '📱', label: 'TWINT' },
-                    { icon: '🍎', label: 'Apple Pay' },
-                    { icon: 'G', label: 'Google Pay' }
+                    { icon: '💳', label: t('methods.creditCard') },
+                    { icon: '📱', label: t('methods.twint') },
+                    { icon: '🍎', label: t('methods.applePay') },
+                    { icon: 'G', label: t('methods.googlePay') }
                   ].map(m => (
                     <button key={m.label} className="w-full flex items-center gap-3 p-4 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition-all text-left">
                       <span className="text-xl w-8 text-center">{m.icon}</span>
@@ -223,7 +227,7 @@ export default function TicketPurchaseFlow({ eventId, eventTitle, ticketTypes, i
 
                 <div className="flex items-center gap-2 text-xs text-vibe-text-secondary">
                   <Shield className="w-3 h-3" />
-                  <span>Pagamento sicuro con crittografia SSL 256-bit</span>
+                  <span>{t('paymentSecure')}</span>
                 </div>
 
                 <Button
@@ -232,7 +236,7 @@ export default function TicketPurchaseFlow({ eventId, eventTitle, ticketTypes, i
                   onClick={handlePurchase}
                   disabled={processing}
                 >
-                  {processing ? 'Elaborazione...' : `Paga CHF ${total.toFixed(2)}`}
+                  {processing ? t('processing') : t('pay', { total: total.toFixed(2) })}
                 </Button>
               </div>
             )}

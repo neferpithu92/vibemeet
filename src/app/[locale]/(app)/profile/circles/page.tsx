@@ -13,7 +13,7 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { useToast } from '@/components/ui/ToastProvider';
 
 export default function CirclesPage() {
-  const t = useTranslations('nav');
+  const t = useTranslations('social.circles');
   const tc = useTranslations('common');
   const { showToast } = useToast();
   
@@ -48,7 +48,7 @@ export default function CirclesPage() {
     if (circle) {
       setNewCircleName('');
       setIsCreating(false);
-      showToast('Cerchio creato con successo!', 'success');
+      showToast(t('createdSuccess'), 'success');
     }
   };
 
@@ -70,11 +70,11 @@ export default function CirclesPage() {
     if (!activeCircle) return;
     // Check if already member
     if (activeCircle.members?.some(m => m.user_id === userId)) {
-      showToast('Utente già presente nel cerchio', 'info');
+      showToast(t('userAlreadyIn'), 'info');
       return;
     }
     await addMember(activeCircle.id, userId);
-    showToast('Membro aggiunto!', 'success');
+    showToast(t('memberAdded'), 'success');
     setSearchQuery('');
     setSearchResults([]);
   };
@@ -84,7 +84,7 @@ export default function CirclesPage() {
       <div className="flex items-center gap-4 mb-8">
         <BackButton />
         <h1 className="text-2xl font-bold font-display vibe-gradient-text ml-12 uppercase tracking-tighter">
-          Social Circles
+          {t('pageTitle')}
         </h1>
       </div>
 
@@ -94,7 +94,7 @@ export default function CirclesPage() {
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-sm font-bold uppercase text-vibe-text-secondary tracking-widest flex items-center gap-2">
               <ShieldCheck className="w-4 h-4 text-vibe-purple" />
-              I Tuoi Cerchi
+              {t('title')}
             </h2>
             <button 
               onClick={() => setIsCreating(true)}
@@ -115,14 +115,14 @@ export default function CirclesPage() {
               >
                 <input 
                   autoFocus
-                  placeholder="Nome del cerchio (es. Close Friends)"
+                  placeholder={t('placeholderName')}
                   value={newCircleName}
                   onChange={(e) => setNewCircleName(e.target.value)}
                   className="input-field text-sm"
                 />
                 <div className="flex gap-2">
-                  <Button type="submit" size="sm" className="flex-1">Crea</Button>
-                  <Button type="button" variant="outline" size="sm" onClick={() => setIsCreating(false)}>Annulla</Button>
+                  <Button type="submit" size="sm" className="flex-1">{t('createBtn')}</Button>
+                  <Button type="button" variant="outline" size="sm" onClick={() => setIsCreating(false)}>{tc('cancel')}</Button>
                 </div>
               </motion.form>
             )}
@@ -151,7 +151,7 @@ export default function CirclesPage() {
                   <div className="text-left">
                     <p className="font-bold text-sm">{c.name}</p>
                     <p className="text-[10px] text-vibe-text-secondary uppercase">
-                      {c.members?.length || 0} Membri
+                      {t('membersCount', { count: c.members?.length || 0 })}
                     </p>
                   </div>
                 </div>
@@ -161,7 +161,7 @@ export default function CirclesPage() {
 
             {circles.length === 0 && !isLoading && (
               <p className="text-center py-12 text-sm text-vibe-text-secondary opacity-50">
-                Non hai ancora creato nessun cerchio.
+                {t('noneCreated')}
               </p>
             )}
           </div>
@@ -182,7 +182,7 @@ export default function CirclesPage() {
                   <div className="flex items-center justify-between mb-6">
                     <div>
                       <h2 className="text-2xl font-bold font-display">{activeCircle.name}</h2>
-                      <p className="text-xs text-vibe-text-secondary mt-1">Gestisci chi può vedere i tuoi contenuti privati in questo cerchio.</p>
+                      <p className="text-xs text-vibe-text-secondary mt-1">{t('manageDescription')}</p>
                     </div>
                     <button 
                       onClick={() => deleteCircle(activeCircle.id)}
@@ -197,7 +197,7 @@ export default function CirclesPage() {
                     <div className="relative">
                       <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-vibe-text-secondary" />
                       <input 
-                        placeholder="Cerca amici da aggiungere..."
+                        placeholder={t('searchUsers')}
                         value={searchQuery}
                         onChange={(e) => handleSearch(e.target.value)}
                         className="input-field pl-10"
@@ -213,7 +213,13 @@ export default function CirclesPage() {
                             className="w-full flex items-center justify-between p-2 rounded-xl hover:bg-white/10"
                           >
                             <div className="flex items-center gap-3">
-                              <img src={u.avatar_url || 'https://via.placeholder.com/150'} className="w-8 h-8 rounded-full" />
+                              {u.avatar_url ? (
+                                <img src={u.avatar_url} alt="" className="w-8 h-8 rounded-full" />
+                              ) : (
+                                <div className="w-8 h-8 rounded-full bg-vibe-purple/20 flex items-center justify-center text-[10px] font-bold">
+                                  {u.username[0]?.toUpperCase()}
+                                </div>
+                              )}
                               <span className="text-sm font-medium">{u.display_name}</span>
                             </div>
                             <UserPlus className="w-4 h-4 text-vibe-purple" />
@@ -225,7 +231,7 @@ export default function CirclesPage() {
 
                   {/* Members List */}
                   <div className="space-y-3">
-                    <h3 className="text-xs font-bold uppercase tracking-widest text-vibe-text-secondary mb-3">Membri Attuali</h3>
+                    <h3 className="text-xs font-bold uppercase tracking-widest text-vibe-text-secondary mb-3">{t('membersListTitle')}</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       {activeCircle.members?.map((m) => (
                         <div 
@@ -233,9 +239,15 @@ export default function CirclesPage() {
                           className="flex items-center justify-between p-3 rounded-2xl bg-white/5 border border-white/5 group"
                         >
                           <div className="flex items-center gap-3">
-                            <img src={m.users?.avatar_url || 'https://via.placeholder.com/150'} className="w-10 h-10 rounded-full border border-white/10" />
+                            {m.users?.avatar_url ? (
+                              <img src={m.users.avatar_url} alt="" className="w-10 h-10 rounded-full border border-white/10" />
+                            ) : (
+                              <div className="w-10 h-10 rounded-full bg-vibe-purple/20 flex items-center justify-center text-sm font-bold border border-white/10">
+                                {m.users?.username[0]?.toUpperCase()}
+                              </div>
+                            )}
                             <div className="min-w-0">
-                              <p className="text-sm font-bold truncate">{m.users?.display_name || 'Utente'}</p>
+                              <p className="text-sm font-bold truncate">{m.users?.display_name || t('userLabel')}</p>
                               <p className="text-[10px] text-vibe-text-secondary">@{m.users?.username}</p>
                             </div>
                           </div>
@@ -251,8 +263,8 @@ export default function CirclesPage() {
                       {(!activeCircle.members || activeCircle.members.length === 0) && (
                         <div className="col-span-full py-12 text-center text-vibe-text-secondary opacity-50 space-y-2">
                            <Users className="w-12 h-12 mx-auto mb-2 stroke-[1px]" />
-                           <p className="text-sm font-medium">Nessun membro in questo cerchio.</p>
-                           <p className="text-xs">Usa la ricerca sopra per invitare qualcuno!</p>
+                           <p className="text-sm font-medium">{t('emptyMembersTitle')}</p>
+                           <p className="text-xs">{t('emptyMembersSubtitle')}</p>
                         </div>
                       )}
                     </div>
@@ -266,8 +278,8 @@ export default function CirclesPage() {
                       <ShieldCheck className="w-10 h-10 text-vibe-purple" />
                    </div>
                  </div>
-                 <h2 className="text-2xl font-bold font-display vibe-gradient-text mb-4 uppercase tracking-tighter">I Tuoi Cerchi Esclusivi</h2>
-                 <p className="text-vibe-text-secondary max-w-sm">Seleziona un cerchio per gestire i membri o creane uno nuovo per condividere momenti speciali solo con chi vuoi tu.</p>
+                 <h2 className="text-2xl font-bold font-display vibe-gradient-text mb-4 uppercase tracking-tighter">{t('landingTitle')}</h2>
+                 <p className="text-vibe-text-secondary max-w-sm">{t('landingSubtitle')}</p>
               </div>
             )}
           </AnimatePresence>

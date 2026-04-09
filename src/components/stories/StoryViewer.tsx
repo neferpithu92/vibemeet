@@ -156,9 +156,9 @@ export default function StoryViewer({ groups, initialGroupIndex, onClose, curren
 
   const timeAgo = (date: string) => {
     const diff = (Date.now() - new Date(date).getTime()) / 1000;
-    if (diff < 60) return `${Math.floor(diff)}s fa`;
-    if (diff < 3600) return `${Math.floor(diff / 60)}m fa`;
-    return `${Math.floor(diff / 3600)}h fa`;
+    if (diff < 60) return t('secondsAgo', { count: Math.floor(diff) });
+    if (diff < 3600) return t('minutesAgo', { count: Math.floor(diff / 60) });
+    return t('hoursAgo', { count: Math.floor(diff / 3600) });
   };
 
   if (!currentGroup || !currentStory) return null;

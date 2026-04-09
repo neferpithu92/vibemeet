@@ -38,7 +38,7 @@ export default function CommentsDrawer({ isOpen, onClose, entityId, entityType =
   const [user, setUser] = useState<any>(null);
   
   const supabase = createClient();
-  const t = useTranslations('social');
+  const t = useTranslations('feed');
   const locale = useLocale();
 
   const fetchComments = useCallback(async () => {
@@ -150,7 +150,7 @@ export default function CommentsDrawer({ isOpen, onClose, entityId, entityType =
                 </div>
               ) : comments.length === 0 ? (
                 <div className="text-center py-20 text-vibe-text-secondary italic text-sm">
-                   Non ci sono ancora commenti. Sii il primo!
+                   {t('noComments')}
                 </div>
               ) : (
                 comments.map((comment) => (
@@ -184,7 +184,7 @@ export default function CommentsDrawer({ isOpen, onClose, entityId, entityType =
                       type="text"
                       value={newComment}
                       onChange={(e) => setNewComment(e.target.value)}
-                      placeholder="Commenta questo Reel..."
+                      placeholder={t('writeComment')}
                       className="w-full bg-white/5 border border-white/10 rounded-full py-2.5 pl-4 pr-12 text-sm text-white placeholder-white/30 focus:outline-none focus:border-vibe-purple transition-colors"
                     />
                     <button 
@@ -198,7 +198,7 @@ export default function CommentsDrawer({ isOpen, onClose, entityId, entityType =
                 </form>
               ) : (
                 <div className="text-center text-xs text-vibe-text-secondary py-2">
-                  Accedi per lasciare un commento.
+                  {t('loginToComment')}
                 </div>
               )}
             </div>

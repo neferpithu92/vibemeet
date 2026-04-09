@@ -1,11 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/Button';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from '@/lib/i18n/navigation';
 
 export default function BusinessRegisterPage() {
+  const t = useTranslations('business.register');
   const supabase = createClient();
   const router = useRouter();
   const [userId, setUserId] = useState<string | null>(null);
@@ -95,7 +97,7 @@ export default function BusinessRegisterPage() {
       }
     } catch (err) {
       console.error(err);
-      alert('Si è verificato un errore durante la registrazione.');
+      alert(t('error'));
     } finally {
       setLoading(false);
     }
@@ -107,12 +109,13 @@ export default function BusinessRegisterPage() {
         <div className="w-20 h-20 bg-vibe-green/20 text-vibe-green rounded-full flex items-center justify-center text-4xl mx-auto mb-6">
           ✓
         </div>
-        <h1 className="text-3xl font-display font-bold text-white mb-4">Richiesta Inviata!</h1>
-        <p className="text-vibe-text-secondary mb-8">
-          Abbiamo ricevuto i dettagli per <strong>{formData.businessName}</strong>. 
-          Il nostro team verificherà la tua richiesta e ti contatterà via email entro 24 ore lavorative.
-        </p>
-        <Button onClick={() => router.push('/')}>Torna alla Home</Button>
+        <h1 className="text-3xl font-display font-bold text-white mb-4">{t('requestSent')}</h1>
+        <div className="text-vibe-text-secondary mb-8">
+          <p>
+            {t('processing', { name: formData.businessName })}
+          </p>
+        </div>
+        <Button onClick={() => router.push('/')}>{t('backToHome')}</Button>
       </div>
     );
   }
@@ -120,8 +123,8 @@ export default function BusinessRegisterPage() {
   return (
     <div className="max-w-xl mx-auto px-4 py-12">
       <div className="text-center mb-10">
-        <h1 className="text-3xl font-display font-bold text-white mb-2">Diventa Partner</h1>
-        <p className="text-vibe-text-secondary">Raggiungi il pubblico della vita notturna svizzera.</p>
+        <h1 className="text-3xl font-display font-bold text-white mb-2">{t('title')}</h1>
+        <p className="text-vibe-text-secondary">{t('subtitle')}</p>
       </div>
 
       <div className="flex justify-between mb-8 px-2 relative">
@@ -145,18 +148,18 @@ export default function BusinessRegisterPage() {
           
           {step === 1 && (
             <div className="space-y-4 animate-fade-in">
-              <h2 className="text-xl font-bold mb-4 border-b border-white/10 pb-2">1. Dettagli Attività</h2>
+              <h2 className="text-xl font-bold mb-4 border-b border-white/10 pb-2">1. {t('steps.details')}</h2>
               <div>
-                <label className="text-xs font-bold text-vibe-text-secondary uppercase mb-1 block">Nome Pubblico</label>
+                <label className="text-xs font-bold text-vibe-text-secondary uppercase mb-1 block">{t('publicName')}</label>
                 <input required type="text" value={formData.businessName} onChange={e => setFormData({...formData, businessName: e.target.value})} className="input-field" placeholder="Es. Kaufleuten Club" />
               </div>
               <div>
-                <label className="text-xs font-bold text-vibe-text-secondary uppercase mb-1 block">Tipo di Attività</label>
+                <label className="text-xs font-bold text-vibe-text-secondary uppercase mb-1 block">{t('businessType')}</label>
                 <select value={formData.businessType} onChange={e => setFormData({...formData, businessType: e.target.value})} className="input-field bg-vibe-dark/50">
-                  <option value="club">Discoteca / Club</option>
-                  <option value="bar">Bar / Lounge</option>
-                  <option value="promoter">Promoter</option>
-                  <option value="festival">Festival</option>
+                  <option value="club">{t('types.club')}</option>
+                  <option value="bar">{t('types.bar')}</option>
+                  <option value="promoter">{t('types.promoter')}</option>
+                  <option value="festival">{t('types.festival')}</option>
                 </select>
               </div>
             </div>
@@ -164,32 +167,32 @@ export default function BusinessRegisterPage() {
 
           {step === 2 && (
             <div className="space-y-4 animate-fade-in">
-              <h2 className="text-xl font-bold mb-4 border-b border-white/10 pb-2">2. Dati Legali / Fatturazione</h2>
+              <h2 className="text-xl font-bold mb-4 border-b border-white/10 pb-2">2. {t('steps.legal')}</h2>
               <div>
-                <label className="text-xs font-bold text-vibe-text-secondary uppercase mb-1 block">Ragione Sociale</label>
+                <label className="text-xs font-bold text-vibe-text-secondary uppercase mb-1 block">{t('legalName')}</label>
                 <input required type="text" value={formData.legalName} onChange={e => setFormData({...formData, legalName: e.target.value})} className="input-field" />
               </div>
               <div>
-                <label className="text-xs font-bold text-vibe-text-secondary uppercase mb-1 block">UID Svizzera / P. IVA</label>
+                <label className="text-xs font-bold text-vibe-text-secondary uppercase mb-1 block">{t('uid')}</label>
                 <input required type="text" value={formData.uid} onChange={e => setFormData({...formData, uid: e.target.value})} className="input-field" />
               </div>
               <div>
-                <label className="text-xs font-bold text-vibe-text-secondary uppercase mb-1 block">Indirizzo Sede e Città</label>
-                <input required type="text" value={formData.address} onChange={e => setFormData({...formData, address: e.target.value})} className="input-field mb-2" placeholder="Via" />
-                <input required type="text" value={formData.city} onChange={e => setFormData({...formData, city: e.target.value})} className="input-field" placeholder="Città" />
+                <label className="text-xs font-bold text-vibe-text-secondary uppercase mb-1 block">{t('address')}</label>
+                <input required type="text" value={formData.address} onChange={e => setFormData({...formData, address: e.target.value})} className="input-field mb-2" placeholder={t('addressPlaceholder')} />
+                <input required type="text" value={formData.city} onChange={e => setFormData({...formData, city: e.target.value})} className="input-field" placeholder={t('cityPlaceholder')} />
               </div>
             </div>
           )}
 
           {step === 3 && (
             <div className="space-y-4 animate-fade-in">
-              <h2 className="text-xl font-bold mb-4 border-b border-white/10 pb-2">3. Contatti Referente</h2>
+              <h2 className="text-xl font-bold mb-4 border-b border-white/10 pb-2">3. {t('steps.contact')}</h2>
               <div>
-                <label className="text-xs font-bold text-vibe-text-secondary uppercase mb-1 block">Email</label>
+                <label className="text-xs font-bold text-vibe-text-secondary uppercase mb-1 block">{t('email')}</label>
                 <input required type="email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} className="input-field" />
               </div>
               <div>
-                <label className="text-xs font-bold text-vibe-text-secondary uppercase mb-1 block">Telefono</label>
+                <label className="text-xs font-bold text-vibe-text-secondary uppercase mb-1 block">{t('phone')}</label>
                 <input required type="tel" value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} className="input-field" />
               </div>
             </div>
@@ -197,7 +200,7 @@ export default function BusinessRegisterPage() {
 
           {step === 4 && (
             <div className="space-y-4 animate-fade-in">
-              <h2 className="text-xl font-bold mb-4 border-b border-white/10 pb-2">4. Scegli un Piano</h2>
+              <h2 className="text-xl font-bold mb-4 border-b border-white/10 pb-2">4. {t('steps.plan')}</h2>
               
               <div className="space-y-3">
                 <button
@@ -209,8 +212,8 @@ export default function BusinessRegisterPage() {
                       : 'bg-white/5 border border-white/10 hover:bg-white/10'
                   }`}
                 >
-                  <p className="text-white font-bold text-lg">Piano Basic</p>
-                  <p className="text-sm text-vibe-text-secondary">Ideale per piccoli locali</p>
+                  <p className="text-white font-bold text-lg">{t('planBasic')}</p>
+                  <p className="text-sm text-vibe-text-secondary">{t('planBasicDesc')}</p>
                 </button>
                 <button
                   type="button"
@@ -221,14 +224,14 @@ export default function BusinessRegisterPage() {
                       : 'bg-white/5 border border-white/10 hover:bg-white/10'
                   }`}
                 >
-                  <p className="text-white font-bold text-lg">Piano Pro</p>
-                  <p className="text-sm text-vibe-text-secondary">Per discoteche e promoter con tanti eventi</p>
+                  <p className="text-white font-bold text-lg">{t('planPro')}</p>
+                  <p className="text-sm text-vibe-text-secondary">{t('planProDesc')}</p>
                 </button>
               </div>
 
               <div className="p-4 bg-vibe-purple/10 border border-vibe-purple/20 rounded-xl mt-6">
-                <p className="text-sm text-vibe-text font-medium mb-2">Checkout Sicuro:</p>
-                <p className="text-xs text-vibe-text-secondary">Cliccando Registrati verrai reindirizzato al checkout Stripe per completare l'abbonamento. La verifica del conto sarà effettuata successivamente.</p>
+                <p className="text-sm text-vibe-text font-medium mb-2">{t('secureCheckout')}</p>
+                <p className="text-xs text-vibe-text-secondary">{t('checkoutNote')}</p>
               </div>
             </div>
           )}
@@ -236,11 +239,11 @@ export default function BusinessRegisterPage() {
           <div className="flex gap-3 pt-6 border-t border-white/10 mt-8">
             {step > 1 && (
               <Button type="button" variant="outline" className="flex-1" onClick={() => setStep(step - 1)}>
-                Indietro
+                {t('back')}
               </Button>
             )}
             <Button type="submit" className="flex-1" disabled={loading}>
-              {loading ? 'Elaborazione...' : step < 4 ? 'Continua' : 'Effettua Checkout'}
+              {loading ? t('processing_btn') : step < 4 ? t('continue') : t('checkout_btn')}
             </Button>
           </div>
         </form>
