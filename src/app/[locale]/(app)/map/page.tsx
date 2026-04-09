@@ -29,6 +29,8 @@ interface MapVenue {
   address?: string;
   slug?: string;
   description?: string;
+  vibe_score?: number;
+  crowd_density?: number;
 }
 
 interface MapEvent {
@@ -542,14 +544,18 @@ export default function MapPage() {
                   <div className="flex-1 p-3.5 rounded-2xl bg-white/5 border border-white/10 text-center group hover:bg-vibe-pink/5 transition-colors">
                     <p className="text-[10px] text-vibe-text-secondary uppercase font-bold tracking-widest mb-1 group-hover:text-vibe-pink transition-colors">Vibe Score</p>
                     <p className="text-xl font-bold text-white flex items-center justify-center gap-1.5">
-                       <span className="text-vibe-pink">9.8</span>
+                       <span className="text-vibe-pink">
+                         {selectedItem.vibe_score ? Number(selectedItem.vibe_score).toFixed(1) : '5.0'}
+                       </span>
                        <span className="text-xs opacity-40">/10</span>
                     </p>
                   </div>
                   <div className="flex-1 p-3.5 rounded-2xl bg-white/5 border border-white/10 text-center group hover:bg-vibe-cyan/5 transition-colors">
                     <p className="text-[10px] text-vibe-text-secondary uppercase font-bold tracking-widest mb-1 group-hover:text-vibe-cyan transition-colors">{t('crowd')}</p>
                     <p className="text-xl font-bold text-white flex items-center justify-center gap-1.5">
-                       <span className="text-vibe-cyan">75%</span>
+                       <span className="text-vibe-cyan">
+                         {selectedItem.crowd_density ?? 25}%
+                       </span>
                        <Users className="w-3.5 h-3.5 opacity-40" />
                     </p>
                   </div>

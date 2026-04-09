@@ -26,3 +26,17 @@ export const getCookie = (name: string) => {
 export const deleteCookie = (name: string) => {
   document.cookie = name + '=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
 };
+
+/**
+ * Verifica se l'utente ha fornito il consenso per una specifica categoria
+ * @param category 'analytics' | 'marketing' | 'essential'
+ */
+export const hasConsent = (category: 'analytics' | 'marketing' | 'essential'): boolean => {
+  if (typeof window === 'undefined') return false;
+  
+  const mainConsent = getCookie('vibemeet_consent');
+  if (mainConsent === 'all') return true;
+  if (mainConsent === 'essential' && category === 'essential') return true;
+  
+  return getCookie(`vibemeet_` + category) === 'true';
+};

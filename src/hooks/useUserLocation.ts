@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { hasConsent } from '@/lib/utils/cookies';
 
 /**
  * Hook per tracciare la posizione dell'utente e inviarla al server (Heartbeat).
@@ -8,10 +9,24 @@ import { useEffect, useRef } from 'react';
  */
 export function useUserLocation() {
   const lastUpdate = useRef<number>(0);
+  const [consentGranted, setConsentGranted] = useState(false);
   const UPDATE_INTERVAL = 5 * 60 * 1000; // 5 minuti
 
   useEffect(() => {
-    if (typeof window === 'undefined' || !navigator.geolocation) return;
+    // Check initial consent
+    setConsentGranted(hasConsent('analytics'));
+
+    // Listen for consent changes (CookieBanner handles this via event or just checking)
+    const checkInterval = setInterval(() => {
+      const current = hasConsent('analytics');
+      if (current !== consentGranted) setConsentGranted(current);
+    }, 2000);
+
+    return () => clearInterval(checkInterval);
+  }, [consentGranted]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !navigator.geolocation || !consentGranted) return;
 
     const updatePresence = async (position: GeolocationPosition) => {
       const now = Date.now();
