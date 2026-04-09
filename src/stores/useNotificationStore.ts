@@ -99,5 +99,42 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
       notifications: [notification, ...state.notifications].slice(0, 50),
       unreadCount: state.unreadCount + 1
     }));
+  },
+
+  subscribeToNotifications: (userId: string) => {
+    const supabase = createClient();
+    
+    const channel = supabase
+      .channel(`user-notifications-${userId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'notifications',
+          filter: `user_id=eq.${userId}`
+        },
+        async (payload) => {
+          const newNotif = payload.new as Notification;
+          
+          // Fetch actor details for the new notification
+          const { data: actor } = await supabase
+            .from('users')
+            .select('display_name, avatar_url')
+            .eq('id', newNotif.actor_id)
+            .single();
+            
+          if (actor) {
+            newNotif.actor = actor;
+          }
+          
+          get().addNotification(newNotif);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }
 }));

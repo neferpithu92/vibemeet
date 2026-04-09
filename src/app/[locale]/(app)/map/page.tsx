@@ -232,7 +232,9 @@ export default function MapPage() {
   const fetchData = async (bounds: { sw: [number, number]; ne: [number, number] }) => {
     setIsLoading(true);
     try {
-      const res = await fetch(`/api/map/data?sw=${bounds.sw.join(',')}&ne=${bounds.ne.join(',')}`);
+      const genresParam = selectedGenres.length > 0 ? `&genres=${selectedGenres.join(',')}` : '';
+      const dateParam = dateFilter !== 'all' ? `&date=${dateFilter}` : '';
+      const res = await fetch(`/api/map/data?sw=${bounds.sw.join(',')}&ne=${bounds.ne.join(',')}${genresParam}${dateParam}`);
       const data = await res.json();
       if (data.venues) setVenues(data.venues);
       if (data.events) setEvents(data.events);
@@ -246,6 +248,13 @@ export default function MapPage() {
       setIsLoading(false);
     }
   };
+
+  // Refetch when filters change
+  useEffect(() => {
+    if (currentBounds.current) {
+      fetchData(currentBounds.current);
+    }
+  }, [selectedGenres, dateFilter]);
 
   /** Abilita Realtime: quando il DB cambia, ricarica i dati dei bounds correnti */
   useMapRealtime(() => {

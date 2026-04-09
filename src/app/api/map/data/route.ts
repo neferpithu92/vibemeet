@@ -8,6 +8,7 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const sw = searchParams.get('sw')?.split(',').map(Number);
   const ne = searchParams.get('ne')?.split(',').map(Number);
+  const genres = searchParams.get('genres')?.split(',').filter(Boolean);
 
   if (!sw || !ne || sw.length !== 2 || ne.length !== 2) {
     return NextResponse.json({ error: 'Bounds richiesti' }, { status: 400 });
@@ -21,7 +22,8 @@ export async function GET(request: Request) {
     sw_lat: sw[1],
     ne_lon: ne[0],
     ne_lat: ne[1],
-    last_24h_stories: true
+    last_24h_stories: true,
+    p_genres: genres && genres.length > 0 ? genres : null
   });
 
   // Recupera Utenti Vicini (Nearby People) separatamente

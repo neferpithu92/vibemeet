@@ -93,6 +93,7 @@ export default function ProfilePage() {
   const [vibe, setVibe] = useState<UserPost[]>([]);
   const [stories, setStories] = useState<UserStory[]>([]);
   const [checkIns, setCheckIns] = useState<UserCheckIn[]>([]);
+  const [ticketsData, setTickets] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [followerCount, setFollowerCount] = useState(0);
   const [followingCount, setFollowingCount] = useState(0);
@@ -182,13 +183,27 @@ export default function ProfilePage() {
       if (checkInData) setCheckIns(checkInData);
 
       // 5. Conta follower/seguiti
-      const [{ count: followers }, { count: following }] = await Promise.all([
-        supabase.from('followers').select('*', { count: 'exact', head: true }).eq('following_id', user.id),
-        supabase.from('followers').select('*', { count: 'exact', head: true }).eq('follower_id', user.id)
-      ]);
-
       setFollowerCount(followers || 0);
       setFollowingCount(following || 0);
+
+      // 6. Carica Biglietti Reali (Vibe Pass)
+      const { data: ticketsData } = await supabase
+        .from('tickets')
+        .select(`
+          *,
+          event:events (
+            id,
+            title,
+            starts_at,
+            location_name,
+            venue:venues ( name, city )
+          )
+        `)
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (ticketsData) setTickets(ticketsData);
+
       setIsLoading(false);
     };
 
@@ -507,43 +522,49 @@ export default function ProfilePage() {
           </div>
         ) : activeTab === 'Tickets' ? (
           <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            {[1].map((tk) => (
-              <Card key={tk} className="p-0 overflow-hidden border-vibe-purple/20 bg-vibe-purple/5 group">
-                <div className="flex flex-col md:flex-row divide-y md:divide-y-0 md:divide-x divide-white/10">
+            {ticketsData.length > 0 ? ticketsData.map((tk) => (
+              <Card key={tk.id} className="p-0 overflow-hidden border-vibe-purple/20 bg-vibe-purple/5 group relative">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-vibe-purple/10 blur-[60px] -mr-16 -mt-16" />
+                <div className="flex flex-col md:flex-row divide-y md:divide-y-0 md:divide-x divide-white/10 relative z-10">
                   <div className="p-6 flex-1 flex flex-col justify-between">
                     <div>
                       <div className="flex items-center gap-2 mb-3">
-                         <Badge variant="premium">VIP TICKET</Badge>
-                         <span className="text-[10px] font-bold text-white/40 uppercase">#8A24F9C2</span>
+                         <Badge variant="premium">{tk.status === 'paid' ? 'VIBE PASS' : tk.status.toUpperCase()}</Badge>
+                         <span className="text-[10px] font-bold text-white/40 uppercase">#{tk.qr_code.slice(0, 8)}</span>
                       </div>
-                      <h3 className="text-xl font-black uppercase tracking-tighter vibe-gradient-text mb-1">Neon Nights Festival</h3>
+                      <h3 className="text-xl font-black uppercase tracking-tighter vibe-gradient-text mb-1">{tk.event?.title}</h3>
                       <p className="text-xs text-vibe-text-secondary flex items-center gap-2">
-                         <MapPin className="w-3 h-3" /> Zurich, Switzerland
+                         <MapPin className="w-3 h-3 text-vibe-purple" /> {tk.event?.location_name || tk.event?.venue?.name || 'Vibe Location'}
+                      </p>
+                      <p className="text-[10px] font-bold text-vibe-cyan uppercase tracking-widest mt-2">
+                        {tk.event?.starts_at ? new Date(tk.event.starts_at).toLocaleDateString(locale, { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }) : 'Date TBD'}
                       </p>
                     </div>
                     <div className="mt-8 pt-4 border-t border-white/10 flex items-center justify-between">
-                       <div className="flex -space-x-2">
-                          {[1,2,3].map(i => <div key={i} className="w-6 h-6 rounded-full border-2 border-vibe-dark bg-gray-500" />)}
-                          <span className="ml-4 text-[10px] text-vibe-text-secondary font-bold">+ 249 others going</span>
+                       <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                          <span className="text-[10px] text-vibe-text-secondary font-bold uppercase tracking-widest">Active Ticket</span>
                        </div>
                     </div>
                   </div>
                   <div className="p-6 bg-white/5 flex flex-col items-center justify-center gap-4 text-center">
                     <div className="w-32 h-32 bg-white rounded-2xl p-2 shadow-[0_0_30px_rgba(157,78,221,0.2)] group-hover:scale-105 transition-transform duration-500">
-                       {/* Mock QR Code representation */}
-                       <div className="w-full h-full bg-[url('https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=vibe_sample_ticket')] bg-cover opacity-90 mix-blend-multiply" />
+                       <div className={`w-full h-full bg-cover opacity-90 mix-blend-multiply`} style={{ backgroundImage: `url('https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${tk.qr_code}')` }} />
                     </div>
                     <div>
                        <p className="text-[10px] font-black uppercase text-vibe-purple tracking-widest">Scan to Validate</p>
-                       <p className="text-[9px] text-vibe-text-secondary mt-1">Valid only for single entry</p>
+                       <p className="text-[9px] text-vibe-text-secondary mt-1">Valid for {tk.quantity || 1} Person</p>
                     </div>
                   </div>
                 </div>
               </Card>
-            ))}
-            <div className="p-8 text-center border-2 border-dashed border-white/5 rounded-3xl">
-               <p className="text-sm text-vibe-text-secondary">Hai altri biglietti? Verranno visualizzati automaticamente dopo l'acquisto.</p>
-            </div>
+            )) : (
+              <div className="p-12 text-center border-2 border-dashed border-white/5 rounded-3xl opacity-30">
+                <PackageCheck className="w-12 h-12 mx-auto mb-4" />
+                <p className="text-sm font-bold uppercase tracking-widest">Nessun biglietto acquistato</p>
+                <Link href="/events" className="text-xs text-vibe-purple font-bold mt-4 block hover:underline">Esplora Eventi</Link>
+              </div>
+            )}
           </div>
         ) : (
           <div className="py-20 text-center glass-card border-dashed">
@@ -556,6 +577,7 @@ export default function ProfilePage() {
           <h3 className="font-display font-bold text-sm mb-4">⚙️ {t('quickSettings')}</h3>
           <div className="space-y-2">
             {[
+              { label: 'Il mio Wallet', icon: '🪙', href: '/profile/wallet' },
               { label: t('language'), icon: '🌐', href: '/settings?tab=lingua' },
               { label: t('privacy'), icon: '🔒', href: '/settings?tab=privacy' },
               { label: t('notifications'), icon: '🔔', href: '/settings?tab=notifiche' },

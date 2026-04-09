@@ -8,6 +8,8 @@ interface Message {
   sender_id: string;
   encrypted_content: string;
   nonce: string;
+  media_url?: string;
+  media_type?: string;
   decrypted_content?: string;
   created_at: string;
   read_at?: string;
@@ -18,6 +20,7 @@ interface Conversation {
   user1_id: string;
   user2_id: string;
   last_message_at: string;
+  created_at: string;
   other_user?: {
     id: string;
     username: string;
@@ -37,7 +40,8 @@ interface ChatState {
   fetchConversations: (userId: string) => Promise<void>;
   setActiveConversation: (id: string | null) => void;
   fetchMessages: (conversationId: string) => Promise<void>;
-  sendMessage: (content: string, recipientId: string, recipientPublicKey: string) => Promise<void>;
+  sendMessage: (content: string, recipientId: string, recipientPublicKey: string, media?: { url: string, type: string }) => Promise<void>;
+  markAsRead: (messageIds: string[]) => Promise<void>;
   handleRealtimeMessage: (payload: any) => void;
 }
 
@@ -105,29 +109,28 @@ export const useChatStore = create<ChatState>((set, get) => ({
     }
 
     const decrypted = await Promise.all(data.map(async msg => {
-      // In un'architettura asimmetrica, servono le chiavi incrociate
-      // Se il mittente sono io, uso la mia privata e la pubblica dell'altro (ma aspetta... crypto_box_open richiede la privata del RICEVENTE)
-      // LOGICA CORRETTA VEL:
-      // crypto_box_open_easy(ciphertext, nonce, sender_public_key, recipient_private_key)
-      
       const senderPublicKey = msg.sender_id === conversation?.other_user?.id 
         ? otherPublicKey 
         : sessionStorage.getItem('vibe_public_key');
         
       if (!senderPublicKey) return msg;
 
-      const content = await decryptDirectMessage(
-        msg.encrypted_content, 
-        senderPublicKey, 
-        privateKey
-      );
-      return { ...msg, decrypted_content: content };
+      try {
+        const content = await decryptDirectMessage(
+          msg.encrypted_content, 
+          senderPublicKey, 
+          privateKey
+        );
+        return { ...msg, decrypted_content: content };
+      } catch (e) {
+        return msg;
+      }
     }));
 
     set({ messages: decrypted, isLoading: false });
   },
 
-  sendMessage: async (content, recipientId, recipientPublicKey) => {
+  sendMessage: async (content, recipientId, recipientPublicKey, media) => {
     const supabase = createClient();
     const myPrivateKey = sessionStorage.getItem('vibe_private_key');
     
@@ -135,15 +138,11 @@ export const useChatStore = create<ChatState>((set, get) => ({
        throw new Error("Encryption keys missing. Failed to send E2E message.");
     }
 
-    // 1. Trova o crea conversazione
     const { data: convId } = await supabase.rpc('get_or_create_conversation', { p_user_id: recipientId });
-    
     if (!convId) throw new Error("Could not initialize conversation.");
 
-    // 2. Cifra il messaggio
     const encryptedPayload = await encryptDirectMessage(content, recipientPublicKey, myPrivateKey);
 
-    // 3. Invia a Supabase
     const { data: userData } = await supabase.auth.getUser();
     if (!userData.user) return;
 
@@ -151,18 +150,30 @@ export const useChatStore = create<ChatState>((set, get) => ({
       conversation_id: convId,
       sender_id: userData.user.id,
       encrypted_content: encryptedPayload,
-      nonce: encryptedPayload.substring(0, 32), // In encryption.ts combiniamo nonce e ciphertext
-      // Nota: in encryption.ts il payload include già il nonce, ma qui lo salviamo per compatibilità SQL se necessario
+      nonce: encryptedPayload.substring(0, 32),
+      media_url: media?.url,
+      media_type: media?.type
     });
 
     if (error) throw error;
   },
 
+  markAsRead: async (messageIds) => {
+    if (messageIds.length === 0) return;
+    const supabase = createClient();
+    await supabase.from('direct_messages')
+      .update({ read_at: new Date().toISOString() })
+      .in('id', messageIds);
+    
+    set(state => ({
+      messages: state.messages.map(m => 
+        messageIds.includes(m.id) ? { ...m, read_at: new Date().toISOString() } : m
+      )
+    }));
+  },
+
   handleRealtimeMessage: async (payload) => {
     const msg = payload.new;
-    const currentMessages = get().messages;
-    
-    // Verifica se il messaggio appartiene alla conversazione attiva
     if (msg.conversation_id !== get().activeConversationId) return;
 
     const privateKey = sessionStorage.getItem('vibe_private_key');
@@ -170,7 +181,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
     const otherPublicKey = conversation?.other_user?.public_key;
 
     if (!privateKey || !otherPublicKey) {
-      set({ messages: [...currentMessages, msg] });
+      set(state => ({ messages: [...state.messages, msg] }));
       return;
     }
 
@@ -178,9 +189,13 @@ export const useChatStore = create<ChatState>((set, get) => ({
         ? otherPublicKey 
         : sessionStorage.getItem('vibe_public_key');
 
-    const content = await decryptDirectMessage(msg.encrypted_content, senderPublicKey!, privateKey);
-    const decryptedMsg = { ...msg, decrypted_content: content };
-
-    set({ messages: [...currentMessages, decryptedMsg] });
+    try {
+      const content = await decryptDirectMessage(msg.encrypted_content, senderPublicKey!, privateKey);
+      const decryptedMsg = { ...msg, decrypted_content: content };
+      set(state => ({ messages: [...state.messages, decryptedMsg] }));
+    } catch (e) {
+      set(state => ({ messages: [...state.messages, msg] }));
+    }
   }
+}));
 }));

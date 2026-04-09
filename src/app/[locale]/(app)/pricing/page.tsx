@@ -18,10 +18,11 @@ export default async function PricingPage({ params }: { params: Promise<{ locale
 
   if (!user) {
     redirect({ href: '/login', locale });
+    return null; // TypeScript non sa che redirect termina l'esecuzione qui
   }
 
   // Carica info extra se necessario, e.g. se l'utente è un proprietario di venue
-  const userId = user.id; // user is guaranteed at this point
+  const userId = user.id; 
   const { data: venues } = await supabase
     .from('venues')
     .select('id, name')

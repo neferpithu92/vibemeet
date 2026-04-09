@@ -283,103 +283,127 @@ export default function DiscoveryClient({ venues, events, categories }: Discover
 
       {/* Only show categories and standard lists if NOT searching or no results yet */}
       {(!searchQuery || searchQuery.length < 2) && (
-        <>
-          {/* Categorie */}
-      <div className="flex gap-2 mb-8 overflow-x-auto hide-scrollbar pb-2">
-        {categories.map((cat) => (
-          <button
-            key={cat.id}
-            onClick={() => setActiveCategory(cat.id)}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium whitespace-nowrap transition-all duration-300 ${
-              activeCategory === cat.id
-                ? 'bg-vibe-purple/20 text-vibe-purple border border-vibe-purple/20'
-                : 'bg-white/5 text-vibe-text-secondary hover:bg-white/10'
-            }`}
-          >
-            <span>{cat.icon}</span>
-            <span>{t(`categories.${cat.id}`)}</span>
-          </button>
-        ))}
-      </div>
+        <AnimatePresence>
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+            {/* Categories Horizontal Scroll */}
+            <div className="flex gap-3 mb-10 overflow-x-auto hide-scrollbar pb-2">
+              {categories.map((cat) => (
+                <button
+                  key={cat.id}
+                  onClick={() => setActiveCategory(cat.id)}
+                  className={`flex flex-col items-center gap-3 min-w-[100px] p-4 rounded-2xl transition-all duration-500
+                    ${activeCategory === cat.id
+                      ? 'bg-vibe-purple text-white shadow-lg shadow-vibe-purple/40 scale-105'
+                      : 'bg-white/5 text-vibe-text-secondary hover:bg-white/10'
+                    }`}
+                >
+                  <span className="text-2xl">{cat.icon}</span>
+                  <span className="text-[10px] uppercase font-bold tracking-widest text-center">
+                    {t(`categories.${cat.id}`)}
+                  </span>
+                </button>
+              ))}
+            </div>
 
-      {/* Trending Events */}
-      <section className="mb-8">
-        <div className="section-header">
-          <h2 className="section-title flex items-center gap-2 text-left">
-            <span>🔥</span> {t('trending')}
-          </h2>
-          <Link href="/events" className="text-sm text-vibe-purple font-medium">{tc('seeAll')}</Link>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          {events.slice(0, 3).map((event) => (
-            <Link key={event.id} href={`/events/${event.id}`}>
-              <Card hover padding="none" className="overflow-hidden group cursor-pointer h-full text-left">
-                <div className="h-32 bg-vibe-gradient-subtle relative">
-                  <div className="absolute inset-0 bg-gradient-to-t from-vibe-surface to-transparent" />
-                  {new Date(event.end_time) > new Date() && new Date(event.start_time) < new Date() && (
-                    <div className="absolute top-3 left-3">
-                      <Badge variant="live">LIVE</Badge>
-                    </div>
-                  )}
-                </div>
-                <div className="p-3">
-                  <h3 className="font-semibold text-sm mb-1 group-hover:text-vibe-purple transition-colors truncate">{event.title}</h3>
-                  <p className="text-xs text-vibe-text-secondary truncate">
-                    {(Array.isArray(event.venue) ? event.venue[0]?.name : event.venue?.name) || 'Venue'}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {/* Left Column: Trending & People */}
+              <div className="md:col-span-2 space-y-10">
+                {/* Trending Events */}
+                <section>
+                  <div className="flex items-center justify-between mb-6">
+                    <h2 className="text-xl font-display font-black flex items-center gap-2">
+                      <Compass className="w-5 h-5 text-vibe-pink" /> 
+                      {t('trending')}
+                    </h2>
+                    <Link href="/events" className="text-xs text-vibe-pink font-bold uppercase tracking-widest hover:underline">Vedi Tutti</Link>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {events.slice(0, 4).map((event, idx) => (
+                      <Link key={event.id} href={`/events/${event.id}`}>
+                        <Card hover padding="none" className="overflow-hidden group relative h-48 rounded-3xl border-transparent hover:border-white/20 transition-all">
+                          <div className="absolute inset-0 bg-vibe-gradient opacity-10 group-hover:opacity-30 transition-opacity" />
+                          <div className="absolute inset-x-0 bottom-0 p-5 bg-gradient-to-t from-vibe-dark via-vibe-dark/80 to-transparent">
+                            <Badge variant="live" className="mb-2">POPULAR</Badge>
+                            <h3 className="font-display font-black text-lg text-white mb-1 leading-tight">{event.title}</h3>
+                            <p className="text-xs text-white/60 font-medium">@{(Array.isArray(event.venue) ? event.venue[0]?.name : event.venue?.name) || 'Vibe Venue'}</p>
+                          </div>
+                        </Card>
+                      </Link>
+                    ))}
+                  </div>
+                </section>
+
+                {/* Nearby Venues */}
+                <section>
+                  <div className="flex items-center justify-between mb-6">
+                    <h2 className="text-xl font-display font-black flex items-center gap-2">
+                      <MapPin className="w-5 h-5 text-vibe-cyan" /> 
+                      {t('nearbyVenues')}
+                    </h2>
+                    <Link href="/map" className="text-xs text-vibe-cyan font-bold uppercase tracking-widest hover:underline">Esplora Mappa</Link>
+                  </div>
+                  <div className="space-y-3">
+                    {filteredVenues.slice(0, 5).map((venue) => (
+                      <Link key={venue.id} href={`/venues/${venue.slug || venue.id}`}>
+                        <div className="group flex items-center gap-4 p-4 rounded-3xl bg-white/5 border border-white/5 hover:bg-white/10 transition-all">
+                          <div className="w-14 h-14 rounded-2xl bg-vibe-gradient flex items-center justify-center text-2xl shadow-lg shadow-vibe-purple/20">
+                            🏢
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-bold text-white group-hover:text-vibe-cyan transition-colors truncate">{venue.name}</h3>
+                            <p className="text-xs text-white/40 truncate">{venue.address || 'Zurigo'}</p>
+                            <div className="flex items-center gap-3 mt-1.5">
+                              <span className="text-[10px] font-bold text-amber-400">★ {venue.vibe_score || '9.2'}</span>
+                              <span className="text-[10px] font-bold text-green-400 uppercase tracking-tighter">● Open Now</span>
+                            </div>
+                          </div>
+                          <ChevronRight className="w-5 h-5 text-white/20 group-hover:text-vibe-cyan transition-all" />
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                </section>
+              </div>
+
+              {/* Sidebar: Trending Hashtags & Discovery Meta */}
+              <div className="space-y-10">
+                <section>
+                  <h2 className="text-lg font-display font-black mb-6 uppercase tracking-wider flex items-center gap-2 text-vibe-purple">
+                    <Hash className="w-5 h-5" /> In Tendenza
+                  </h2>
+                  <div className="flex flex-wrap gap-2">
+                    {trendingHashtags.length > 0 ? trendingHashtags.map((tag) => (
+                      <HashtagBadge 
+                        key={tag.tag} 
+                        tag={tag.tag} 
+                        count={tag.post_count} 
+                        size="md"
+                        className="hover:scale-110 transition-transform"
+                      />
+                    )) : (
+                      <div className="w-full text-center py-8 border-2 border-dashed border-white/5 rounded-3xl opacity-30">
+                        <Hash className="w-8 h-8 mx-auto mb-2" />
+                        <p className="text-xs font-bold uppercase tracking-widest">In arrivo...</p>
+                      </div>
+                    )}
+                  </div>
+                </section>
+
+                <Card className="bg-gradient-to-br from-vibe-purple/20 to-vibe-pink/20 border-white/10 p-6 rounded-[2rem]">
+                  <h3 className="text-lg font-display font-black text-white mb-3">VIBE ENGINE™</h3>
+                  <p className="text-xs text-white/60 leading-relaxed mb-6">
+                    Scopri contenuti e luoghi basati sulle tue passioni. L'algoritmo impara dai tuoi Vibe.
                   </p>
-                  <Badge variant="default" className="mt-2">{event.category || 'Event'}</Badge>
-                </div>
-              </Card>
-            </Link>
-          ))}
-          {events.length === 0 && (
-            <p className="text-sm text-vibe-text-secondary col-span-3 text-center py-8 bg-white/5 rounded-2xl">
-              {te('noEvents')}
-            </p>
-          )}
-        </div>
-      </section>
-
-      {/* Venue Vicine */}
-      <section className="mb-8">
-        <div className="section-header">
-          <h2 className="section-title flex items-center gap-2 text-left">
-            <span>📍</span> {t('nearbyVenues')}
-          </h2>
-          <Link href="/map" className="text-sm text-vibe-purple font-medium">{t('title')}</Link>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {filteredVenues.map((venue) => (
-            <Link key={venue.id} href={`/venues/${venue.slug || venue.id}`}>
-              <Card hover className="p-4 cursor-pointer h-full text-left">
-                <div className="flex items-start gap-3">
-                  <div className="w-12 h-12 rounded-xl bg-vibe-gradient/20 flex items-center justify-center text-xl flex-shrink-0">
-                    🎵
+                  <div className="p-4 rounded-2xl bg-black/20 border border-white/5 flex items-center gap-3 shadow-inner">
+                    <div className="w-2 h-2 rounded-full bg-vibe-cyan animate-pulse" />
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-vibe-cyan">Ottimizzato per te</span>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-1.5">
-                      <h3 className="font-semibold text-sm truncate">{venue.name}</h3>
-                      <Badge variant="verified" className="text-[8px] px-1.5">✓</Badge>
-                    </div>
-                    <p className="text-xs text-vibe-text-secondary truncate">{tv('title')} · {venue.address || 'Zurigo'}</p>
-                    <div className="flex items-center gap-2 mt-2">
-                      <span className="text-xs text-amber-400">⭐ {venue.vibe_score || '9.0'}</span>
-                      <span className="text-xs text-green-400">● {tv('open')}</span>
-                    </div>
-                  </div>
-                </div>
-              </Card>
-            </Link>
-          ))}
-          {filteredVenues.length === 0 && (
-            <p className="text-sm text-vibe-text-secondary col-span-full text-center py-8 bg-white/5 rounded-2xl">
-              {tv('noVenues')}
-            </p>
-          )}
-        </div>
-      </section>
-    </>
-  )}
-</div>
+                </Card>
+              </div>
+            </div>
+          </motion.div>
+        </AnimatePresence>
+      )}
+    </div>
   );
 }

@@ -53,31 +53,38 @@ export async function POST(request: Request) {
         .from('stories')
         .insert({
           author_id: user.id,
-          entity_type: entityType || 'user',
           media_url: publicUrl,
+          type: file.type.startsWith('video') ? 'video' : 'photo',
           caption: caption || null,
           expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
         })
         .select()
         .single();
 
-      if (storyError) return NextResponse.json({ error: storyError.message }, { status: 500 });
+      if (storyError) {
+        console.error('Story Insert Error:', storyError);
+        return NextResponse.json({ error: storyError.message }, { status: 500 });
+      }
       return NextResponse.json({ success: true, data: story });
     } else {
       // Inserisci in 'media' per i post del feed
       const { data: media, error: mediaError } = await supabase
         .from('media')
         .insert({
-          user_id: user.id,
+          author_id: user.id,
           entity_type: entityType || 'user',
-          media_url: publicUrl,
-          media_type: file.type.startsWith('video') ? 'video' : 'image',
+          entity_id: entityId || user.id,
+          url: publicUrl,
+          type: file.type.startsWith('video') ? 'video' : 'image',
           caption: caption || null
         })
         .select()
         .single();
 
-      if (mediaError) return NextResponse.json({ error: mediaError.message }, { status: 500 });
+      if (mediaError) {
+        console.error('Media Insert Error:', mediaError);
+        return NextResponse.json({ error: mediaError.message }, { status: 500 });
+      }
       return NextResponse.json({ success: true, data: media });
     }
 

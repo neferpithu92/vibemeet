@@ -39,6 +39,7 @@ import SafeHomeWidget from '@/components/safety/SafeHomeWidget';
 import CookieBanner from '@/components/legal/CookieBanner';
 
 import { ThemeProvider } from '@/contexts/ThemeContext';
+import { NotificationListener } from '@/components/notifications/NotificationListener';
 
 export default async function RootLayout({
   children,
@@ -63,14 +64,15 @@ export default async function RootLayout({
         <ThemeProvider>
           <NextIntlClientProvider locale={locale} messages={messages}>
             <ToastProvider>
-            <PageTransition>
-              {children}
-            </PageTransition>
-            <RealtimeObserver />
-            <SafeHomeWidget />
-            <CookieBanner />
-          </ToastProvider>
-        </NextIntlClientProvider>
+              <PageTransition>
+                {children}
+              </PageTransition>
+              <NotificationListener />
+              <RealtimeObserver />
+              <SafeHomeWidget />
+              <CookieBanner />
+            </ToastProvider>
+          </NextIntlClientProvider>
         </ThemeProvider>
       </body>
     </html>

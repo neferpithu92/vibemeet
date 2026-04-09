@@ -15,37 +15,41 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: 'Unauthorized - Login required' }, { status: 401 });
     }
 
-    const { searchParams } = new URL(req.url);
-    const limit = Math.min(parseInt(searchParams.get('limit') || '20'), 50);
+    const limit = Number(searchParams.get('limit')) || 10;
+    const offset = Number(searchParams.get('offset')) || 0;
     const cursor = searchParams.get('cursor');
+    const type = searchParams.get('type'); // 'posts' or 'reels'
+    
+    // Map 'posts' to 'photo' and 'reels' to 'video' for the RPC
+    const dbType = type === 'reels' ? 'video' : type === 'posts' ? 'photo' : null;
 
-    // Direct query — no RPC needed, works even on empty DB
-    let query = supabase
-      .from('media')
-      .select(`
-        id, media_url, thumbnail_url, media_type, caption,
-        created_at, likes_count, comments_count, location,
-        profiles:user_id ( id, username, avatar_url, display_name )
-      `)
-      .eq('is_published', true)
-      .order('created_at', { ascending: false })
-      .limit(limit);
-
-    if (cursor) {
-      query = query.lt('created_at', cursor);
-    }
-
-    const { data: feed, error } = await query;
+    // Use the RPC for intelligent ranking
+    const { data: feed, error } = await supabase.rpc('get_fyp_algo_feed', {
+      p_user_id: user.id,
+      p_limit: limit,
+      p_offset: offset,
+      p_type: dbType
+    });
 
     if (error) {
-      // Silently return empty — don't crash the page
-      console.warn('FYP query warning:', error.message);
+      console.warn('FYP algorithm RPC warning:', error.message);
+      // Fallback or empty
       return NextResponse.json({ items: [], nextCursor: null });
     }
 
-    const items = feed || [];
+    // Map content for Frontend expectations
+    const items = (feed || []).map((item: any) => ({
+      ...item,
+      profiles: {
+        id: item.author_id,
+        username: item.author_username,
+        avatar_url: item.author_avatar,
+        display_name: item.author_display_name
+      }
+    }));
+
     const nextCursor = items.length === limit
-      ? items[items.length - 1].created_at
+      ? (offset + limit).toString()
       : null;
 
     return NextResponse.json({ items, nextCursor });
