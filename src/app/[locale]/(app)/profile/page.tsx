@@ -585,34 +585,12 @@ export default function ProfilePage() {
         )}
           </motion.div>
         </AnimatePresence>
-        <Card className="mt-6 p-4">
-          <h3 className="font-display font-bold text-sm mb-4">⚙️ {t('quickSettings')}</h3>
-          <div className="space-y-2">
-            {[
-              { label: 'Il mio Wallet', icon: '🪙', href: '/profile/wallet' },
-              { label: t('language'), icon: '🌐', href: '/settings?tab=lingua' },
-              { label: t('privacy'), icon: '🔒', href: '/settings?tab=privacy' },
-              { label: t('notifications'), icon: '🔔', href: '/settings?tab=notifiche' },
-              { label: 'GDPR / Dati', icon: '📥', href: '/settings?tab=account' },
-              { label: t('settings'), icon: '⚙️', href: '/settings' },
-            ].map((setting) => (
-              <Link 
-                key={setting.label} 
-                href={setting.href as any}
-                className="w-full flex items-center gap-3 px-3 py-3 rounded-xl bg-white/5 hover:bg-white/10 transition-all group"
-              >
-                <span className="group-hover:scale-125 transition-transform">{setting.icon}</span>
-                <span className="text-sm font-medium flex-1 text-left">{setting.label}</span>
-                <svg className="w-4 h-4 text-vibe-text-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
-              </Link>
-            ))}
-          </div>
-        </Card>
 
         {/* Logout */}
-        <div className="mt-6 text-center">
-          <Button variant="ghost" className="text-red-400 hover:text-red-300" onClick={handleLogout}>
-            {t('logout')}
+        <div className="mt-12 text-center pb-10">
+          <p className="text-[10px] text-vibe-text-secondary uppercase tracking-widest opacity-30 mb-4">Vibe Platform v4.0</p>
+          <Button variant="ghost" className="text-red-500/60 hover:text-red-500 hover:bg-red-500/10 rounded-2xl px-8 transition-all" onClick={handleLogout}>
+            <LogOut className="w-4 h-4 mr-2" /> {t('logout')}
           </Button>
         </div>
 
