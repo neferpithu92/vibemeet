@@ -25,6 +25,17 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 });
     }
 
+    // Security Check: Verify target ownership
+    if (entityType === 'venue') {
+      const { data: venue } = await supabase.from('venues').select('owner_id').eq('id', entityId).single();
+      if (!venue || venue.owner_id !== user.id) return NextResponse.json({ error: 'Vietato caricare su questa Venue' }, { status: 403 });
+    } else if (entityType === 'event') {
+      const { data: event } = await supabase.from('events').select('organizer_id').eq('id', entityId).single();
+      if (!event || event.organizer_id !== user.id) return NextResponse.json({ error: 'Vietato caricare su questo Evento' }, { status: 403 });
+    } else if (entityType === 'user' && entityId !== user.id) {
+       return NextResponse.json({ error: 'Vietato caricare su profili altrui' }, { status: 403 });
+    }
+
     // Genera un nome file unico
     const fileExt = file.name.split('.').pop();
     const fileName = `${user.id}/${crypto.randomUUID()}.${fileExt}`;

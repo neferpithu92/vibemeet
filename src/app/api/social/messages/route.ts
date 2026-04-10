@@ -24,6 +24,17 @@ export async function GET(req: Request) {
 
   // Se viene passato conversation_id, recuperiamo i messaggi
   if (conversationId) {
+    // Security check: user must be part of the conversation
+    const { data: conversation } = await supabase
+      .from('conversations')
+      .select('user1_id, user2_id')
+      .eq('id', conversationId)
+      .single();
+
+    if (!conversation || (conversation.user1_id !== user.id && conversation.user2_id !== user.id)) {
+      return NextResponse.json({ error: 'Vietato accedere a conversazioni altrui' }, { status: 403 });
+    }
+
     const { data: messages, error: msgError } = await supabase
       .from('direct_messages')
       .select('*')
@@ -61,10 +72,19 @@ export async function POST(req: Request) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-  const { conversation_id, encrypted_content, nonce } = await req.json();
-
   if (!conversation_id || !encrypted_content || !nonce) {
     return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+  }
+
+  // Security check: user must be part of the conversation
+  const { data: conversation } = await supabase
+    .from('conversations')
+    .select('user1_id, user2_id')
+    .eq('id', conversation_id)
+    .single();
+
+  if (!conversation || (conversation.user1_id !== user.id && conversation.user2_id !== user.id)) {
+    return NextResponse.json({ error: 'Vietato postare in conversazioni altrui' }, { status: 403 });
   }
 
   const { data, error } = await supabase.from('direct_messages').insert({

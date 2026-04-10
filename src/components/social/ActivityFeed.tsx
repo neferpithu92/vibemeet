@@ -61,24 +61,42 @@ export default function ActivityFeed() {
 
     const merged: ActivityItem[] = [];
 
-    checkins?.forEach((c: any) => {
+    checkins?.forEach((c) => {
+      const user = Array.isArray(c.user) ? c.user[0] : c.user;
+      const venue = Array.isArray(c.venue) ? c.venue[0] : c.venue;
+      const event = Array.isArray(c.event) ? c.event[0] : c.event;
+
+      if (!user) return;
+
       merged.push({
         id: c.id,
         type: 'check_in',
-        user: c.user,
-        target_name: c.venue?.name || c.event?.title || 'VIBE',
-        target_url: c.venue ? `/venues/${c.venue.slug || c.venue.id}` : `/events/${c.event?.id}`,
+        user: {
+          username: user.username,
+          avatar_url: user.avatar_url
+        },
+        target_name: venue?.name || event?.title || 'VIBE',
+        target_url: venue ? `/venues/${venue.slug || venue.id}` : `/events/${event?.id}`,
         created_at: c.created_at
       });
     });
 
-    followers?.forEach((f: any) => {
+    followers?.forEach((f) => {
+      const user = Array.isArray(f.user) ? f.user[0] : f.user;
+      const followingUser = Array.isArray(f.following_user) ? f.following_user[0] : f.following_user;
+      const venue = Array.isArray(f.venue) ? f.venue[0] : f.venue;
+
+      if (!user) return;
+
       merged.push({
-        id: Math.random().toString(), // No unique ID in followers PK
-        type: f.venue ? 'follow' : 'follow', // simplified
-        user: f.user,
-        target_name: f.venue?.name || f.following_user?.username || 'User',
-        target_url: f.venue ? `/venues/${f.venue.slug || f.venue.id}` : `/profile/${f.following_user?.id}`,
+        id: Math.random().toString(),
+        type: 'follow', // simplified
+        user: {
+          username: user.username,
+          avatar_url: user.avatar_url
+        },
+        target_name: venue?.name || followingUser?.username || 'User',
+        target_url: venue ? `/venues/${venue.slug || venue.id}` : `/profile/${followingUser?.id}`,
         created_at: f.created_at
       });
     });
@@ -89,17 +107,21 @@ export default function ActivityFeed() {
   };
 
   useEffect(() => {
-    fetchActivities();
+    fetchActivities().catch(console.error);
 
     // Subscribe to new check-ins for real-time feed
     const channel = supabase
       .channel('global_activity')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'check_ins' }, () => fetchActivities())
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'followers' }, () => fetchActivities())
+      .on('postgres_changes' as any, { event: 'INSERT', schema: 'public', table: 'check_ins' }, () => {
+        fetchActivities().catch(console.error);
+      })
+      .on('postgres_changes' as any, { event: 'INSERT', schema: 'public', table: 'followers' }, () => {
+        fetchActivities().catch(console.error);
+      })
       .subscribe();
 
     return () => {
-      supabase.removeChannel(channel);
+      supabase.removeChannel(channel).catch(console.error);
     };
   }, []);
 
@@ -113,9 +135,9 @@ export default function ActivityFeed() {
   };
 
   const getActivityText = (item: ActivityItem) => {
-    if (item.type === 'check_in') return t('activity.checkIn', { fallback: 'ha fatto check-in presso' });
-    if (item.type === 'follow') return t('activity.follow', { fallback: 'ha iniziato a seguire' });
-    return t('activity.participate', { fallback: 'ha partecipato a' });
+    if (item.type === 'check_in') return t('activity.checkIn');
+    if (item.type === 'follow') return t('activity.follow');
+    return t('activity.participate');
   };
 
   return (

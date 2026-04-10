@@ -18,18 +18,20 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
-  const { data: event, error } = await supabase
+  const { data: eventData, error } = await supabase
     .from('events')
     .select('*, venue:venues (*)')
     .eq('id', id)
     .single();
 
+  const event = eventData as any;
+
   if (error || !event) return notFound();
 
   let isAttending = false;
   if (user) {
-    const { data: rsvp } = await supabase
-      .from('likes')
+    const { data: rsvp } = await (supabase
+      .from('likes') as any)
       .select('user_id')
       .match({ user_id: user.id, entity_type: 'event', entity_id: id })
       .single();

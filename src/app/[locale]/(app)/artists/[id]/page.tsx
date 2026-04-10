@@ -7,11 +7,13 @@ export default async function ArtistPage({ params }: { params: Promise<{ id: str
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
-  const { data: artist, error } = await supabase
+  const { data: artistData, error } = await supabase
     .from('artists')
     .select('*')
     .eq('id', id)
     .single();
+
+  const artist = artistData as any;
 
   if (error || !artist) return notFound();
 
@@ -27,12 +29,11 @@ export default async function ArtistPage({ params }: { params: Promise<{ id: str
   // Check if user follows this artist
   let isFollowing = false;
   if (user) {
-    const { data: follow } = await supabase
-      .from('follows')
+    const { data: follow } = await (supabase.from('followers') as any)
       .select('following_id')
       .eq('follower_id', user.id)
       .eq('following_id', artist.id)
-      .eq('following_type', 'artist')
+      .eq('entity_type', 'artist')
       .single();
     isFollowing = !!follow;
   }

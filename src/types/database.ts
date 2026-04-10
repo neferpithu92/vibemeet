@@ -338,6 +338,70 @@ export interface Database {
           created_at?: string
         }
       }
+      artists: {
+        Row: {
+          id: string
+          name: string
+          bio: string | null
+          avatar_url: string | null
+          cover_url: string | null
+          genres: string[] | null
+          follower_count: number
+          is_verified: boolean
+          instagram_url: string | null
+          spotify_url: string | null
+          soundcloud_url: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          bio?: string | null
+          avatar_url?: string | null
+          cover_url?: string | null
+          genres?: string[] | null
+          follower_count?: number
+          is_verified?: boolean
+          instagram_url?: string | null
+          spotify_url?: string | null
+          soundcloud_url?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          bio?: string | null
+          avatar_url?: string | null
+          cover_url?: string | null
+          genres?: string[] | null
+          follower_count?: number
+          is_verified?: boolean
+          instagram_url?: string | null
+          spotify_url?: string | null
+          soundcloud_url?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      event_artists: {
+        Row: {
+          event_id: string
+          artist_id: string
+          created_at: string
+        }
+        Insert: {
+          event_id: string
+          artist_id: string
+          created_at?: string
+        }
+        Update: {
+          event_id?: string
+          artist_id?: string
+          created_at?: string
+        }
+      }
     }
     Views: {
       [_ in never]: never

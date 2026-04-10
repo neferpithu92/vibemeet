@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { useRouter, usePathname, Link } from '@/lib/i18n/navigation';
 import { useParams } from 'next/navigation';
 import { useTranslations, useLocale } from 'next-intl';
@@ -63,8 +64,11 @@ interface UserProfile {
 interface UserPost {
   id: string;
   media_url: string;
+  media_type?: string;
   likes_count?: number;
-  venue?: any;
+  caption?: string | null;
+  created_at: string;
+  venue?: { name: string } | null;
 }
 
 interface UserStory {
@@ -80,6 +84,20 @@ interface UserCheckIn {
   event?: { title: string; id: string };
 }
 
+interface UserTicket {
+  id: string;
+  qr_code: string;
+  status: string;
+  quantity?: number;
+  event?: {
+    id: string;
+    title: string;
+    starts_at: string;
+    location_name: string;
+    venue?: { name: string; city: string };
+  };
+}
+
 /**
  * Pagina Profilo utente — carica dati reali da Supabase.
  */
@@ -93,13 +111,13 @@ export default function ProfilePage() {
   const [vibe, setVibe] = useState<UserPost[]>([]);
   const [stories, setStories] = useState<UserStory[]>([]);
   const [checkIns, setCheckIns] = useState<UserCheckIn[]>([]);
-  const [ticketsData, setTickets] = useState<any[]>([]);
+  const [ticketsData, setTickets] = useState<UserTicket[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [followerCount, setFollowerCount] = useState(0);
   const [followingCount, setFollowingCount] = useState(0);
   const [isCropperOpen, setIsCropperOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [selectedPost, setSelectedPost] = useState<any>(null);
+  const [selectedPost, setSelectedPost] = useState<UserPost | null>(null);
   const [isNotificationsActive, setIsNotificationsActive] = useState(true);
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
   const [privacy, setPrivacy] = useState<'friends' | 'public' | 'private'>('friends');
@@ -154,8 +172,8 @@ export default function ProfilePage() {
         .order('created_at', { ascending: false });
       
       if (mediaData) {
-        const photoPosts = mediaData.filter(m => m.media_type === 'photo' || !m.media_url?.includes('.mp4'));
-        const videoPosts = mediaData.filter(m => m.media_type === 'video' || m.media_url?.includes('.mp4'));
+        const photoPosts: UserPost[] = (mediaData as any[]).filter(m => m.media_type === 'photo' || !m.media_url?.includes('.mp4'));
+        const videoPosts: UserPost[] = (mediaData as any[]).filter(m => m.media_type === 'video' || m.media_url?.includes('.mp4'));
         setPosts(photoPosts);
         setVibe(videoPosts);
       }
@@ -428,12 +446,13 @@ export default function ProfilePage() {
               <motion.div 
                 key={post.id} 
                 whileHover={{ scale: 1.02 }}
-                onClick={() => setSelectedPost({ ...post, profiles: { ...profile, username: profile?.username } })}
+                onClick={() => setSelectedPost(post)}
                 className="relative aspect-square bg-white/5 group cursor-pointer overflow-hidden border border-white/5"
               >
-                <img 
+                <Image 
                   src={post.media_url} 
                   alt="" 
+                  fill
                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
                 />
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-300 flex items-center justify-center">
@@ -466,9 +485,10 @@ export default function ProfilePage() {
                 onClick={() => setSelectedPost({ ...v, profiles: { ...profile, username: profile?.username } })}
                 className="relative aspect-square bg-black group cursor-pointer overflow-hidden border border-white/5"
               >
-                <img 
+                <Image 
                   src={v.media_url || '/placeholder.png'} 
                   alt="" 
+                  fill
                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 opacity-70 group-hover:opacity-100" 
                 />
                 <div className="absolute top-2 right-2 z-10">

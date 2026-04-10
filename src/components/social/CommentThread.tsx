@@ -60,17 +60,18 @@ export default function CommentThread({ entityType, entityId }: CommentThreadPro
 
     if (error) {
        console.error('Error fetching comments:', error);
+       showToast(t('errorLoading'), 'error');
     } else {
       // Build tree structure
       const commentMap = new Map<string, Comment>();
       const rootComments: Comment[] = [];
 
-      data?.forEach(comment => {
+      (data as Comment[])?.forEach(comment => {
         comment.replies = [];
         commentMap.set(comment.id, comment);
       });
 
-      data?.forEach(comment => {
+      (data as Comment[])?.forEach(comment => {
         if (comment.parent_id && commentMap.has(comment.parent_id)) {
           commentMap.get(comment.parent_id)?.replies?.push(comment);
         } else {
@@ -81,7 +82,7 @@ export default function CommentThread({ entityType, entityId }: CommentThreadPro
       setComments(rootComments);
     }
     setIsLoading(false);
-  }, [entityId, entityType, supabase]);
+  }, [entityId, entityType, supabase, t, showToast]);
 
   useEffect(() => {
     fetchComments();
@@ -92,44 +93,49 @@ export default function CommentThread({ entityType, entityId }: CommentThreadPro
     // Realtime subscription
     const channel = supabase
       .channel(`comments:${entityId}`)
-      .on('postgres_changes', { 
+      .on('postgres_changes' as any, { 
         event: 'INSERT', 
         schema: 'public', 
         table: 'comments',
         filter: `entity_id=eq.${entityId}`
-      }, (payload) => {
-        // We probably want to re-fetch to get author info properly or just update locally if we had author info
+      }, () => {
         fetchComments(); 
       })
       .subscribe();
 
     return () => {
-      supabase.removeChannel(channel);
+      supabase.removeChannel(channel).catch(console.error);
     };
   }, [entityId, fetchComments, supabase]);
+
+  const { showToast } = useToast();
 
   const handlePostComment = async () => {
     if (!newComment.trim() || !user) return;
 
     setIsPosting(true);
-    const { error } = await supabase
-      .from('comments')
-      .insert({
-        author_id: user.id,
-        entity_type: entityType,
-        entity_id: entityId,
-        body: newComment,
-        parent_id: replyTo?.id || null
-      });
+    try {
+      const { error } = await supabase
+        .from('comments')
+        .insert({
+          author_id: user.id,
+          entity_type: entityType,
+          entity_id: entityId,
+          body: newComment,
+          parent_id: replyTo?.id || null
+        });
 
-    if (error) {
-      console.error('Error posting comment:', error);
-    } else {
+      if (error) throw error;
+      
+      showToast(t('postSuccess'), 'success', '💬');
       setNewComment('');
       setReplyTo(null);
-      // Realtime insertion will trigger fetchComments via subscription
+    } catch (e: any) {
+      console.error('Error posting comment:', e);
+      showToast(e.message || t('errorPosting'), 'error');
+    } finally {
+      setIsPosting(false);
     }
-    setIsPosting(false);
   };
 
   const renderComment = (comment: Comment, isReply = false) => {
@@ -148,7 +154,7 @@ export default function CommentThread({ entityType, entityId }: CommentThreadPro
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
             <span className="font-semibold text-sm">
-              {comment.author?.display_name || comment.author?.username || 'VIBE User'}
+              {comment.author?.display_name || comment.author?.username || t('anonymousUser')}
             </span>
             <span className="text-[10px] text-vibe-text-secondary uppercase tracking-tight">
               {formatDistanceToNow(new Date(comment.created_at), { 

@@ -188,7 +188,6 @@ export default function CreatePost({ isOpen, onClose, onSuccess, initialMediaUrl
           onChange={setLocation} 
           required 
         />
-
         <div className="space-y-2">
           {initialMediaUrl ? (
             <div className="space-y-4">
@@ -206,7 +205,7 @@ export default function CreatePost({ isOpen, onClose, onSuccess, initialMediaUrl
                 disabled={!isFormValid || isSubmitting}
                 isLoading={isSubmitting}
               >
-                Pubblica Post
+                {t('publish')}
               </Button>
             </div>
           ) : (

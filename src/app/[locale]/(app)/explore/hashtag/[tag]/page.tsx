@@ -25,25 +25,27 @@ export default async function HashtagExplorePage({
   const supabase = await createClient();
 
   // Fetch hashtag info
-  const { data: hashtag } = await supabase
-    .from('hashtags')
+  const { data: hashtagData } = await (supabase
+    .from('hashtags') as any)
     .select('*')
     .eq('tag', decodedTag.toLowerCase())
     .single();
 
+  const hashtag = hashtagData as any;
+
   // Fetch linked media content
   let media: HashtagMedia[] = [];
   if (hashtag) {
-    const { data: links } = await supabase
-      .from('post_hashtags')
+    const { data: links } = await (supabase
+      .from('post_hashtags') as any)
       .select('post_id, post_type')
       .eq('hashtag_id', hashtag.id)
       .order('created_at', { ascending: false })
       .limit(30);
 
     const mediaIds = (links || [])
-      .filter((l) => l.post_type === 'media' || l.post_type === 'vibe')
-      .map((l) => l.post_id);
+      .filter((l: any) => l.post_type === 'media' || l.post_type === 'vibe')
+      .map((l: any) => l.post_id);
 
     if (mediaIds.length > 0) {
       const { data } = await supabase
@@ -57,13 +59,13 @@ export default async function HashtagExplorePage({
   // Check if trending
   let isTrending = false;
   if (hashtag) {
-    const { data: trendingData } = await supabase
-      .from('trending_hashtags')
+    const { data: trendingData } = await (supabase
+      .from('trending_hashtags') as any)
       .select('score')
       .eq('hashtag_id', hashtag.id)
       .eq('period', '24h')
       .limit(1);
-    isTrending = !!(trendingData && trendingData.length > 0);
+    isTrending = !!(trendingData && (trendingData as any[]).length > 0);
   }
 
   return (

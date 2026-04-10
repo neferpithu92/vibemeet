@@ -52,14 +52,17 @@ export default function ArtistClient({ artist, events, isFollowing: initialFollo
 
   const handleFollow = async () => {
     if (!currentUserId) return;
+    
     if (following) {
       setFollowing(false);
       setFollowerCount(c => c - 1);
-      await supabase.from('follows').delete().match({ follower_id: currentUserId, following_id: artist.id, following_type: 'artist' });
+      // Bypass Supabase type inference issue for followers
+      await (supabase.from('followers') as any).delete().match({ follower_id: currentUserId, following_id: artist.id, entity_type: 'artist' });
     } else {
       setFollowing(true);
       setFollowerCount(c => c + 1);
-      await supabase.from('follows').insert({ follower_id: currentUserId, following_id: artist.id, following_type: 'artist' });
+      // Bypass Supabase type inference issue for followers
+      await (supabase.from('followers') as any).insert({ follower_id: currentUserId, following_id: artist.id, entity_type: 'artist' });
     }
   };
 

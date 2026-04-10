@@ -16,7 +16,15 @@ interface FeedPostCardProps {
     type: string;
     caption?: string;
     created_at: string;
-    profiles?: any;
+    profiles?: {
+      username: string;
+      display_name: string | null;
+      avatar_url: string | null;
+    } | {
+      username: string;
+      display_name: string | null;
+      avatar_url: string | null;
+    }[];
     likes_count?: number;
     comments_count?: number;
   };
@@ -26,6 +34,8 @@ interface FeedPostCardProps {
   onSave: (id: string) => void;
   onComment: (id: string) => void;
 }
+
+import Image from 'next/image';
 
 export default function FeedPostCard({ post, isLiked, isSaved, onLike, onSave, onComment }: FeedPostCardProps) {
   const t = useTranslations('feed');
@@ -58,7 +68,7 @@ export default function FeedPostCard({ post, isLiked, isSaved, onLike, onSave, o
               <Badge variant="verified" className="scale-75 origin-left">✓</Badge>
             </div>
             <p className="text-[10px] text-vibe-text-secondary uppercase font-bold tracking-widest">
-               {profile?.username} · 2h
+               {profile?.username}
             </p>
           </div>
         </div>
@@ -96,11 +106,11 @@ export default function FeedPostCard({ post, isLiked, isSaved, onLike, onSave, o
             autoPlay
           />
         ) : (
-          <img 
+          <Image 
             src={post.url} 
             alt="Content" 
+            fill
             className="w-full h-full object-cover"
-            loading="lazy"
           />
         )}
       </div>
@@ -135,7 +145,9 @@ export default function FeedPostCard({ post, isLiked, isSaved, onLike, onSave, o
 
         {/* Likes Count */}
         <div className="space-y-1">
-          <p className="font-bold text-sm">{post.likes_count || 0} Like</p>
+          <p className="font-bold text-sm">
+            {post.likes_count || 0} {t('likes', { fallback: 'Like' })}
+          </p>
           
           {/* Caption */}
           <div className="text-sm leading-relaxed">
@@ -149,20 +161,20 @@ export default function FeedPostCard({ post, isLiked, isSaved, onLike, onSave, o
               onClick={() => onComment(post.id)}
               className="text-xs text-vibe-text-secondary font-medium hover:text-vibe-purple transition-colors block mt-1"
             >
-              Visualizza tutti i {post.comments_count} commenti
+              {t('viewAllComments', { count: post.comments_count })}
             </button>
           ) : (
             <button 
               onClick={() => onComment(post.id)}
               className="text-xs text-vibe-text-secondary font-medium hover:text-vibe-purple transition-colors block mt-1"
             >
-              Aggiungi un commento...
+              {t('addComment')}
             </button>
           )}
 
           {/* Time */}
           <p className="text-[9px] text-vibe-text-secondary uppercase font-bold tracking-widest pt-1">
-            {new Date(post.created_at).toLocaleDateString('it-IT', { day: 'numeric', month: 'long' })}
+             {new Date(post.created_at).toLocaleDateString()}
           </p>
         </div>
       </div>

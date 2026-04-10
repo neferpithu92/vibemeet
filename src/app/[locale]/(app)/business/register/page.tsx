@@ -62,7 +62,7 @@ export default function BusinessRegisterPage() {
       }
 
       // 2. Insert into Venues
-      const { data: venue, error: venueError } = await supabase.from('venues').insert({
+      const { data: venue, error: venueError } = await (supabase.from('venues') as any).insert({
         name: formData.businessName,
         type: formData.businessType,
         address: formData.address,
@@ -76,7 +76,7 @@ export default function BusinessRegisterPage() {
       if (venueError) throw venueError;
 
       // 3. Update User Role
-      await supabase.from('users').update({ role: 'venue' }).eq('id', userId);
+      await (supabase.from('users') as any).update({ role: 'venue' }).eq('id', userId);
 
       // 4. Hit Stripe Checkout using API
       const res = await fetch('/api/checkout', {

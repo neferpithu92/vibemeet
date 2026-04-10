@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslations } from 'next-intl';
 import { UserPlus, X, MapPin, Heart } from 'lucide-react';
@@ -39,17 +40,21 @@ export default function DiscoverPeopleClient({ suggestions, activeTonight, curre
   const handleFollow = async (userId: string) => {
     if (following.has(userId)) {
       setFollowing(s => { const n = new Set(s); n.delete(userId); return n; });
-      await supabase.from('follows').delete().match({ follower_id: currentUserId, following_id: userId });
+      await (supabase.from('followers') as any).delete().match({ follower_id: currentUserId, following_id: userId, entity_type: 'user' });
     } else {
       setFollowing(s => new Set([...s, userId]));
-      await supabase.from('follows').insert({ follower_id: currentUserId, following_id: userId });
+      await (supabase.from('followers') as any).insert({ follower_id: currentUserId, following_id: userId, entity_type: 'user' });
     }
   };
 
   const handleFollowAll = async () => {
     const toFollow = suggestions.filter(s => !dismissed.has(s.id) && !following.has(s.id));
     setFollowing(s => new Set([...s, ...toFollow.map(u => u.id)]));
-    await supabase.from('follows').insert(toFollow.map(u => ({ follower_id: currentUserId, following_id: u.id })));
+    await (supabase.from('followers') as any).insert(toFollow.map(u => ({ 
+      follower_id: currentUserId, 
+      following_id: u.id,
+      entity_type: 'user'
+    })));
   };
 
   const visible = suggestions.filter(s => !dismissed.has(s.id));
@@ -88,9 +93,14 @@ export default function DiscoverPeopleClient({ suggestions, activeTonight, curre
                 </button>
 
                 <div className="flex flex-col items-center text-center gap-2">
-                  <div className="w-16 h-16 rounded-full bg-vibe-surface border border-white/10 overflow-hidden flex items-center justify-center">
+                  <div className="w-16 h-16 rounded-full bg-vibe-surface border border-white/10 overflow-hidden flex items-center justify-center relative">
                     {user.avatar_url ? (
-                      <img src={user.avatar_url} alt="" className="w-full h-full object-cover" />
+                      <Image 
+                        src={user.avatar_url} 
+                        alt="" 
+                        fill
+                        className="w-full h-full object-cover" 
+                      />
                     ) : (
                       <span className="text-xl font-bold text-vibe-purple">
                         {(user.display_name || user.username)[0].toUpperCase()}
@@ -147,9 +157,14 @@ export default function DiscoverPeopleClient({ suggestions, activeTonight, curre
                 className="glass-card p-4 rounded-2xl flex items-center gap-3"
               >
                 <div className="relative">
-                  <div className="w-12 h-12 rounded-full bg-vibe-surface border border-white/10 overflow-hidden flex items-center justify-center">
+                  <div className="w-12 h-12 rounded-full bg-vibe-surface border border-white/10 overflow-hidden flex items-center justify-center relative">
                     {item.users?.avatar_url ? (
-                      <img src={item.users.avatar_url} alt="" className="w-full h-full object-cover" />
+                      <Image 
+                        src={item.users.avatar_url} 
+                        alt="" 
+                        fill
+                        className="w-full h-full object-cover" 
+                      />
                     ) : (
                       <span className="font-bold text-vibe-purple">
                         {((item.users?.display_name || item.users?.username || 'U')[0]).toUpperCase()}

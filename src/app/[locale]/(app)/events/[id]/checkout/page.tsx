@@ -44,8 +44,8 @@ export default function CheckoutPage({ params }: { params: Promise<{ id: string 
     setTimeout(async () => {
       if (paymentId) {
         // Aggiorna pagamento (Trigger 044 calcola la commissione del 3%)
-        await supabase
-          .from('payments')
+        await (supabase
+          .from('payments') as any)
           .update({ status: 'succeeded' })
           .eq('id', paymentId);
           
@@ -58,7 +58,7 @@ export default function CheckoutPage({ params }: { params: Promise<{ id: string 
           // Genera firma HMAC di sicurezza (System 14)
           const cryptoSig = signTicket(ticketId, user.id, id);
 
-          await supabase.from('ticket_instances').insert({
+          await (supabase.from('ticket_instances') as any).insert({
             id: ticketId,
             event_id: id,
             user_id: user.id,
@@ -71,7 +71,7 @@ export default function CheckoutPage({ params }: { params: Promise<{ id: string 
           console.log(`[PAYMENT-SPLIT] Payout diretto al cliente con commissione 3% piattaforma.`);
 
           // RSVP automatico (Legacy support per il feed)
-          await supabase.from('likes').insert({
+          await (supabase.from('likes') as any).insert({
             user_id: user.id,
             entity_type: 'event',
             entity_id: id

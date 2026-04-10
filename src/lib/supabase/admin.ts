@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
+import { Database } from '@/types/database';
 
-let client: ReturnType<typeof createClient> | null = null;
+let client: ReturnType<typeof createClient<Database>> | null = null;
 
 /**
  * Client Supabase con Service Role Key.

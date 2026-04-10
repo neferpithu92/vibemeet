@@ -45,13 +45,13 @@ export default function BusinessDashboard() {
       }
       
       // Controllo ruolo (Business only)
-      const { data: profile } = await supabase
-        .from('users')
+      const { data: profile } = await (supabase
+        .from('users') as any)
         .select('*')
         .eq('id', user.id)
         .single();
       
-      if (profile.role !== 'venue' && profile.role !== 'artist' && profile.role !== 'admin') {
+      if (!profile || ((profile as any).role !== 'venue' && (profile as any).role !== 'artist' && (profile as any).role !== 'admin')) {
         showToast('Accesso negato: Solo Business Account', 'error');
         router.push('/feed');
         return;
@@ -60,18 +60,19 @@ export default function BusinessDashboard() {
       setUser(profile);
 
       // Carica venue ed eventi
-      const { data: venueData } = await supabase
-        .from('venues')
+      const { data: venueData } = await (supabase
+        .from('venues') as any)
         .select('*')
         .eq('owner_id', user.id)
         .single();
       
-      if (venueData) {
-        setVenue(venueData);
-        const { data: eventData } = await supabase
-          .from('events')
+      const v = venueData as any;
+      if (v) {
+        setVenue(v);
+        const { data: eventData } = await (supabase
+          .from('events') as any)
           .select('*')
-          .eq('venue_id', venueData.id)
+          .eq('venue_id', v.id)
           .order('starts_at', { ascending: false });
         setEvents(eventData || []);
       }
@@ -84,8 +85,8 @@ export default function BusinessDashboard() {
   const updateOccupancy = async (delta: number) => {
     if (!venue) return;
     const newCount = Math.max(0, venue.current_occupancy + delta);
-    const { error } = await supabase
-      .from('venues')
+    const { error } = await (supabase
+      .from('venues') as any)
       .update({ current_occupancy: newCount })
       .eq('id', venue.id);
     
@@ -95,8 +96,8 @@ export default function BusinessDashboard() {
   const updateParking = async (delta: number) => {
     if (!venue) return;
     const newCount = Math.max(0, venue.available_parking_spots + delta);
-    const { error } = await supabase
-      .from('venues')
+    const { error } = await (supabase
+      .from('venues') as any)
       .update({ available_parking_spots: newCount })
       .eq('id', venue.id);
     

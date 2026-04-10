@@ -34,6 +34,19 @@ export async function POST(req: Request) {
       ticketLimit 
     } = body;
 
+    // Security Check: Verify user owns the venue
+    if (venueId) {
+      const { data: venue, error: venueError } = await supabase
+        .from('venues')
+        .select('owner_id')
+        .eq('id', venueId)
+        .single();
+
+      if (venueError || !venue || venue.owner_id !== user.id) {
+        return NextResponse.json({ error: 'Non hai i permessi per questa Venue' }, { status: 403 });
+      }
+    }
+
     // Inserimento evento
     const { data: event, error } = await supabase
       .from('events')

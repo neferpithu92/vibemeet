@@ -1,6 +1,15 @@
+import Image from 'next/image';
 import { cn } from '@/lib/utils';
 
 type AvatarSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+
+const sizeMap: Record<AvatarSize, number> = {
+  xs: 24,
+  sm: 32,
+  md: 40,
+  lg: 64,
+  xl: 128,
+};
 
 interface AvatarProps {
   src?: string | null;
@@ -38,9 +47,11 @@ export function Avatar({
     : alt?.slice(0, 2).toUpperCase() || 'V';
 
   const avatarContent = src ? (
-    <img
+    <Image
       src={src}
       alt={alt}
+      width={sizeMap[size]}
+      height={sizeMap[size]}
       className={cn('rounded-full object-cover', sizeClasses[size])}
     />
   ) : (

@@ -7,14 +7,14 @@ export default async function DiscoverPeoplePage() {
   if (!user) return null;
 
   // Get following list
-  const { data: following } = await supabase
-    .from('follows').select('following_id').eq('follower_id', user.id);
-  const followingIds = following?.map(f => f.following_id) || [];
+  const { data: following } = await (supabase
+    .from('followers') as any).select('following_id').eq('follower_id', user.id);
+  const followingIds = (following as any[])?.map((f: any) => f.following_id) || [];
 
   // People you might know — friends of friends
   let suggestions: any[] = [];
   try {
-    const { data } = await supabase.rpc('get_follow_suggestions', {
+    const { data } = await (supabase.rpc as any)('get_follow_suggestions', {
       current_user_id: user.id,
       limit_count: 20
     });

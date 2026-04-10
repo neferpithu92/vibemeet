@@ -40,64 +40,77 @@ export async function middleware(request: NextRequest) {
 
   // Check auth for protected routes
   if (!isPublicPath) {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+    if (!supabaseUrl || !supabaseAnonKey) {
+      console.error('Middleware Failure: Missing Supabase environment variables');
+      return response ?? NextResponse.next({ request });
+    }
+
     let supabaseResponse = response ?? NextResponse.next({ request });
 
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          getAll() { return request.cookies.getAll(); },
-          setAll(cookiesToSet) {
-            cookiesToSet.forEach(({ name, value, options }) =>
-              supabaseResponse.cookies.set(name, value, options)
-            );
-          },
-        },
-      }
-    );
-
-    const { data: { user } } = await supabase.auth.getUser();
-
-    // Recover locale for redirects
-    const localeMatch = pathname.match(/^\/(it|en|de|fr|rm|es|pt)\//);
-    const currentLocale = localeMatch ? localeMatch[1] : defaultLocale;
-
-    if (!user) {
-      const url = request.nextUrl.clone();
-      url.pathname = `/${currentLocale}/login`;
-      return NextResponse.redirect(url);
-    }
-
-    // Check account status (paused or deletion) - Resilient check
     try {
-      const { data: userData } = await supabase
-        .from('users')
-        .select('is_paused, deletion_requested_at')
-        .eq('id', user.id)
-        .single();
+      const supabase = createServerClient(
+        supabaseUrl,
+        supabaseAnonKey,
+        {
+          cookies: {
+            getAll() { return request.cookies.getAll(); },
+            setAll(cookiesToSet) {
+              cookiesToSet.forEach(({ name, value, options }) =>
+                supabaseResponse.cookies.set(name, value, options)
+              );
+            },
+          },
+        }
+      );
 
-      if (userData) {
-        const isReactivatePage = pathname.includes('/reactivate');
-        
-        if ((userData.is_paused || userData.deletion_requested_at) && !isReactivatePage) {
-          const url = request.nextUrl.clone();
-          url.pathname = `/${currentLocale}/reactivate`;
-          return NextResponse.redirect(url);
-        }
-        
-        if (!userData.is_paused && !userData.deletion_requested_at && isReactivatePage) {
-          const url = request.nextUrl.clone();
-          url.pathname = `/${currentLocale}/map`;
-          return NextResponse.redirect(url);
-        }
+      // Run getUser with a timeout or handled error
+      const { data: { user } } = await supabase.auth.getUser().catch(() => ({ data: { user: null } }));
+
+      // Recover locale for redirects - more robust match
+      const localeMatch = pathname.match(/^\/(it|en|de|fr|rm|es|pt)(\/|$)/);
+      const currentLocale = localeMatch ? localeMatch[1] : defaultLocale;
+
+      if (!user) {
+        const url = request.nextUrl.clone();
+        url.pathname = `/${currentLocale}/login`;
+        return NextResponse.redirect(url);
       }
-    } catch (err) {
-      console.warn('Middleware: account status check failed (columns might be missing)', err);
-      // Fail open: let the user proceed if we can't check status
-    }
 
-    return supabaseResponse;
+      // Check account status (paused or deletion) - Resilient check
+      try {
+        const { data: userData } = await supabase
+          .from('users')
+          .select('is_paused, deletion_requested_at')
+          .eq('id', user.id)
+          .single();
+
+        if (userData) {
+          const isReactivatePage = pathname.includes('/reactivate');
+          
+          if ((userData.is_paused || userData.deletion_requested_at) && !isReactivatePage) {
+            const url = request.nextUrl.clone();
+            url.pathname = `/${currentLocale}/reactivate`;
+            return NextResponse.redirect(url);
+          }
+          
+          if (!userData.is_paused && !userData.deletion_requested_at && isReactivatePage) {
+            const url = request.nextUrl.clone();
+            url.pathname = `/${currentLocale}/map`;
+            return NextResponse.redirect(url);
+          }
+        }
+      } catch (err) {
+        console.warn('Middleware: account status check failed (columns might be missing)', err);
+      }
+
+      return supabaseResponse;
+    } catch (err) {
+      console.error('Middleware Critical Error:', err);
+      return response ?? NextResponse.next({ request });
+    }
   }
 
   return response;
