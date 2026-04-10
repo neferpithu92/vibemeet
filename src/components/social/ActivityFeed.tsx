@@ -137,25 +137,38 @@ export default function ActivityFeed() {
             </div>
           ))
         ) : activities.length > 0 ? (
-          <AnimatePresence>
+          <AnimatePresence mode="popLayout">
             {activities.map((item, idx) => (
               <motion.div
                 key={item.id + idx}
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                className="flex gap-3 items-start group"
+                layout
+                initial={{ opacity: 0, scale: 0.9, y: 10 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.9, y: -10 }}
+                transition={{ 
+                  delay: idx * 0.08, 
+                  type: 'spring', 
+                  stiffness: 400, 
+                  damping: 25 
+                }}
+                className="flex gap-3 items-start group hover:bg-white/5 p-2 -mx-2 rounded-2xl transition-colors cursor-pointer"
               >
-                <Avatar src={item.user.avatar_url || ''} fallback={item.user.username[0]} size="sm" />
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs text-vibe-text-primary leading-snug">
-                    <span className="font-bold">@{item.user.username}</span>{' '}
-                    <span className="text-vibe-text-secondary">{getActivityText(item)}</span>{' '}
-                    <Link href={item.target_url} className="text-vibe-purple font-semibold hover:text-vibe-pink transition-colors">
+                <div className="relative">
+                  <Avatar src={item.user.avatar_url || ''} fallback={item.user.username[0]} size="sm" />
+                  <div className="absolute -bottom-1 -right-1 text-[10px] bg-vibe-dark rounded-full p-0.5 border border-white/10 shadow-lg z-10">
+                    {getActivityIcon(item.type)}
+                  </div>
+                </div>
+                <div className="flex-1 min-w-0 flex flex-col justify-center">
+                  <p className="text-[13px] text-vibe-text-primary leading-tight">
+                    <span className="font-extrabold text-white">@{item.user.username}</span>{' '}
+                    <span className="text-white/60">{getActivityText(item)}</span>{' '}
+                    <Link href={item.target_url} className="text-vibe-cyan font-bold hover:text-white transition-colors">
                       {item.target_name}
                     </Link>
                   </p>
-                  <p className="text-[10px] text-vibe-text-secondary mt-1">
-                    {getActivityIcon(item.type)} {formatDistanceToNow(new Date(item.created_at), { 
+                  <p className="text-[10px] text-white/40 mt-0.5 font-medium uppercase tracking-wider">
+                    {formatDistanceToNow(new Date(item.created_at), { 
                       addSuffix: true, 
                       locale: locale === 'it' ? it : locale === 'de' ? de : locale === 'fr' ? fr : enUS 
                     })}

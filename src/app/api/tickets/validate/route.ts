@@ -1,7 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { createRateLimiter, rateLimitResponse } from '@/lib/rate-limit';
+
+const limiter = createRateLimiter({ requests: 12, window: '10s' }); // Max 12 scansioni ogni 10s
 
 export async function POST(request: NextRequest) {
+  // Rate Limiting by IP
+  const ip = request.headers.get('x-forwarded-for') ?? 'anonymous';
+  const { success } = await limiter.limit(`ticket_scan_${ip}`);
+  if (!success) return rateLimitResponse();
+
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -99,27 +107,3 @@ export async function POST(request: NextRequest) {
   }
 }
 
-export async function PATCH(request: NextRequest) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
-  try {
-    const { ticketId } = await request.json();
-
-    const { error } = await supabase
-      .from('tickets')
-      .update({
-        status: 'used',
-        checked_in_at: new Date().toISOString(),
-        checked_in_by: user.id
-      })
-      .eq('id', ticketId);
-
-    if (error) throw error;
-
-    return NextResponse.json({ success: true });
-  } catch (err) {
-    return NextResponse.json({ error: 'Failed to mark used' }, { status: 500 });
-  }
-}

@@ -1,11 +1,19 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
+import { createRateLimiter, rateLimitResponse } from '@/lib/rate-limit';
+
+const limiter = createRateLimiter({ requests: 5, window: '60s' }); // Max 5 eventi in 1 minuto
 
 /**
  * API per creare un nuovo evento da parte di un proprietario di Venue.
  */
 export async function POST(req: Request) {
   try {
+    // Rate Limiting by IP
+    const ip = req.headers.get('x-forwarded-for') ?? 'anonymous';
+    const { success } = await limiter.limit(`create_event_${ip}`);
+    if (!success) return rateLimitResponse();
+
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
 

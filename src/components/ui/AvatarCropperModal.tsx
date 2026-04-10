@@ -46,11 +46,11 @@ export default function AvatarCropperModal({
     }
   }, [isOpen, onClose]);
 
-  if (!isOpen) return null;
-
   const onCropComplete = useCallback((croppedArea: any, croppedAreaPixels: any) => {
     setCroppedAreaPixels(croppedAreaPixels);
   }, []);
+
+  if (!isOpen) return null;
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {

@@ -40,6 +40,8 @@ import CookieBanner from '@/components/legal/CookieBanner';
 
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import { NotificationListener } from '@/components/notifications/NotificationListener';
+import { Analytics } from '@vercel/analytics/react';
+import { SpeedInsights } from '@vercel/speed-insights/next';
 
 export default async function RootLayout({
   children,
@@ -71,6 +73,8 @@ export default async function RootLayout({
               <RealtimeObserver />
               <SafeHomeWidget />
               <CookieBanner />
+              <Analytics />
+              <SpeedInsights />
             </ToastProvider>
           </NextIntlClientProvider>
         </ThemeProvider>

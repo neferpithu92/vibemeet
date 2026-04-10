@@ -39,6 +39,10 @@ const nextConfig = {
           {
             key: 'Referrer-Policy',
             value: 'origin-when-cross-origin'
+          },
+          {
+            key: 'Content-Security-Policy',
+            value: "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://js.stripe.com https://va.vercel-scripts.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https:; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://api.stripe.com https://api.mapbox.com https://events.mapbox.com https://*.supabase.co wss://*.supabase.co https://vitals.vercel-insights.com; child-src 'self' https://js.stripe.com; frame-src 'self' https://js.stripe.com; worker-src 'self' blob:;"
           }
         ],
       },

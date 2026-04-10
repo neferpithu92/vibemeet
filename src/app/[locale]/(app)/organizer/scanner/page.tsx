@@ -112,7 +112,6 @@ export default function OrganizerScannerPage() {
             }
           }}
           components={{
-             audio: false,
              finder: true,
           }}
           formats={['qr_code']}
