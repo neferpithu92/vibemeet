@@ -46,14 +46,14 @@ export default function CreateEvent({ isOpen, onClose, onSuccess, venueId: initi
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return;
 
-        const { data: venues } = await supabase
-          .from('venues')
+        const { data: venues } = await (supabase
+          .from('venues') as any)
           .select('id, name')
           .eq('owner_id', user.id);
         
         if (venues) {
           setUserVenues(venues);
-          if (venues.length === 1) setSelectedVenueId(venues[0].id);
+          if (venues.length === 1) setSelectedVenueId((venues[0] as any).id);
         }
       };
       fetchVenues();
@@ -72,7 +72,7 @@ export default function CreateEvent({ isOpen, onClose, onSuccess, venueId: initi
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error(t('errorUnauthorized'));
 
-      const { data, error } = await supabase.from('events').insert({
+      const { data, error } = await (supabase.from('events') as any).insert({
         ...formData,
         venue_id: selectedVenueId,
         organizer_id: user.id,
@@ -80,7 +80,7 @@ export default function CreateEvent({ isOpen, onClose, onSuccess, venueId: initi
         ends_at: formData.endTime ? new Date(formData.endTime).toISOString() : null,
         ticket_price: formData.price,
         slug: formData.title.toLowerCase().replace(/ /g, '-') + '-' + Date.now(),
-        location: (await supabase.from('venues').select('location').eq('id', selectedVenueId).single()).data?.location
+        location: (await (supabase.from('venues') as any).select('location').eq('id', selectedVenueId).single()).data?.location
       }).select().single();
 
       if (error) throw error;

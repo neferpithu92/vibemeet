@@ -39,8 +39,8 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
     set({ isLoading: true });
     const supabase = createClient();
     
-    const { data, error } = await supabase
-      .from('notifications')
+    const { data, error } = await (supabase
+      .from('notifications') as any)
       .select(`
         *,
         actor:users!notifications_actor_id_fkey (
@@ -58,14 +58,14 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
       return;
     }
 
-    const unread = data.filter(n => !n.read_at).length;
-    set({ notifications: data, unreadCount: unread, isLoading: false });
+    const unread = (data as any[]).filter(n => !n.read_at).length;
+    set({ notifications: (data as any[]), unreadCount: unread, isLoading: false });
   },
 
   markAsRead: async (notificationId: string) => {
     const supabase = createClient();
-    const { error } = await supabase
-      .from('notifications')
+    const { error } = await (supabase
+      .from('notifications') as any)
       .update({ read_at: new Date().toISOString() })
       .eq('id', notificationId);
 
@@ -81,8 +81,8 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
 
   markAllAsRead: async (userId: string) => {
     const supabase = createClient();
-    const { error } = await supabase
-      .from('notifications')
+    const { error } = await (supabase
+      .from('notifications') as any)
       .update({ read_at: new Date().toISOString() })
       .eq('user_id', userId)
       .is('read_at', null);
@@ -119,14 +119,14 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
           const newNotif = payload.new as Notification;
           
           // Fetch actor details for the new notification
-          const { data: actor } = await supabase
-            .from('users')
+          const { data: actor } = await (supabase
+            .from('users') as any)
             .select('display_name, avatar_url')
             .eq('id', newNotif.actor_id)
             .single();
             
           if (actor) {
-            newNotif.actor = actor;
+            newNotif.actor = actor as any;
           }
           
           get().addNotification(newNotif);

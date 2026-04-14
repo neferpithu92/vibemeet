@@ -219,12 +219,12 @@ export default function FeedClient({ initialPosts, stories }: FeedClientProps) {
         {posts.map((post) => (
           <FeedPostCard 
             key={post.id} 
-            post={post}
+            post={post as any}
             isLiked={likedPosts.has(post.id)}
             isSaved={savedPosts.has(post.id)}
             onLike={handleLike}
             onSave={handleSave}
-            onComment={(id) => showToast(`I commenti seront presto disponibili`, 'info')}
+            onComment={(id) => showToast(`I commenti saranno presto disponibili`, 'info')}
           />
         ))}
 

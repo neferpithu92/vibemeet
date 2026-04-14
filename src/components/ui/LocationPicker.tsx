@@ -49,7 +49,7 @@ export function LocationPicker({ value, onChange, required = false }: LocationPi
         }
 
         try {
-          const { data: venues } = await supabase.rpc('get_venues_in_bounds', {
+          const { data: venues } = await (supabase as any).rpc('get_venues_in_bounds', {
             min_lat: latitude - 0.002, max_lat: latitude + 0.002,
             min_lng: longitude - 0.002, max_lng: longitude + 0.002
           });

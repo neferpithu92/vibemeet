@@ -30,23 +30,23 @@ export const useWalletStore = create<WalletState>((set, get) => ({
     if (!user) { set({ isLoading: false }); return; }
 
     // 1. Get Balance
-    const { data: userData } = await supabase
-      .from('users')
+    const { data: userData } = await (supabase
+      .from('users') as any)
       .select('vibe_points')
       .eq('id', user.id)
       .single();
     
     // 2. Get Transactions
-    const { data: txs } = await supabase
-      .from('point_transactions')
+    const { data: txs } = await (supabase
+      .from('point_transactions') as any)
       .select('*')
       .eq('user_id', user.id)
       .order('created_at', { ascending: false })
       .limit(10);
 
     set({ 
-      balance: userData?.vibe_points || 0, 
-      transactions: txs || [],
+      balance: (userData as any)?.vibe_points || 0, 
+      transactions: (txs as any) || [],
       isLoading: false 
     });
   },
@@ -57,7 +57,7 @@ export const useWalletStore = create<WalletState>((set, get) => ({
     if (!user) return false;
 
     // Call RPC from 050
-    const { data: newBalance, error } = await supabase.rpc('adjust_vibe_points', {
+    const { data: newBalance, error } = await (supabase as any).rpc('adjust_vibe_points', {
       p_user_id: user.id,
       p_amount: 50,
       p_reason: 'daily_checkin'
@@ -77,7 +77,7 @@ export const useWalletStore = create<WalletState>((set, get) => ({
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return false;
 
-    const { data: newBalance, error } = await supabase.rpc('adjust_vibe_points', {
+    const { data: newBalance, error } = await (supabase as any).rpc('adjust_vibe_points', {
       p_user_id: user.id,
       p_amount: -Math.abs(amount),
       p_reason: reason

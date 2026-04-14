@@ -23,8 +23,8 @@ export async function POST(req: Request) {
 
     // Cerchiamo nella tabella subscriptions usando l'admin db se necessario o via policy utente 
     // l'abbonamento legato all'entityId che combini l'apposita customer id su stripe
-    const { data: subscription, error } = await supabase
-      .from('subscriptions')
+    const { data: subscription, error } = await (supabase
+      .from('subscriptions') as any)
       .select('stripe_customer_id')
       .eq('entity_id', entityId)
       .eq('status', 'active')

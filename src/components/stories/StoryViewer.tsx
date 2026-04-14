@@ -64,14 +64,14 @@ export default function StoryViewer({ groups, initialGroupIndex, onClose, curren
   // Mark story as viewed
   useEffect(() => {
     if (!currentStory || !currentUserId) return;
-    supabase.from('story_views').upsert({
+    (supabase.from('story_views') as any).upsert({
       story_id: currentStory.id,
       viewer_id: currentUserId,
       viewed_at: new Date().toISOString()
     }, { onConflict: 'story_id,viewer_id' }).then(() => {});
     if (isOwnStory) {
-      supabase.from('story_views').select('count', { count: 'exact' })
-        .eq('story_id', currentStory.id).then(({ count }) => setViewCount(count || 0));
+      (supabase.from('story_views') as any).select('count', { count: 'exact' })
+        .eq('story_id', currentStory.id).then(({ count }: any) => setViewCount(count || 0));
     }
   }, [currentStory?.id]);
 

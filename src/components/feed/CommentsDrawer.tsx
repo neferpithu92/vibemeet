@@ -45,8 +45,8 @@ export default function CommentsDrawer({ isOpen, onClose, entityId, entityType =
     if (!entityId) return;
     setIsLoading(true);
     
-    const { data, error } = await supabase
-      .from('comments')
+    const { data, error } = await (supabase
+      .from('comments') as any)
       .select(`
         *,
         author:users(username, avatar_url, display_name)
@@ -68,7 +68,7 @@ export default function CommentsDrawer({ isOpen, onClose, entityId, entityType =
     supabase.auth.getUser().then(({ data }) => setUser(data.user));
 
     // Realtime subscription
-    const channel = supabase
+    const channel = (supabase as any)
       .channel(`comments:${entityId}`)
       .on('postgres_changes', { 
         event: 'INSERT', 
@@ -92,10 +92,10 @@ export default function CommentsDrawer({ isOpen, onClose, entityId, entityType =
     const content = newComment.trim();
     setNewComment('');
 
-    const { error } = await supabase
-      .from('comments')
+    const { error } = await (supabase
+      .from('comments') as any)
       .insert({
-        author_id: user.id,
+        author_id: (user as any).id,
         entity_type: entityType,
         entity_id: entityId,
         body: content

@@ -42,7 +42,7 @@ export async function POST(req: Request) {
     }
 
     // Aggiorna last_location (PostGIS) via RPC per massima coerenza
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .rpc('update_user_location', {
         lon: longitude,
         lat: latitude

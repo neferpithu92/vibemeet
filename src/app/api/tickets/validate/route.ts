@@ -16,25 +16,25 @@ export async function POST(request: NextRequest) {
 
   try {
     // 1. Controllo base: ruolo dell'utente
-    const { data: userData } = await supabase
-      .from('users')
+    const { data: userData } = await (supabase
+      .from('users') as any)
       .select('role')
       .eq('id', user.id)
       .single();
 
-    if (!userData || (userData.role !== 'venue' && userData.role !== 'artist' && userData.role !== 'admin')) {
+    if (!userData || ((userData as any).role !== 'venue' && (userData as any).role !== 'artist' && (userData as any).role !== 'admin')) {
       return NextResponse.json({ error: 'Solo gli organizzatori possono validare biglietti.' }, { status: 403 });
     }
 
     // 2. Controllo piano Premium
-    const { data: subscription } = await supabase
-      .from('subscriptions')
+    const { data: subscription } = await (supabase
+      .from('subscriptions') as any)
       .select('plan, status')
       .eq('entity_id', user.id)
       .eq('status', 'active')
       .single();
 
-    if (userData.role !== 'admin' && (!subscription || (subscription.plan !== 'premium' && subscription.plan !== 'enterprise'))) {
+    if ((userData as any).role !== 'admin' && (!subscription || ((subscription as any).plan !== 'premium' && (subscription as any).plan !== 'enterprise'))) {
       return NextResponse.json({ error: 'Paywall: Upgrade a Premium richiesto per usare lo scanner.' }, { status: 403 });
     }
 
@@ -48,8 +48,8 @@ export async function POST(request: NextRequest) {
     const qrCode = qrData;
 
     // Fetch ticket
-    const { data: ticket, error } = await supabase
-      .from('tickets')
+    const { data: ticket, error } = await (supabase
+      .from('tickets') as any)
       .select('*, events(organizer_id, title, id)')
       .eq('qr_code', qrCode)
       .single();
@@ -59,36 +59,36 @@ export async function POST(request: NextRequest) {
     }
 
     // Check se l'evento è suo
-    if (userData.role !== 'admin' && (ticket.events as any)?.organizer_id !== user.id) {
+    if ((userData as any).role !== 'admin' && (ticket as any).events?.organizer_id !== user.id) {
        return NextResponse.json({ valid: false, reason: 'Questo biglietto appartiene a un altro organizzatore.' });
     }
 
     // Validate
-    if (ticket.status === 'used' || ticket.checked_in_at) {
+    if ((ticket as any).status === 'used' || (ticket as any).checked_in_at) {
       return NextResponse.json({
         valid: false,
         reason: 'BIGLIETTO GIÀ UTILIZZATO!',
-        ticket: { id: ticket.id, status: 'used', event_title: (ticket.events as any)?.title }
+        ticket: { id: (ticket as any).id, status: 'used', event_title: (ticket as any).events?.title }
       });
     }
 
-    if (ticket.status === 'cancelled' || ticket.status === 'refunded') {
+    if ((ticket as any).status === 'cancelled' || (ticket as any).status === 'refunded') {
       return NextResponse.json({ valid: false, reason: 'Biglietto cancellato' });
     }
     
-    if (ticket.status !== 'paid') {
-      return NextResponse.json({ valid: false, reason: `Biglietto non valido. Stato: ${ticket.status}` });
+    if ((ticket as any).status !== 'paid') {
+      return NextResponse.json({ valid: false, reason: `Biglietto non valido. Stato: ${(ticket as any).status}` });
     }
 
     // Marca automaticamente se l'organizzatore sta scansionando
-    const { error: updateError } = await supabase
-      .from('tickets')
+    const { error: updateError } = await (supabase
+      .from('tickets') as any)
       .update({
         status: 'used',
         checked_in_at: new Date().toISOString(),
         checked_in_by: user.id
       })
-      .eq('id', ticket.id);
+      .eq('id', (ticket as any).id);
 
     if (updateError) throw updateError;
 

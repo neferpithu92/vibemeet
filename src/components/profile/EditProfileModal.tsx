@@ -46,8 +46,8 @@ export default function EditProfileModal({
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error('Not authenticated');
 
-      const { error: updateError } = await supabase
-        .from('users')
+      const { error: updateError } = await (supabase
+        .from('users') as any)
         .update({
           display_name: displayName,
           bio: bio

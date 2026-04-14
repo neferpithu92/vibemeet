@@ -15,7 +15,7 @@ export async function POST(req: Request) {
     }
 
     // Call the RPC defined in Migration 035
-    const { error } = await supabase.rpc('process_batch_interactions', {
+    const { error } = await (supabase as any).rpc('process_batch_interactions', {
       p_interactions: interactions
     });
 

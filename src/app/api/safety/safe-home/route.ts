@@ -12,8 +12,8 @@ export async function GET() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: 'Auth required' }, { status: 401 });
 
-  const { data: session } = await supabase
-    .from('safe_home_sessions')
+  const { data: session } = await (supabase
+    .from('safe_home_sessions') as any)
     .select('*, profiles:trusted_contact_id(full_name, avatar_url)')
     .eq('user_id', user.id)
     .eq('status', 'active')
@@ -29,8 +29,8 @@ export async function POST(req: Request) {
 
   const { trustedContactId, expectedHomeAt } = await req.json();
 
-  const { data: session, error } = await supabase
-    .from('safe_home_sessions')
+  const { data: session, error } = await (supabase
+    .from('safe_home_sessions') as any)
     .insert([{
       user_id: user.id,
       trusted_contact_id: trustedContactId,
@@ -51,8 +51,8 @@ export async function PATCH(req: Request) {
 
   const { sessionId, status, lastKnownLocation } = await req.json();
 
-  const { data: session, error } = await supabase
-    .from('safe_home_sessions')
+  const { data: session, error } = await (supabase
+    .from('safe_home_sessions') as any)
     .update({ 
       status, 
       confirmed_safe_at: status === 'safe' ? new Date().toISOString() : null,

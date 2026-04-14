@@ -45,8 +45,8 @@ export default function CreateStory({ isOpen, onClose, onSuccess }: CreateStoryP
 
       console.log('Inserting story for user:', user.id, { mediaType, url });
 
-      const { error } = await supabase
-        .from('stories')
+      const { error } = await (supabase
+        .from('stories') as any)
         .insert({
           author_id: user.id,
           media_url: url,

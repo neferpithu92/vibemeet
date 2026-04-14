@@ -48,20 +48,20 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
 
-      const { data } = await supabase
-        .from('user_settings')
+      const { data } = await (supabase
+        .from('user_settings') as any)
         .select('theme_preset, custom_theme_hsl')
         .eq('user_id', session.user.id)
         .single();
         
       if (data) {
-        if (data.theme_preset && data.theme_preset !== localTheme) {
-          setThemeState(data.theme_preset as ThemePreset);
-          localStorage.setItem('vibe-theme', data.theme_preset);
+        if ((data as any).theme_preset && (data as any).theme_preset !== localTheme) {
+          setThemeState((data as any).theme_preset as ThemePreset);
+          localStorage.setItem('vibe-theme', (data as any).theme_preset);
         }
-        if (data.custom_theme_hsl) {
-          setCustomColorsState(data.custom_theme_hsl);
-          localStorage.setItem('vibe-theme-custom', JSON.stringify(data.custom_theme_hsl));
+        if ((data as any).custom_theme_hsl) {
+          setCustomColorsState((data as any).custom_theme_hsl);
+          localStorage.setItem('vibe-theme-custom', JSON.stringify((data as any).custom_theme_hsl));
         }
       }
     };
@@ -105,8 +105,8 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     
     const { data: { session } } = await supabase.auth.getSession();
     if (session) {
-      await supabase
-        .from('user_settings')
+      await (supabase
+        .from('user_settings') as any)
         .update({ theme_preset: newTheme })
         .eq('user_id', session.user.id);
     }
@@ -118,8 +118,8 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     
     const { data: { session } } = await supabase.auth.getSession();
     if (session && theme === 'custom') {
-      await supabase
-        .from('user_settings')
+      await (supabase
+        .from('user_settings') as any)
         .update({ custom_theme_hsl: colors })
         .eq('user_id', session.user.id);
     }

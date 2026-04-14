@@ -35,8 +35,8 @@ export default function ActivityFeed() {
     setIsLoading(true);
     
     // Fetch Check-ins
-    const { data: checkins } = await supabase
-      .from('check_ins')
+    const { data: checkins } = await (supabase
+      .from('check_ins') as any)
       .select(`
         id,
         created_at,
@@ -48,8 +48,8 @@ export default function ActivityFeed() {
       .limit(5);
 
     // Fetch Followers
-    const { data: followers } = await supabase
-      .from('followers')
+    const { data: followers } = await (supabase
+      .from('followers') as any)
       .select(`
         created_at,
         user:users!followers_follower_id_fkey(username, avatar_url),
@@ -61,7 +61,7 @@ export default function ActivityFeed() {
 
     const merged: ActivityItem[] = [];
 
-    checkins?.forEach((c) => {
+    (checkins as any[])?.forEach((c: any) => {
       const user = Array.isArray(c.user) ? c.user[0] : c.user;
       const venue = Array.isArray(c.venue) ? c.venue[0] : c.venue;
       const event = Array.isArray(c.event) ? c.event[0] : c.event;
@@ -81,7 +81,7 @@ export default function ActivityFeed() {
       });
     });
 
-    followers?.forEach((f) => {
+    (followers as any[])?.forEach((f: any) => {
       const user = Array.isArray(f.user) ? f.user[0] : f.user;
       const followingUser = Array.isArray(f.following_user) ? f.following_user[0] : f.following_user;
       const venue = Array.isArray(f.venue) ? f.venue[0] : f.venue;

@@ -37,8 +37,7 @@ export default function ReactivatePage() {
 
   const handleResume = async () => {
     setIsProcessing(true);
-    const { error } = await supabase
-      .from('users')
+    const { error } = await (supabase.from('users') as any)
       .update({ is_paused: false, deletion_requested_at: null })
       .eq('id', (await supabase.auth.getUser()).data.user?.id);
     

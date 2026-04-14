@@ -57,7 +57,7 @@ export default function TicketPurchaseFlow({ eventId, eventTitle, ticketTypes, i
       if (!user) throw new Error('Not authenticated');
 
       // Create ticket in DB (simplified - real flow would use Stripe)
-      const { data: ticket } = await supabase.from('tickets').insert({
+      const { data: ticket } = await (supabase.from('tickets') as any).insert({
         event_id: eventId,
         user_id: user.id,
         ticket_type: selectedType?.id || 'general',

@@ -129,7 +129,9 @@ export default function RegisterPage() {
       );
       if (uploadData) {
         const { data: publicData } = supabase.storage.from('avatars').getPublicUrl(uploadData.path);
-        await supabase.from('users').update({ avatar_url: publicData.publicUrl }).eq('id', authData.user?.id);
+      const { data: updateData, error: updateError } = await (supabase.from('users') as any)
+        .update({ avatar_url: publicData.publicUrl })
+        .eq('id', authData.user?.id);
       }
     }
 

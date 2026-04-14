@@ -15,7 +15,7 @@ export async function GET(req: Request) {
 
   if (type === 'mutual' && targetId) {
     // Calcola amici in comune tramite funzione RPC definita in migrazione 039
-    const { data, error } = await supabase.rpc('get_mutual_friends', { 
+    const { data, error } = await (supabase as any).rpc('get_mutual_friends', { 
       p_target_id: targetId 
     });
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
@@ -23,8 +23,8 @@ export async function GET(req: Request) {
   }
 
   // Altrimenti ritorna la lista delle amicizie dell'utente
-  const { data, error } = await supabase
-    .from('friendships')
+  const { data, error } = await (supabase
+    .from('friendships') as any)
     .select('*, friend_profile:users!friend_id(id, display_name, avatar_url)')
     .or(`user_id.eq.${user.id},friend_id.eq.${user.id}`)
     .eq('status', 'accepted');
@@ -42,7 +42,7 @@ export async function POST(req: Request) {
 
   if (action === 'request') {
     // Invia richiesta di amicizia
-    const { error } = await supabase.from('friendships').insert({
+    const { error } = await (supabase.from('friendships') as any).insert({
       user_id: user.id,
       friend_id,
       status: 'pending'
@@ -53,8 +53,8 @@ export async function POST(req: Request) {
 
   if (action === 'accept') {
     // Accetta richiesta
-    const { error } = await supabase
-      .from('friendships')
+    const { error } = await (supabase
+      .from('friendships') as any)
       .update({ status: 'accepted' })
       .match({ user_id: friend_id, friend_id: user.id });
     
@@ -64,8 +64,8 @@ export async function POST(req: Request) {
 
   if (action === 'remove' || action === 'decline') {
     // Rimuovi o rifiuta
-    const { error } = await supabase
-      .from('friendships')
+    const { error } = await (supabase
+      .from('friendships') as any)
       .delete()
       .or(`and(user_id.eq.${user.id},friend_id.eq.${friend_id}),and(user_id.eq.${friend_id},friend_id.eq.${user.id})`);
     

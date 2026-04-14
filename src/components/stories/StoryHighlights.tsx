@@ -34,8 +34,8 @@ export default function StoryHighlights({ userId, isOwnProfile, currentUserId }:
   }, [userId]);
 
   const fetchHighlights = async () => {
-    const { data } = await supabase
-      .from('story_highlights')
+    const { data } = await (supabase
+      .from('story_highlights') as any)
       .select(`
         *,
         highlight_stories (
@@ -45,12 +45,12 @@ export default function StoryHighlights({ userId, isOwnProfile, currentUserId }:
       .eq('user_id', userId)
       .order('created_at', { ascending: false });
 
-    setHighlights(data || []);
+    setHighlights((data || []) as any[]);
     setLoading(false);
   };
 
   const handleDeleteHighlight = async (id: string) => {
-    await supabase.from('story_highlights').delete().eq('id', id);
+    await (supabase.from('story_highlights') as any).delete().eq('id', id);
     setHighlights(h => h.filter(x => x.id !== id));
     setLongPressHighlight(null);
   };
@@ -64,21 +64,21 @@ export default function StoryHighlights({ userId, isOwnProfile, currentUserId }:
 
   const viewHighlightStories = async (h: Highlight) => {
     // Fetch stories in this highlight
-    const { data: hs } = await supabase
-      .from('highlight_stories')
+    const { data: hs } = await (supabase
+      .from('highlight_stories') as any)
       .select('story_id')
       .eq('highlight_id', h.id);
 
-    if (!hs?.length) return;
-    const storyIds = hs.map(x => x.story_id);
+    if (!(hs as any)?.length) return;
+    const storyIds = (hs as any[]).map(x => x.story_id);
 
-    const { data: stories } = await supabase
-      .from('stories')
+    const { data: stories } = await (supabase
+      .from('stories') as any)
       .select('*, author:users(username, avatar_url, display_name)')
       .in('id', storyIds);
 
     if (stories?.length) {
-      setViewingHighlight({ ...h, stories });
+      setViewingHighlight({ ...h, stories: stories as any[] });
     }
   };
 

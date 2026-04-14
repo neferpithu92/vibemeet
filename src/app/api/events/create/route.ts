@@ -36,8 +36,8 @@ export async function POST(req: Request) {
 
     // Security Check: Verify user owns the venue
     if (venueId) {
-      const { data: venue, error: venueError } = await supabase
-        .from('venues')
+      const { data: venue, error: venueError } = await (supabase
+        .from('venues') as any)
         .select('owner_id')
         .eq('id', venueId)
         .single();
@@ -48,8 +48,8 @@ export async function POST(req: Request) {
     }
 
     // Inserimento evento
-    const { data: event, error } = await supabase
-      .from('events')
+    const { data: event, error } = await (supabase
+      .from('events') as any)
       .insert([{
         organizer_id: user.id,
         venue_id: venueId,

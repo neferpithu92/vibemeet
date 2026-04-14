@@ -135,8 +135,8 @@ export default function AvatarCropperModal({
       const { data: publicUrlData } = supabase.storage.from('avatars').getPublicUrl(fileName);
       
       // Save instantly to profiles
-      const { error: updateError } = await supabase
-        .from('users')
+      const { error: updateError } = await (supabase
+        .from('users') as any)
         .update({ avatar_url: publicUrlData.publicUrl })
         .eq('id', session.user.id);
 

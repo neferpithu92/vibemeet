@@ -17,12 +17,12 @@ export async function POST(request: Request) {
 
   if (action === 'rsvp') {
     // Controlla se esiste già
-    const existing = await supabase.from('event_rsvps')
+    const existing = await (supabase.from('event_rsvps') as any)
       .select('id').eq('event_id', eventId).eq('user_id', user.id).single();
     
     if (!existing.data) {
-      const { error } = await supabase
-        .from('event_rsvps')
+      const { error } = await (supabase
+        .from('event_rsvps') as any)
         .insert({ event_id: eventId, user_id: user.id, status: 'going' });
         
       if (error) {
@@ -32,12 +32,12 @@ export async function POST(request: Request) {
     }
   } else if (action === 'unrsvp') {
     // Rimuovi RSVP
-    const existing = await supabase.from('event_rsvps')
+    const existing = await (supabase.from('event_rsvps') as any)
       .select('id').eq('event_id', eventId).eq('user_id', user.id).single();
     
     if (existing.data) {
-      const { error } = await supabase
-        .from('event_rsvps')
+      const { error } = await (supabase
+        .from('event_rsvps') as any)
         .delete()
         .eq('id', existing.data.id);
         

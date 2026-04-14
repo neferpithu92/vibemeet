@@ -16,8 +16,8 @@ export async function POST(request: Request) {
   }
 
   if (action === 'follow') {
-    const { error } = await supabase
-      .from('followers')
+    const { error } = await (supabase
+      .from('followers') as any)
       .upsert({
         follower_id: user.id,
         following_id: targetId,
@@ -30,8 +30,8 @@ export async function POST(request: Request) {
     
     return NextResponse.json({ success: true, message: 'Follow aggiunto' });
   } else if (action === 'unfollow') {
-    const { error } = await supabase
-      .from('followers')
+    const { error } = await (supabase
+      .from('followers') as any)
       .delete()
       .match({
         follower_id: user.id,

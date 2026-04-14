@@ -41,7 +41,7 @@ export async function GET(request: NextRequest) {
     .is('weather_cache', null)
     .limit(50);
 
-  const allEvents = [...(events || []), ...(eventsNoCache || [])];
+  const allEvents: any[] = [...(events || []), ...(eventsNoCache || [])];
 
   for (const event of allEvents) {
     const venue = (event as any).venues;
@@ -76,8 +76,8 @@ export async function GET(request: NextRequest) {
         updated_at: new Date().toISOString()
       };
 
-      await supabase
-        .from('events')
+      await (supabase
+        .from('events') as any)
         .update({ weather_cache: weatherCache })
         .eq('id', event.id);
 

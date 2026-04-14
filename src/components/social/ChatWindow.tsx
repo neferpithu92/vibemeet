@@ -60,8 +60,8 @@ export function ChatWindow({ conversationId, onBack }: { conversationId: string,
       .map(m => m.id);
     
     if (unreadIds.length > 0) {
-      await supabase
-        .from('direct_messages')
+      await (supabase
+        .from('direct_messages') as any)
         .update({ read_at: new Date().toISOString() })
         .in('id', unreadIds);
     }

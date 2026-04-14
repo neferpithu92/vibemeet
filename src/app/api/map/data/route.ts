@@ -17,7 +17,7 @@ export async function GET(request: Request) {
   const supabase = await createClient();
 
   // Recupera dati mappa consolidati via PostGIS RPC (Venues, Events, Stories)
-  const { data: mapData, error: mapError } = await supabase.rpc('get_map_data', {
+  const { data: mapData, error: mapError } = await (supabase as any).rpc('get_map_data', {
     sw_lon: sw[0],
     sw_lat: sw[1],
     ne_lon: ne[0],
@@ -31,7 +31,7 @@ export async function GET(request: Request) {
   const centerLat = (sw[1] + ne[1]) / 2;
   const radius = Math.sqrt(Math.pow(ne[0] - sw[0], 2) + Math.pow(ne[1] - sw[1], 2)) * 50000;
 
-  const { data: users, error: usersError } = await supabase
+  const { data: users, error: usersError } = await (supabase as any)
     .rpc('get_nearby_users', {
       lon: centerLon,
       lat: centerLat,

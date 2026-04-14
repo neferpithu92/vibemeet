@@ -37,8 +37,8 @@ export default function SafeHomeUpgraded({ userId }: SafeHomeUpgradedProps) {
   useEffect(() => { fetchContacts(); }, []);
 
   const fetchContacts = async () => {
-    const { data } = await supabase
-      .from('trusted_contacts')
+    const { data } = await (supabase
+      .from('trusted_contacts') as any)
       .select(`
         id,
         contact_user_id,
@@ -47,7 +47,7 @@ export default function SafeHomeUpgraded({ userId }: SafeHomeUpgradedProps) {
       .eq('user_id', userId)
       .limit(5);
 
-    setContacts((data || []).map((c: any) => ({
+    setContacts(((data || []) as any[]).map((c: any) => ({
       id: c.id,
       contact_user_id: c.contact_user_id,
       username: c.users?.username,
@@ -84,7 +84,7 @@ export default function SafeHomeUpgraded({ userId }: SafeHomeUpgradedProps) {
       // Send DMs to all trusted contacts
       for (const contact of contacts) {
         try {
-          await supabase.from('messages').insert({
+          await (supabase.from('messages') as any).insert({
             sender_id: userId,
             content: locationMsg,
             type: 'sos'
@@ -100,8 +100,8 @@ export default function SafeHomeUpgraded({ userId }: SafeHomeUpgradedProps) {
 
   const searchUsers = async (query: string) => {
     if (query.length < 2) { setSearchResults([]); return; }
-    const { data } = await supabase
-      .from('users')
+    const { data } = await (supabase
+      .from('users') as any)
       .select('id, username, display_name, avatar_url')
       .ilike('username', `%${query}%`)
       .neq('id', userId)
@@ -111,7 +111,7 @@ export default function SafeHomeUpgraded({ userId }: SafeHomeUpgradedProps) {
 
   const addContact = async (contactUserId: string) => {
     if (contacts.length >= 5) return;
-    await supabase.from('trusted_contacts').insert({ user_id: userId, contact_user_id: contactUserId });
+    await (supabase.from('trusted_contacts') as any).insert({ user_id: userId, contact_user_id: contactUserId });
     setShowAddContact(false);
     setSearchUser('');
     setSearchResults([]);
@@ -119,7 +119,7 @@ export default function SafeHomeUpgraded({ userId }: SafeHomeUpgradedProps) {
   };
 
   const removeContact = async (id: string) => {
-    await supabase.from('trusted_contacts').delete().eq('id', id);
+    await (supabase.from('trusted_contacts') as any).delete().eq('id', id);
     setContacts(c => c.filter(x => x.id !== id));
   };
 

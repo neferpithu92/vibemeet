@@ -1,15 +1,15 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import { createClient } from '@/lib/supabase/client';
 import { Avatar } from '@/components/ui/Avatar';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
+import { useToast } from '@/components/ui/ToastProvider';
 import { motion, AnimatePresence } from 'framer-motion';
 import { formatDistanceToNow } from 'date-fns';
 import { it, enUS, de, fr } from 'date-fns/locale';
-import { useLocale } from 'next-intl';
 import { Link } from '@/lib/i18n/navigation';
 
 interface Comment {
@@ -38,6 +38,7 @@ const dateLocales: Record<string, any> = { it, en: enUS, de, fr };
 export default function CommentThread({ entityType, entityId }: CommentThreadProps) {
   const t = useTranslations('social');
   const locale = useLocale();
+  const { showToast } = useToast();
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState('');
   const [replyTo, setReplyTo] = useState<Comment | null>(null);
@@ -48,8 +49,8 @@ export default function CommentThread({ entityType, entityId }: CommentThreadPro
 
   const fetchComments = useCallback(async () => {
     setIsLoading(true);
-    const { data, error } = await supabase
-      .from('comments')
+    const { data, error } = await (supabase
+      .from('comments') as any)
       .select(`
         *,
         author:users(username, avatar_url, display_name)
@@ -91,7 +92,7 @@ export default function CommentThread({ entityType, entityId }: CommentThreadPro
     supabase.auth.getUser().then(({ data }) => setUser(data.user));
 
     // Realtime subscription
-    const channel = supabase
+    const channel = (supabase as any)
       .channel(`comments:${entityId}`)
       .on('postgres_changes' as any, { 
         event: 'INSERT', 
@@ -108,17 +109,15 @@ export default function CommentThread({ entityType, entityId }: CommentThreadPro
     };
   }, [entityId, fetchComments, supabase]);
 
-  const { showToast } = useToast();
-
   const handlePostComment = async () => {
     if (!newComment.trim() || !user) return;
 
     setIsPosting(true);
     try {
-      const { error } = await supabase
-        .from('comments')
+      const { error } = await (supabase
+        .from('comments') as any)
         .insert({
-          author_id: user.id,
+          author_id: (user as any).id,
           entity_type: entityType,
           entity_id: entityId,
           body: newComment,

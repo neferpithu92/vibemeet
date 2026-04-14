@@ -16,8 +16,8 @@ export async function POST(request: Request) {
   }
 
   // Registra il check-in
-  const { error } = await supabase
-    .from('check_ins')
+  const { error } = await (supabase
+    .from('check_ins') as any)
     .insert({
       user_id: user.id,
       venue_id: venueId || null,

@@ -36,7 +36,7 @@ export async function GET(request: Request) {
   }
 
   // 2. Chiamata alla RPC di sistema
-  const { data, error } = await supabase.rpc(rpcName, rpcArgs);
+  const { data, error } = await (supabase as any).rpc(rpcName, rpcArgs);
 
   if (error) {
     console.error('[STRESS-TEST] Errore simulazione:', error);

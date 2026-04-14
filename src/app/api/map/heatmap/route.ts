@@ -33,7 +33,7 @@ export async function GET(request: Request) {
     const { sw, ne } = boundsSchema.parse({ sw: swParams, ne: neParams });
 
     // Try the RPC first (uses PostGIS for efficient spatial query)
-    const { data: heatmapData, error: rpcError } = await supabase.rpc('get_heatmap_points', {
+    const { data: heatmapData, error: rpcError } = await (supabase as any).rpc('get_heatmap_points', {
       sw_lon: sw[0],
       sw_lat: sw[1],
       ne_lon: ne[0],

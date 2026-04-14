@@ -37,15 +37,15 @@ export default function AnalyticsDashboard() {
         if (!user) return;
 
         // Fetch creator stats
-        const { data: stats } = await supabase
-          .from('creator_stats')
+        const { data: stats } = await (supabase
+          .from('creator_stats') as any)
           .select('total_followers, total_profile_views')
           .eq('creator_id', user.id)
           .single();
 
         // Fetch recent events
-        const { data: events } = await supabase
-          .from('events')
+        const { data: events } = await (supabase
+          .from('events') as any)
           .select(`
             id, title, created_at,
             event_analytics ( views, clicks, tickets_sold, revenue )

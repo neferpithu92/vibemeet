@@ -54,7 +54,7 @@ export default function LoginPage() {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         // Recuperiamo la public_key registrata dal profilo utente (tabella users)
-        const { data: userData } = await supabase
+        const { data: userData }: any = await supabase
           .from('users')
           .select('public_key')
           .eq('id', user.id)

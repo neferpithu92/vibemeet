@@ -23,15 +23,15 @@ export async function POST(request: Request) {
 
     if (action === 'like') {
       // Check if already liked to prevent duplicates
-      const { data: existing } = await supabase
-        .from('likes')
+      const { data: existing } = await (supabase
+        .from('likes') as any)
         .select('id')
         .match({ user_id: user.id, entity_id: entityId, entity_type: entityType })
         .single();
 
       if (!existing) {
-        const { error } = await supabase
-          .from('likes')
+        const { error } = await (supabase
+          .from('likes') as any)
           .insert({
             user_id: user.id,
             entity_id: entityId,
@@ -42,8 +42,8 @@ export async function POST(request: Request) {
       }
       return NextResponse.json({ success: true, message: 'Like aggiunto' });
     } else if (action === 'unlike') {
-      const { error } = await supabase
-        .from('likes')
+      const { error } = await (supabase
+        .from('likes') as any)
         .delete()
         .match({ user_id: user.id, entity_id: entityId, entity_type: entityType });
 

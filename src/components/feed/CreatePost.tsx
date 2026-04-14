@@ -48,7 +48,7 @@ export default function CreatePost({ isOpen, onClose, onSuccess, initialMediaUrl
       const lat = Number(location?.lat);
       if (isNaN(lng) || isNaN(lat)) throw new Error('Invalid coordinates');
 
-      const { data: media, error } = await supabase.from('media').insert({
+      const { data: media, error } = await (supabase.from('media') as any).insert({
         user_id: user.id,
         author_id: user.id, // Ensure author_id is set
         url: url, // DB uses 'url' and 'type' in newer schema? Let me check.
@@ -76,16 +76,16 @@ export default function CreatePost({ isOpen, onClose, onSuccess, initialMediaUrl
         const allTags = Array.from(new Set([...extractedTags, ...hashtags]));
         
         for (const tag of allTags) {
-          const { data: hashtag } = await supabase
-            .from('hashtags')
+          const { data: hashtag } = await (supabase
+            .from('hashtags') as any)
             .upsert({ tag }, { onConflict: 'tag' })
             .select().single();
           
           if (hashtag) {
-            await supabase.from('post_hashtags').insert({
-              post_id: media.id,
+            await (supabase.from('post_hashtags') as any).insert({
+              post_id: (media as any).id,
               post_type: 'media',
-              hashtag_id: hashtag.id
+              hashtag_id: (hashtag as any).id
             });
           }
         }

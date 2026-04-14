@@ -29,7 +29,7 @@ export default function SafeHomeWidget() {
     // 1. Get location
     navigator.geolocation.getCurrentPosition(async (pos) => {
       const { latitude, longitude } = pos.coords;
-      const { data, error } = await supabase.from('safe_home_sessions').insert({
+      const { data, error } = await (supabase.from('safe_home_sessions') as any).insert({
         user_id: userId,
         status: 'active',
         start_location: `POINT(${longitude} ${latitude})`,
@@ -50,7 +50,7 @@ export default function SafeHomeWidget() {
     if (!sessionId) return;
     navigator.geolocation.getCurrentPosition(async (pos) => {
       const { latitude, longitude } = pos.coords;
-      await supabase.from('safe_home_sessions').update({
+      await (supabase.from('safe_home_sessions') as any).update({
         status: 'completed',
         end_location: `POINT(${longitude} ${latitude})`,
         ended_at: new Date().toISOString()
@@ -64,7 +64,7 @@ export default function SafeHomeWidget() {
 
   const handleSOS = async () => {
      if (!sessionId) return;
-     await supabase.from('safe_home_sessions').update({
+     await (supabase.from('safe_home_sessions') as any).update({
        status: 'sos_triggered'
      }).eq('id', sessionId);
      showToast('SOS Inviato! Le autorità e i tuoi contatti sono stati allertati.', 'error');

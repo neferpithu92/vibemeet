@@ -27,11 +27,11 @@ export async function POST(request: Request) {
 
     // Security Check: Verify target ownership
     if (entityType === 'venue') {
-      const { data: venue } = await supabase.from('venues').select('owner_id').eq('id', entityId).single();
-      if (!venue || venue.owner_id !== user.id) return NextResponse.json({ error: 'Vietato caricare su questa Venue' }, { status: 403 });
+      const { data: venue } = await (supabase.from('venues') as any).select('owner_id').eq('id', entityId).single();
+      if (!venue || (venue as any).owner_id !== user.id) return NextResponse.json({ error: 'Vietato caricare su questa Venue' }, { status: 403 });
     } else if (entityType === 'event') {
-      const { data: event } = await supabase.from('events').select('organizer_id').eq('id', entityId).single();
-      if (!event || event.organizer_id !== user.id) return NextResponse.json({ error: 'Vietato caricare su questo Evento' }, { status: 403 });
+      const { data: event } = await (supabase.from('events') as any).select('organizer_id').eq('id', entityId).single();
+      if (!event || (event as any).organizer_id !== user.id) return NextResponse.json({ error: 'Vietato caricare su questo Evento' }, { status: 403 });
     } else if (entityType === 'user' && entityId !== user.id) {
        return NextResponse.json({ error: 'Vietato caricare su profili altrui' }, { status: 403 });
     }
@@ -60,8 +60,8 @@ export async function POST(request: Request) {
 
     // 3. Inserisci il record nella tabella corrispondente
     if (bucket === 'stories') {
-      const { data: story, error: storyError } = await supabase
-        .from('stories')
+      const { data: story, error: storyError } = await (supabase
+        .from('stories') as any)
         .insert({
           author_id: user.id,
           media_url: publicUrl,
@@ -79,8 +79,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: true, data: story });
     } else {
       // Inserisci in 'media' per i post del feed
-      const { data: media, error: mediaError } = await supabase
-        .from('media')
+      const { data: media, error: mediaError } = await (supabase
+        .from('media') as any)
         .insert({
           author_id: user.id,
           entity_type: entityType || 'user',

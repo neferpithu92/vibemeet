@@ -41,21 +41,21 @@ export default function GamificationWidget({ userId, compact = false }: Gamifica
 
   const fetchStats = async () => {
     // Fetch points from user profile
-    const { data: profile } = await supabase
-      .from('users')
+    const { data: profile } = await (supabase
+      .from('users') as any)
       .select('vibe_points')
       .eq('id', userId)
       .single();
 
     // Fetch earned badges
-    const { data: badges } = await supabase
-      .from('user_badges')
+    const { data: badges } = await (supabase
+      .from('user_badges') as any)
       .select('badge_id')
       .eq('user_id', userId);
 
     setStats({
-      vibe_points: profile?.vibe_points || 0,
-      badges: badges?.map(b => b.badge_id) || []
+      vibe_points: (profile as any)?.vibe_points || 0,
+      badges: (badges as any[])?.map(b => b.badge_id) || []
     });
     setLoading(false);
   };

@@ -48,8 +48,8 @@ export const useCirclesStore = create<CirclesState>((set, get) => ({
   fetchCircles: async () => {
     set({ isLoading: true, error: null });
     const supabase = createClient();
-    const { data, error } = await supabase
-      .from('social_circles')
+    const { data, error } = await (supabase
+      .from('social_circles') as any)
       .select('*')
       .order('created_at', { ascending: false });
 
@@ -57,7 +57,7 @@ export const useCirclesStore = create<CirclesState>((set, get) => ({
       set({ error: error.message, isLoading: false });
       return;
     }
-    set({ circles: data ?? [], isLoading: false });
+    set({ circles: (data ?? []) as any[], isLoading: false });
   },
 
   createCircle: async (name, description) => {
@@ -66,8 +66,8 @@ export const useCirclesStore = create<CirclesState>((set, get) => ({
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { set({ isLoading: false }); return null; }
 
-    const { data, error } = await supabase
-      .from('social_circles')
+    const { data, error } = await (supabase
+      .from('social_circles') as any)
       .insert({ owner_id: user.id, name, description })
       .select()
       .single();
@@ -76,13 +76,13 @@ export const useCirclesStore = create<CirclesState>((set, get) => ({
       set({ error: error.message, isLoading: false });
       return null;
     }
-    set(s => ({ circles: [data, ...s.circles], isLoading: false }));
-    return data;
+    set(s => ({ circles: [(data as any), ...s.circles], isLoading: false }));
+    return data as any;
   },
 
   deleteCircle: async (circleId) => {
     const supabase = createClient();
-    const { error } = await supabase.from('social_circles').delete().eq('id', circleId);
+    const { error } = await (supabase.from('social_circles') as any).delete().eq('id', circleId);
     if (!error) {
       set(s => ({ circles: s.circles.filter(c => c.id !== circleId), activeCircle: null }));
     }
@@ -91,17 +91,17 @@ export const useCirclesStore = create<CirclesState>((set, get) => ({
   fetchMembers: async (circleId) => {
     set({ isLoading: true });
     const supabase = createClient();
-    const { data, error } = await supabase
-      .from('circle_members')
+    const { data, error } = await (supabase
+      .from('circle_members') as any)
       .select('*, users(id, username, display_name, avatar_url, trust_score)')
       .eq('circle_id', circleId);
 
     if (error) { set({ error: error.message, isLoading: false }); return; }
 
     set(s => ({
-      circles: s.circles.map(c => c.id === circleId ? { ...c, members: data ?? [] } : c),
+      circles: s.circles.map(c => c.id === circleId ? { ...c, members: (data ?? []) as any[] } : c),
       activeCircle: s.activeCircle?.id === circleId
-        ? { ...s.activeCircle, members: data ?? [] }
+        ? { ...s.activeCircle, members: (data ?? []) as any[] }
         : s.activeCircle,
       isLoading: false,
     }));
@@ -109,14 +109,14 @@ export const useCirclesStore = create<CirclesState>((set, get) => ({
 
   addMember: async (circleId, userId) => {
     const supabase = createClient();
-    const { error } = await supabase.from('circle_members').insert({ circle_id: circleId, user_id: userId });
+    const { error } = await (supabase.from('circle_members') as any).insert({ circle_id: circleId, user_id: userId });
     if (!error) { await get().fetchMembers(circleId); }
   },
 
   removeMember: async (circleId, userId) => {
     const supabase = createClient();
-    const { error } = await supabase
-      .from('circle_members')
+    const { error } = await (supabase
+      .from('circle_members') as any)
       .delete()
       .eq('circle_id', circleId)
       .eq('user_id', userId);

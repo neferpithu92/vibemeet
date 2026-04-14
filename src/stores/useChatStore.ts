@@ -58,8 +58,8 @@ export const useChatStore = create<ChatState>((set, get) => ({
     const supabase = createClient();
     
     // Recupera conversazioni e dati degli utenti (JOIN)
-    const { data, error } = await supabase
-      .from('conversations')
+    const { data, error } = await (supabase
+      .from('conversations') as any)
       .select(`
         *,
         user1:users!user1_id(*),
@@ -74,7 +74,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
       return;
     }
 
-    const processed = data.map(conv => {
+    const processed = (data as any[]).map(conv => {
       const otherUser = conv.user1_id === userId ? conv.user2 : conv.user1;
       return { ...conv, other_user: otherUser };
     });
@@ -86,8 +86,8 @@ export const useChatStore = create<ChatState>((set, get) => ({
     set({ isLoading: true });
     const supabase = createClient();
     
-    const { data, error } = await supabase
-      .from('direct_messages')
+    const { data, error } = await (supabase
+      .from('direct_messages') as any)
       .select('*')
       .eq('conversation_id', conversationId)
       .order('created_at', { ascending: true });
@@ -104,11 +104,11 @@ export const useChatStore = create<ChatState>((set, get) => ({
     const otherPublicKey = conversation?.other_user?.public_key;
 
     if (!privateKey || !otherPublicKey) {
-      set({ messages: data, isLoading: false });
+      set({ messages: data as any[], isLoading: false });
       return;
     }
 
-    const decrypted = await Promise.all(data.map(async msg => {
+    const decrypted = await Promise.all((data as any[]).map(async msg => {
       const senderPublicKey = msg.sender_id === conversation?.other_user?.id 
         ? otherPublicKey 
         : sessionStorage.getItem('vibe_public_key');
@@ -138,7 +138,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
        throw new Error("Encryption keys missing. Failed to send E2E message.");
     }
 
-    const { data: convId } = await supabase.rpc('get_or_create_conversation', { p_user_id: recipientId });
+    const { data: convId } = await (supabase as any).rpc('get_or_create_conversation', { p_user_id: recipientId });
     if (!convId) throw new Error("Could not initialize conversation.");
 
     const encryptedPayload = await encryptDirectMessage(content, recipientPublicKey, myPrivateKey);
@@ -146,7 +146,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
     const { data: userData } = await supabase.auth.getUser();
     if (!userData.user) return;
 
-    const { error } = await supabase.from('direct_messages').insert({
+    const { error } = await (supabase.from('direct_messages') as any).insert({
       conversation_id: convId,
       sender_id: userData.user.id,
       encrypted_content: encryptedPayload,
@@ -161,7 +161,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
   markAsRead: async (messageIds) => {
     if (messageIds.length === 0) return;
     const supabase = createClient();
-    await supabase.from('direct_messages')
+    await (supabase.from('direct_messages') as any)
       .update({ read_at: new Date().toISOString() })
       .in('id', messageIds);
     

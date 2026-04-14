@@ -15,8 +15,8 @@ export async function POST(request: Request) {
   }
 
   // Recupera dettagli evento (prezzo e creatore)
-  const { data: event } = await supabase
-    .from('events')
+  const { data: event } = await (supabase
+    .from('events') as any)
     .select('id, title, ticket_price, organizer_id')
     .eq('id', eventId)
     .single();

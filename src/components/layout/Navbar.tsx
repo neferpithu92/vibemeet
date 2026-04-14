@@ -32,8 +32,8 @@ export function Navbar() {
 
       if (authUser) {
         // Carica profilo dalla tabella users
-        const { data: profile } = await supabase
-          .from('users')
+        const { data: profile } = await (supabase
+          .from('users') as any)
           .select('display_name, username, avatar_url')
           .eq('id', authUser.id)
           .single();

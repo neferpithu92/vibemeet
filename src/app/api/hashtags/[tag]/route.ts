@@ -38,8 +38,8 @@ export async function GET(
   const supabase = await createClient();
 
   // Get hashtag info
-  const { data: hashtag, error: hashError } = await supabase
-    .from('hashtags')
+  const { data: hashtag, error: hashError }: any = await (supabase
+    .from('hashtags') as any)
     .select('*')
     .eq('tag', tag.toLowerCase())
     .single();
@@ -49,8 +49,8 @@ export async function GET(
   }
 
   // Get content linked to this hashtag
-  const { data: links, error: linksError } = await supabase
-    .from('post_hashtags')
+  const { data: links, error: linksError } = await (supabase
+    .from('post_hashtags') as any)
     .select('post_id, post_type, created_at')
     .eq('hashtag_id', hashtag.id)
     .order('created_at', { ascending: false })
@@ -75,8 +75,8 @@ export async function GET(
   }
 
   // Check if trending
-  const { data: trendingData } = await supabase
-    .from('trending_hashtags')
+  const { data: trendingData } = await (supabase
+    .from('trending_hashtags') as any)
     .select('score')
     .eq('hashtag_id', hashtag.id)
     .eq('period', '24h')

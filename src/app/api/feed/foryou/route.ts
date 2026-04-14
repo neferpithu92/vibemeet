@@ -25,7 +25,7 @@ export async function GET(req: Request) {
     const dbType = type === 'reels' ? 'video' : type === 'posts' ? 'photo' : null;
 
     // Use the RPC for intelligent ranking
-    const { data: feed, error } = await supabase.rpc('get_fyp_algo_feed', {
+    const { data: feed, error } = await (supabase as any).rpc('get_fyp_algo_feed', {
       p_user_id: user.id,
       p_limit: limit,
       p_offset: offset,

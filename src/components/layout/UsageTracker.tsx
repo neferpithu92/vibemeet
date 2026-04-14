@@ -28,7 +28,7 @@ export function UsageTracker() {
           const date = new Date().toISOString().split('T')[0];
           
           // Atomic increment via RPC
-          const { error } = await supabase.rpc('increment_usage', { 
+          const { error } = await (supabase as any).rpc('increment_usage', { 
             p_user_id: sessionUser.current, 
             p_date: date, 
             p_seconds: 30 
