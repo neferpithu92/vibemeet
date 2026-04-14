@@ -37,7 +37,7 @@ export default function TicketDetailPage() {
             cover_image
           )
         `)
-        .eq('id', id)
+        .eq('id', id as string)
         .single();
       
       if (data) setTicket(data as unknown as Ticket);

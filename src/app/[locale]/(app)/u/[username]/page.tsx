@@ -70,9 +70,10 @@ export default function UserProfilePage() {
         return;
       }
 
-      setProfile(profileData);
-      setIsOwnProfile(user?.id === profileData.id);
-      setIsPrivate(profileData.account_type === 'private');
+      const p = profileData as UserProfileData;
+      setProfile(p);
+      setIsOwnProfile(user?.id === p.id);
+      setIsPrivate(p.account_type === 'private');
 
       // Fetch counts
       const [
@@ -82,15 +83,15 @@ export default function UserProfilePage() {
       ] = await Promise.all([
         supabase.from('followers')
           .select('*', { count: 'exact', head: true })
-          .eq('following_id', profileData.id)
+          .eq('following_id', p.id)
           .eq('entity_type', 'user'),
         supabase.from('followers')
           .select('*', { count: 'exact', head: true })
-          .eq('follower_id', profileData.id)
+          .eq('follower_id', p.id)
           .eq('entity_type', 'user'),
         supabase.from('media')
           .select('*', { count: 'exact', head: true })
-          .eq('author_id', profileData.id)
+          .eq('author_id', p.id)
       ]);
 
       setFollowerCount(followers || 0);
@@ -104,7 +105,7 @@ export default function UserProfilePage() {
           .select('follower_id')
           .match({
             follower_id: user.id,
-            following_id: profileData.id,
+            following_id: p.id,
             entity_type: 'user'
           })
           .maybeSingle();
@@ -112,21 +113,22 @@ export default function UserProfilePage() {
       }
 
       // Fetch media (only if public or own profile or following)
-      const canView = profileData.account_type === 'public'
-        || user?.id === profileData.id 
+      const canView = p.account_type === 'public'
+        || user?.id === p.id 
         || isFollowing;
 
       if (canView) {
         const { data: mediaData } = await supabase
           .from('media')
           .select('id, url, thumbnail_url, type, like_count, created_at')
-          .eq('author_id', profileData.id)
+          .eq('author_id', p.id)
           .order('created_at', { ascending: false });
 
         if (mediaData) {
-          setPosts(mediaData.filter(m => 
+          const mItems = mediaData as any[];
+          setPosts(mItems.filter(m => 
             m.type === 'photo' || m.type === 'image'));
-          setReels(mediaData.filter(m => 
+          setReels(mItems.filter(m => 
             m.type === 'video' || m.type === 'reel'));
         }
       }
@@ -141,7 +143,7 @@ export default function UserProfilePage() {
     if (!user || !profile) return;
 
     if (isFollowing) {
-      await supabase.from('followers').delete().match({
+      await (supabase as any).from('followers').delete().match({
         follower_id: user.id,
         following_id: profile.id,
         entity_type: 'user'
@@ -149,7 +151,7 @@ export default function UserProfilePage() {
       setIsFollowing(false);
       setFollowerCount(prev => prev - 1);
     } else {
-      await supabase.from('followers').insert({
+      await (supabase as any).from('followers').insert({
         follower_id: user.id,
         following_id: profile.id,
         entity_type: 'user'

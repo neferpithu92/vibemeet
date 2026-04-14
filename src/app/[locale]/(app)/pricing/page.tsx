@@ -23,13 +23,14 @@ export default async function PricingPage({ params }: { params: Promise<{ locale
 
   // Carica info extra se necessario, e.g. se l'utente è un proprietario di venue
   const userId = user.id; 
-  const { data: venues } = await supabase
+  const { data: venuesRaw } = await (supabase as any)
     .from('venues')
     .select('id, name')
     .eq('owner_id', userId);
+  const venues = (venuesRaw || []) as { id: string; name: string }[];
 
-  const primaryEntityId = venues?.[0]?.id || userId;
-  const primaryEntityType = venues?.[0]?.id ? 'venue' : 'user';
+  const primaryEntityId = venues[0]?.id || userId;
+  const primaryEntityType = venues[0]?.id ? 'venue' : 'user';
 
   return (
     <div className="page-container">

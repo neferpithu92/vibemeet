@@ -36,7 +36,7 @@ export default function SavedPage() {
         .order('created_at', { ascending: false });
       
       if (data) {
-        setSavedMedia(data.map(d => {
+        setSavedMedia((data as any[]).map(d => {
           const m = Array.isArray(d.media) ? d.media[0] : d.media;
           return m;
         }).filter(Boolean));

@@ -42,7 +42,7 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import PostModal from '@/components/feed/PostModal';
 import { localeNames } from '@/lib/i18n/config';
 
-const tabs = ['Post', 'Vibe', 'Saved', 'Check-in', 'Tickets'] as const;
+const tabs = ['posts', 'vibe', 'saved', 'checkIn', 'tickets'] as const;
 
 const userPosts = [
   { id: '1', type: 'photo', likes: 45, comments: 8, venue: 'Club Paradiso' },
@@ -64,11 +64,13 @@ interface UserProfile {
 interface UserPost {
   id: string;
   media_url: string;
-  media_type?: string;
+  media_type?: 'video' | 'photo';
   likes_count?: number;
-  caption?: string | null;
+  caption?: string;
   created_at: string;
   venue?: { name: string } | null;
+  location_name?: string;
+  profiles?: any;
 }
 
 interface UserStory {
@@ -105,7 +107,7 @@ export default function ProfilePage() {
   const router = useRouter();
   const supabase = createClient();
 
-  const [activeTab, setActiveTab] = useState<typeof tabs[number]>('Post');
+  const [activeTab, setActiveTab] = useState<typeof tabs[number]>('posts');
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [posts, setPosts] = useState<UserPost[]>([]);
   const [vibe, setVibe] = useState<UserPost[]>([]);
@@ -296,7 +298,7 @@ export default function ProfilePage() {
     // Sync to DB
     const { data: { session } } = await supabase.auth.getSession();
     if (session) {
-      await supabase.from('users').update({ map_visibility: nextMode }).eq('id', session.user.id);
+      await (supabase as any).from('users').update({ map_visibility: nextMode }).eq('id', session.user.id);
     }
   };
 
@@ -420,12 +422,12 @@ export default function ProfilePage() {
                 />
               )}
               <span className="relative z-10 flex items-center justify-center gap-2">
-                {tab === 'Post' ? <Grid className="w-4 h-4" /> : 
-                 tab === 'Vibe' ? <Play className="w-4 h-4" /> : 
-                 tab === 'Saved' ? <Bookmark className="w-4 h-4" /> : 
-                 tab === 'Tickets' ? <PackageCheck className="w-4 h-4" /> :
+                {tab === 'posts' ? <Grid className="w-4 h-4" /> : 
+                 tab === 'vibe' ? <Play className="w-4 h-4" /> : 
+                 tab === 'saved' ? <Bookmark className="w-4 h-4" /> : 
+                 tab === 'tickets' ? <PackageCheck className="w-4 h-4" /> :
                  <MapPin className="w-4 h-4" />} 
-                <span className="hidden sm:inline">{tab}</span>
+                <span className="hidden sm:inline">{t(tab)}</span>
               </span>
             </button>
           ))}
@@ -440,7 +442,7 @@ export default function ProfilePage() {
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.2 }}
           >
-            {activeTab === 'Post' ? (
+            {activeTab === 'posts' ? (
           <div className="grid grid-cols-3 gap-1 rounded-xl overflow-hidden">
             {posts.length > 0 ? posts.map((post) => (
               <motion.div 
@@ -476,13 +478,13 @@ export default function ProfilePage() {
               </div>
             )}
           </div>
-        ) : activeTab === 'Vibe' ? (
+        ) : activeTab === 'vibe' ? (
           <div className="grid grid-cols-3 gap-1 rounded-xl overflow-hidden">
             {vibe.length > 0 ? vibe.map((v) => (
               <motion.div 
                 key={v.id} 
                 whileHover={{ scale: 1.02 }}
-                onClick={() => setSelectedPost({ ...v, profiles: { ...profile, username: profile?.username } })}
+                onClick={() => setSelectedPost({ ...v, profiles: { ...profile, username: profile?.username } } as any)}
                 className="relative aspect-square bg-black group cursor-pointer overflow-hidden border border-white/5"
               >
                 <Image 
@@ -515,7 +517,7 @@ export default function ProfilePage() {
               </div>
             )}
           </div>
-        ) : activeTab === 'Check-in' ? (
+        ) : activeTab === 'checkIn' ? (
           <div className="space-y-3">
             {checkIns.length > 0 ? checkIns.map((ci) => {
               const v = Array.isArray(ci.venue) ? ci.venue[0] : ci.venue;
@@ -552,7 +554,7 @@ export default function ProfilePage() {
               </div>
             )}
           </div>
-        ) : activeTab === 'Tickets' ? (
+        ) : activeTab === 'tickets' ? (
           <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
             {ticketsData.length > 0 ? ticketsData.map((tk) => (
               <Card key={tk.id} className="p-0 overflow-hidden border-vibe-purple/20 bg-vibe-purple/5 group relative">

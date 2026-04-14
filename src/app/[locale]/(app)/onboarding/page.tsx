@@ -71,7 +71,7 @@ export default function UserOnboardingPage() {
     if (step === 1) {
       if (!formData.dob) return;
       setLoading(true);
-      await supabase.from('users').update({ date_of_birth: formData.dob }).eq('id', userId);
+      await (supabase as any).from('users').update({ date_of_birth: formData.dob }).eq('id', userId);
       setLoading(false);
       setStep(step + 1);
       return;
@@ -80,7 +80,7 @@ export default function UserOnboardingPage() {
     if (step === 2) {
       setLoading(true);
       if (formData.gender || formData.avatarUrl) {
-        await supabase.from('users').update({ 
+        await (supabase as any).from('users').update({ 
           gender: formData.gender,
           avatar_url: formData.avatarUrl 
         }).eq('id', userId);
@@ -98,13 +98,13 @@ export default function UserOnboardingPage() {
         category: MOCK_INTERESTS.find((i: Interest) => i.id === id)?.label || id,
       }));
       
-      const { error: interestsError } = await supabase
+      const { error: interestsError } = await (supabase as any)
         .from('user_onboarding_interests')
         .upsert(interestsToSave, { onConflict: 'user_id,category' });
 
       if (interestsError) console.error('Error saving interests:', interestsError);
 
-      await supabase.from('users').update({ onboarding_completed: true }).eq('id', userId);
+      await (supabase as any).from('users').update({ onboarding_completed: true }).eq('id', userId);
 
       window.location.href = '/map';
       setLoading(false);

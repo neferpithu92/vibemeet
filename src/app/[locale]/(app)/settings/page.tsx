@@ -83,17 +83,18 @@ export default function SettingsPage() {
       const { data: profile } = await supabase.from('users').select('*').eq('id', authUser.id).single();
 
       if (profile) {
+        const p = profile as any;
         setProfileData({
-          username: profile.username || '',
-          display_name: profile.display_name || '',
+          username: p.username || '',
+          display_name: p.display_name || '',
           email: authUser.email || '',
-          bio: profile.bio || '',
-          avatar_url: profile.avatar_url || ''
+          bio: p.bio || '',
+          avatar_url: p.avatar_url || ''
         });
         setSettings((prev: any) => ({
           ...prev,
-          language: profile.language || 'it',
-          is_private: profile.account_type === 'private'
+          language: p.language || 'it',
+          is_private: p.account_type === 'private'
         }));
       }
 
@@ -104,16 +105,17 @@ export default function SettingsPage() {
       if (priv) {
         setSettings((prev: any) => ({
           ...prev,
-          show_activity: priv.show_activity_status,
-          anon_mode: priv.anon_mode || false
+          show_activity: (priv as any).show_activity_status,
+          anon_mode: (priv as any).anon_mode || false
         }));
       }
       if (notif) {
-        setSettings((prev: any) => ({ ...prev, push_notifications: notif.push_enabled }));
+        setSettings((prev: any) => ({ ...prev, push_notifications: (notif as any).push_enabled }));
       }
       if (usage) {
-        const daily = usage.find((u: any) => u.date === new Date().toISOString().split('T')[0]);
-        const weekly = usage.reduce((acc: number, u: any) => acc + (u.minutes_used || 0), 0);
+        const uItems = usage as any[];
+        const daily = uItems.find((u: any) => u.date === new Date().toISOString().split('T')[0]);
+        const weekly = uItems.reduce((acc: number, u: any) => acc + (u.minutes_used || 0), 0);
         setSettings((prev: any) => ({
           ...prev,
           daily_usage: daily ? daily.minutes_used : 0,
@@ -136,7 +138,7 @@ export default function SettingsPage() {
     setIsSaving(true);
     try {
       if (type === 'profile') {
-        const { error } = await supabase.from('users').update({
+        const { error } = await (supabase as any).from('users').update({
           username: newData.username ?? profileData.username,
           display_name: newData.display_name ?? profileData.display_name,
           bio: newData.bio ?? profileData.bio,
@@ -145,13 +147,13 @@ export default function SettingsPage() {
         }).eq('id', user.id);
         if (error) throw error;
       } else if (type === 'privacy') {
-        await supabase.from('privacy_settings').upsert({
+        await (supabase as any).from('privacy_settings').upsert({
           user_id: user.id,
           show_activity_status: newData.show_activity ?? settings.show_activity,
           account_type: (newData.is_private ?? settings.is_private) ? 'private' : 'public'
         });
       } else if (type === 'notifications') {
-        await supabase.from('notification_settings').upsert({
+        await (supabase as any).from('notification_settings').upsert({
           user_id: user.id,
           push_enabled: newData.push_notifications ?? settings.push_notifications
         });

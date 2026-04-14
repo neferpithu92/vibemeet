@@ -11,11 +11,12 @@ export default async function LeaderboardPage() {
     .order('vibe_points', { ascending: false })
     .limit(50);
 
-  const { data: challenges } = await supabase
-    .from('weekly_challenges')
-    .select('*')
-    .lte('starts_at', new Date().toISOString())
-    .gte('ends_at', new Date().toISOString())
+  const { data: challenges } = await (supabase as any)
+    .from('challenges')
+    .select('id, title, description, reward_points, end_date, is_active')
+    .eq('is_active', true)
+    .lte('start_date', new Date().toISOString())
+    .gte('end_date', new Date().toISOString())
     .limit(5);
 
   let userRank: number | null = null;
@@ -25,16 +26,20 @@ export default async function LeaderboardPage() {
     const { count } = await supabase
       .from('users')
       .select('*', { count: 'exact', head: true })
-      .gt('vibe_points', (leaders?.find(l => l.id === user.id)?.vibe_points || 0));
+      .gt('vibe_points', ((leaders as any[])?.find((l: any) => l.id === user.id)?.vibe_points || 0));
     userRank = (count || 0) + 1;
 
     if (challenges?.length) {
-      const { data: participations } = await supabase
-        .from('challenge_participations')
-        .select('*')
+      const { data: participations } = await (supabase as any)
+        .from('challenge_participants')
+        .select('challenge_id, points_awarded, joined_at')
         .eq('user_id', user.id)
-        .in('challenge_id', challenges.map(c => c.id));
-      userParticipations = participations || [];
+        .in('challenge_id', challenges.map((c: any) => c.id));
+      userParticipations = (participations || []).map((p: any) => ({
+        challenge_id: p.challenge_id,
+        progress: p.points_awarded || 0,
+        completed: p.points_awarded > 0
+      }));
     }
   }
 

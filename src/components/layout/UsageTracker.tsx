@@ -24,15 +24,20 @@ export function UsageTracker() {
       interval = setInterval(async () => {
         if (!sessionUser.current) return;
 
-        const date = new Date().toISOString().split('T')[0];
-        
-        // Use a simple atomic increment via RPC or a raw upsert
-        // We assume usage_stats table exists as per Migration 040
-        await supabase.rpc('increment_usage', { 
-          p_user_id: sessionUser.current, 
-          p_date: date, 
-          p_seconds: 30 
-        });
+        try {
+          const date = new Date().toISOString().split('T')[0];
+          
+          // Atomic increment via RPC
+          const { error } = await supabase.rpc('increment_usage', { 
+            p_user_id: sessionUser.current, 
+            p_date: date, 
+            p_seconds: 30 
+          });
+
+          if (error) throw error;
+        } catch (err) {
+          console.error('[UsageTracker] Failed to sync usage:', err);
+        }
       }, 30000);
     }
 

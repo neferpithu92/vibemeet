@@ -14,6 +14,7 @@ export default async function VenuePage({ params }: { params: Promise<{ slug: st
     .single();
 
   if (error || !venue) return notFound();
+  const v = venue as any;
 
   // Live check-ins at this venue
   const { data: currentCrowd } = await supabase
@@ -23,7 +24,7 @@ export default async function VenuePage({ params }: { params: Promise<{ slug: st
       created_at,
       users:user_id (id, username, display_name, avatar_url)
     `)
-    .eq('venue_id', venue.id)
+    .eq('venue_id', v.id)
     .gte('created_at', new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString())
     .order('created_at', { ascending: false })
     .limit(20);
@@ -32,17 +33,17 @@ export default async function VenuePage({ params }: { params: Promise<{ slug: st
   const { data: events } = await supabase
     .from('events')
     .select('id, title, starts_at, cover_url, rsvp_count, ticket_price')
-    .eq('venue_id', venue.id)
+    .eq('venue_id', v.id)
     .gte('starts_at', new Date().toISOString())
     .order('starts_at', { ascending: true })
     .limit(5);
 
   // Weather for venue location
   let weather = null;
-  if (venue.latitude && venue.longitude) {
+  if (v.latitude && v.longitude) {
     try {
       const res = await fetch(
-        `https://api.open-meteo.com/v1/forecast?latitude=${venue.latitude}&longitude=${venue.longitude}&hourly=temperature_2m,precipitation_probability,weathercode&timezone=Europe/Zurich&forecast_days=1`,
+        `https://api.open-meteo.com/v1/forecast?latitude=${v.latitude}&longitude=${v.longitude}&hourly=temperature_2m,precipitation_probability,weathercode&timezone=Europe/Zurich&forecast_days=1`,
         { next: { revalidate: 3600 } }
       );
       if (res.ok) {
@@ -60,7 +61,7 @@ export default async function VenuePage({ params }: { params: Promise<{ slug: st
 
   return (
     <VenueClient
-      venue={venue}
+      venue={v}
       currentCrowd={(currentCrowd || []) as any[]}
       upcomingEvents={(events || []) as any[]}
       weather={weather}

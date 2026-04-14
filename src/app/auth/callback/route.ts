@@ -6,27 +6,29 @@ import { NextResponse } from 'next/server';
  * Scambia il code per una sessione e reindirizza a /map.
  */
 export async function GET(request: Request) {
-  const { searchParams, origin } = new URL(request.url);
-  const code = searchParams.get('code');
-  const next = searchParams.get('next') ?? '/map';
+  const requestUrl = new URL(request.url);
+  const code = requestUrl.searchParams.get('code');
+  const next = requestUrl.searchParams.get('next') ?? '/map';
+  const origin = requestUrl.origin;
 
-  // Usa l'origin corrente per i redirect dinamici (Vercel Preview/Dev)
-  // A meno che non siamo su produzione e vogliamo forzare la URL principale.
-  const baseUrl = origin; 
+  // Attempt to recover current locale from cookie to avoid extra redirects
+  const cookieStore = request.headers.get('cookie');
+  const localeMatch = cookieStore?.match(/NEXT_LOCALE=([^;]+)/);
+  const locale = localeMatch ? localeMatch[1] : 'it'; // Default locale
 
   if (code) {
     const supabase = await createClient();
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     
     if (!error) {
-      return NextResponse.redirect(`${baseUrl}${next}`);
+      // Ensure the redirect path starts with the locale if it's missing
+      const redirectPath = next.startsWith(`/${locale}`) ? next : `/${locale}${next}`;
+      return NextResponse.redirect(`${origin}${redirectPath}`);
     }
     
-    // Se c'è un errore nello scambio del codice, loggalo e riportatelo nella URL
     console.error('Auth Callback Error:', error.message);
-    return NextResponse.redirect(`${baseUrl}/login?error=auth_callback_error&message=${encodeURIComponent(error.message)}`);
+    return NextResponse.redirect(`${origin}/${locale}/login?error=auth_callback_error&message=${encodeURIComponent(error.message)}`);
   }
 
-  // Redirect a login se manca il codice
-  return NextResponse.redirect(`${baseUrl}/login?error=no_code`);
+  return NextResponse.redirect(`${origin}/${locale}/login?error=no_code`);
 }

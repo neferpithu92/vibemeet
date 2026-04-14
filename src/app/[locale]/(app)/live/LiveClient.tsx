@@ -42,8 +42,14 @@ export default function LiveClient({ streams, scheduled, currentUserId }: LiveCl
   useEffect(() => {
     if (!viewing) return;
 
-    // Subscribe to reactions and viewer count
-    const channel = supabase.channel(`stream:${viewing.id}`)
+    // Create a robust channel with connection monitoring
+    const channel = supabase.channel(`stream:${viewing.id}`, {
+      config: {
+        broadcast: { self: true },
+      }
+    });
+
+    channel
       .on('broadcast', { event: 'reaction' }, ({ payload }) => {
         const id = Math.random().toString(36).slice(2);
         setReactions(prev => [...prev, { id, emoji: payload.emoji, x: Math.random() * 80 + 10 }]);
@@ -55,12 +61,20 @@ export default function LiveClient({ streams, scheduled, currentUserId }: LiveCl
       .on('broadcast', { event: 'viewers' }, ({ payload }) => {
         setViewerCount(payload.count);
       })
-      .subscribe();
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          // Notify join once subscribed
+          channel.send({ 
+            type: 'broadcast', 
+            event: 'viewers', 
+            payload: { count: (viewerCount || viewing.viewer_count) + 1 } 
+          });
+        }
+      });
 
-    // Notify join
-    channel.send({ type: 'broadcast', event: 'viewers', payload: { count: viewing.viewer_count + 1 } });
-
-    return () => { supabase.removeChannel(channel); };
+    return () => {
+      supabase.removeChannel(channel).catch(err => console.error('[Live] Error removing channel:', err));
+    };
   }, [viewing?.id]);
 
   const sendReaction = (emoji: string) => {
@@ -84,7 +98,7 @@ export default function LiveClient({ streams, scheduled, currentUserId }: LiveCl
 
   const goLive = async () => {
     if (!liveTitle.trim() || !currentUserId) return;
-    const { data } = await supabase.from('live_streams').insert({
+    const { data } = await (supabase as any).from('live_streams').insert({
       host_id: currentUserId,
       title: liveTitle,
       status: 'live',

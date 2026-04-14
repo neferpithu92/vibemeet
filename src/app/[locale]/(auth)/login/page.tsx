@@ -85,10 +85,16 @@ export default function LoginPage() {
   /** Login con OAuth provider (Google, Apple, Facebook) */
   const handleOAuth = async (provider: 'google' | 'apple' | 'facebook') => {
     setError(null);
+    
+    // Construct base URL: window.location.origin is usually best for preview deployments,
+    // but NEXT_PUBLIC_APP_URL can be used to force production domain.
+    const origin = typeof window !== 'undefined' ? window.location.origin : (process.env.NEXT_PUBLIC_APP_URL || '');
+    const redirectTo = `${origin}/auth/callback`;
+
     const { error: authError } = await supabase.auth.signInWithOAuth({
       provider,
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
+        redirectTo,
       },
     });
 

@@ -82,11 +82,11 @@ export default function VenueClient({ venue, currentCrowd, upcomingEvents, weath
     if (!currentUserId) return;
     setCheckedIn(true);
     setLiveCount(c => c + 1);
-    await supabase.from('check_ins').insert({
+    await (supabase as any).from('check_ins').insert({
       user_id: currentUserId,
       venue_id: venue.id,
       created_at: new Date().toISOString()
-    }).then(() => {});
+    });
   };
 
   const tabs = [

@@ -29,6 +29,10 @@ export default function CreateStory({ isOpen, onClose, onSuccess }: CreateStoryP
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error(t('error'));
 
+      // Detect media type from extension
+      const isVideo = url.toLowerCase().match(/\.(mp4|mov|webm|quicktime|m4v)$/);
+      const mediaType = isVideo ? 'video' : 'photo';
+
       let locationWkt = null;
       try {
         const position = await new Promise<GeolocationPosition>((resolve, reject) => {
@@ -39,24 +43,30 @@ export default function CreateStory({ isOpen, onClose, onSuccess }: CreateStoryP
         console.warn('Story location skipped:', locErr);
       }
 
+      console.log('Inserting story for user:', user.id, { mediaType, url });
+
       const { error } = await supabase
         .from('stories')
         .insert({
           author_id: user.id,
           media_url: url,
+          type: mediaType, // Added for Migration 045 compatibility
           entity_type: 'user',
           location: locationWkt,
           expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
           created_at: new Date().toISOString()
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase RLS/Insert Error:', error);
+        throw error;
+      }
 
       showToast(t('success'), 'success', '📱');
       if (onSuccess) onSuccess();
       onClose();
     } catch (err: any) {
-      console.error(err);
+      console.error('Comprehensive Story Error:', err);
       showToast(err.message || t('error'), 'error');
     } finally {
       setIsInserting(false);

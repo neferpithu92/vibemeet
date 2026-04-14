@@ -35,9 +35,6 @@ export async function middleware(request: NextRequest) {
     pathname.includes('/privacy') ||
     pathname.includes('/termini');
 
-  // Run i18n middleware first
-  const response = intlMiddleware(request);
-
   // Check auth for protected routes
   if (!isPublicPath) {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -45,10 +42,14 @@ export async function middleware(request: NextRequest) {
 
     if (!supabaseUrl || !supabaseAnonKey) {
       console.error('Middleware Failure: Missing Supabase environment variables');
-      return response ?? NextResponse.next({ request });
+      return intlMiddleware(request);
     }
 
-    let supabaseResponse = response ?? NextResponse.next({ request });
+    // Run i18n middleware
+    const response = intlMiddleware(request);
+    
+    // We must pass the cookies to the NEXT_PUBLIC_SUPABASE_URL client to ensure session state
+    const supabaseResponse = response ?? NextResponse.next({ request });
 
     try {
       const supabase = createServerClient(
@@ -58,62 +59,60 @@ export async function middleware(request: NextRequest) {
           cookies: {
             getAll() { return request.cookies.getAll(); },
             setAll(cookiesToSet) {
-              cookiesToSet.forEach(({ name, value, options }) =>
-                supabaseResponse.cookies.set(name, value, options)
-              );
+              // Ensure we are setting cookies on the final response object
+              cookiesToSet.forEach(({ name, value, options }) => {
+                supabaseResponse.cookies.set(name, value, options);
+              });
             },
           },
         }
       );
 
-      // Run getUser with a timeout or handled error
-      const { data: { user } } = await supabase.auth.getUser().catch(() => ({ data: { user: null } }));
+      // Verify session
+      const { data: { user } } = await supabase.auth.getUser();
 
-      // Recover locale for redirects - more robust match
+      // Recover locale for redirects
       const localeMatch = pathname.match(/^\/(it|en|de|fr|rm|es|pt)(\/|$)/);
       const currentLocale = localeMatch ? localeMatch[1] : defaultLocale;
 
       if (!user) {
+        // Redirect to login if user is not authenticated for protected routes
         const url = request.nextUrl.clone();
         url.pathname = `/${currentLocale}/login`;
         return NextResponse.redirect(url);
       }
 
-      // Check account status (paused or deletion) - Resilient check
-      try {
-        const { data: userData } = await supabase
-          .from('users')
-          .select('is_paused, deletion_requested_at')
-          .eq('id', user.id)
-          .single();
+      // Check account status (e.g., paused or deletion requested)
+      const { data: userData } = await supabase
+        .from('users')
+        .select('is_paused, deletion_requested_at')
+        .eq('id', user.id)
+        .single();
 
-        if (userData) {
-          const isReactivatePage = pathname.includes('/reactivate');
-          
-          if ((userData.is_paused || userData.deletion_requested_at) && !isReactivatePage) {
-            const url = request.nextUrl.clone();
-            url.pathname = `/${currentLocale}/reactivate`;
-            return NextResponse.redirect(url);
-          }
-          
-          if (!userData.is_paused && !userData.deletion_requested_at && isReactivatePage) {
-            const url = request.nextUrl.clone();
-            url.pathname = `/${currentLocale}/map`;
-            return NextResponse.redirect(url);
-          }
+      if (userData) {
+        const isReactivatePage = pathname.includes('/reactivate');
+        
+        if ((userData.is_paused || userData.deletion_requested_at) && !isReactivatePage) {
+          const url = request.nextUrl.clone();
+          url.pathname = `/${currentLocale}/reactivate`;
+          return NextResponse.redirect(url);
         }
-      } catch (err) {
-        console.warn('Middleware: account status check failed (columns might be missing)', err);
+        
+        if (!userData.is_paused && !userData.deletion_requested_at && isReactivatePage) {
+          const url = request.nextUrl.clone();
+          url.pathname = `/${currentLocale}/map`;
+          return NextResponse.redirect(url);
+        }
       }
 
       return supabaseResponse;
     } catch (err) {
-      console.error('Middleware Critical Error:', err);
-      return response ?? NextResponse.next({ request });
+      console.error('Middleware Error:', err);
+      return supabaseResponse;
     }
   }
 
-  return response;
+  return intlMiddleware(request);
 }
 
 export const config = {

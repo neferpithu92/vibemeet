@@ -17,10 +17,11 @@ interface Challenge {
   id: string;
   title: string;
   description: string;
-  points: number;
-  target_type: string;
-  target_count: number;
-  ends_at: string;
+  reward_points: number; // DB column name
+  points?: number;       // alias for display
+  target_count?: number;
+  end_date: string;      // DB column name
+  ends_at?: string;      // alias for display
 }
 
 interface Participation {
@@ -55,11 +56,11 @@ export default function LeaderboardClient({
   const joinChallenge = async (challengeId: string) => {
     if (!currentUserId) return;
     setJoining(challengeId);
-    await supabase.from('challenge_participations').upsert({
+    await (supabase as any).from('challenge_participants').upsert({
       challenge_id: challengeId,
       user_id: currentUserId,
-      progress: 0
-    }, { onConflict: 'challenge_id,user_id' });
+      post_id: '00000000-0000-0000-0000-000000000000', // placeholder required by PK
+    }, { onConflict: 'challenge_id,user_id,post_id' });
     setParticipations(prev => [...prev, { challenge_id: challengeId, progress: 0, completed: false }]);
     setJoining(null);
   };
@@ -237,7 +238,9 @@ export default function LeaderboardClient({
             </div>
           ) : challenges.map((ch, i) => {
             const participation = getParticipation(ch.id);
-            const pct = participation ? Math.min((participation.progress / ch.target_count) * 100, 100) : 0;
+            const pct = participation ? Math.min(((participation.progress) / (ch.target_count || ch.reward_points || 100)) * 100, 100) : 0;
+
+            const endsAt = ch.ends_at || ch.end_date || '';
 
             return (
               <motion.div
@@ -286,7 +289,7 @@ export default function LeaderboardClient({
                 )}
 
                 <p className="text-xs text-vibe-text-secondary mt-2">
-                  ⏰ Scade in {timeLeft(ch.ends_at)}
+                  ⏰ Scade in {timeLeft(endsAt)}
                 </p>
               </motion.div>
             );

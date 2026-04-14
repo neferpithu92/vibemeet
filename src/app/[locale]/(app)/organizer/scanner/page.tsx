@@ -19,7 +19,7 @@ export default function OrganizerScannerPage() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return setHasAccess(false);
 
-      const { data: userData } = await supabase
+      const { data: userData } = await (supabase as any)
         .from('users')
         .select('role')
         .eq('id', user.id)
@@ -29,7 +29,7 @@ export default function OrganizerScannerPage() {
         return setHasAccess(false);
       }
 
-      const { data: sub } = await supabase
+      const { data: sub } = await (supabase as any)
         .from('subscriptions')
         .select('plan, status')
         .eq('entity_id', user.id)
