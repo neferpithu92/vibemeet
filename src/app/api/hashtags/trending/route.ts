@@ -5,58 +5,39 @@ export const dynamic = 'force-dynamic';
 
 /**
  * GET /api/hashtags/trending
- * Returns trending hashtags, optionally filtered by city and search query.
+ * Returns trending hashtags from the hashtags table (ordered by count).
+ * Falls back gracefully if the trending_hashtags view is not available.
  */
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
-  const city = searchParams.get('city') || 'global';
-  const period = searchParams.get('period') || '24h';
   const query = searchParams.get('q') || '';
   const limit = Math.min(parseInt(searchParams.get('limit') || '20'), 50);
 
   const supabase = await createClient();
 
-  // If there's a search query, search hashtags directly
-  if (query) {
-    const { data, error } = await supabase
-      .from('hashtags')
-      .select('tag, post_count')
-      .ilike('tag', `%${query}%`)
-      .order('post_count', { ascending: false })
-      .limit(limit);
-
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
-
-    return NextResponse.json({ hashtags: data || [] });
-  }
-
-  // Otherwise, return trending hashtags
-  const { data, error } = await supabase
-    .from('trending_hashtags')
-    .select(`
-      score,
-      hashtag:hashtags (
-        tag,
-        post_count
-      )
-    `)
-    .eq('city', city)
-    .eq('period', period)
-    .order('score', { ascending: false })
+  // Search query or trending list — both use the hashtags table directly
+  let dbQuery = supabase
+    .from('hashtags')
+    .select('id, tag, count, last_used_at')
+    .order('count', { ascending: false })
     .limit(limit);
 
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  if (query) {
+    dbQuery = dbQuery.ilike('tag', `%${query}%`);
   }
 
-  // Flatten the response
-  const hashtags = (data || []).map((item: any) => ({
-    tag: item.hashtag?.tag,
-    post_count: item.hashtag?.post_count || 0,
-    score: item.score,
-  })).filter((h: any) => h.tag);
+  const { data, error } = await dbQuery;
+
+  if (error) {
+    console.error('[Hashtags Trending] DB error:', error.message);
+    return NextResponse.json({ hashtags: [] }, { status: 200 });
+  }
+
+  const hashtags = (data || []).map((h: any) => ({
+    tag: h.tag,
+    count: h.count || 0,
+    last_used_at: h.last_used_at,
+  }));
 
   return NextResponse.json({ hashtags });
 }

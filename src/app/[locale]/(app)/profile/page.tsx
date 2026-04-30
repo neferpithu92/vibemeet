@@ -44,15 +44,6 @@ import { localeNames } from '@/lib/i18n/config';
 
 const tabs = ['posts', 'vibe', 'saved', 'checkIn', 'tickets'] as const;
 
-const userPosts = [
-  { id: '1', type: 'photo', likes: 45, comments: 8, venue: 'Club Paradiso' },
-  { id: '2', type: 'reel', likes: 234, comments: 23, venue: 'Gaswerk' },
-  { id: '3', type: 'photo', likes: 89, comments: 12, venue: 'Lido Lounge' },
-  { id: '4', type: 'photo', likes: 12, comments: 2, venue: 'Biergarten Alpen' },
-  { id: '5', type: 'reel', likes: 567, comments: 45, venue: 'Club Paradiso' },
-  { id: '6', type: 'photo', likes: 34, comments: 5, venue: 'Rooftop CH' },
-];
-
 interface UserProfile {
   display_name: string;
   username: string;
@@ -82,8 +73,8 @@ interface UserStory {
 interface UserCheckIn {
   id: string;
   created_at: string;
-  venue?: { name: string; address: string; slug: string };
-  event?: { title: string; id: string };
+  venue?: { name: string; address: string | null; slug: string } | null;
+  event?: { title: string; id: string } | null;
 }
 
 interface UserTicket {
@@ -95,9 +86,8 @@ interface UserTicket {
     id: string;
     title: string;
     starts_at: string;
-    location_name: string;
-    venue?: { name: string; city: string };
-  };
+    venue?: { name: string; city: string | null } | null;
+  } | null;
 }
 
 /**
@@ -133,6 +123,7 @@ export default function ProfilePage() {
       const { data: { user } } = await supabase.auth.getUser();
 
       if (!user) {
+        setIsLoading(false);
         router.push('/login');
         return;
       }
@@ -199,8 +190,7 @@ export default function ProfilePage() {
         .from('check_ins')
         .select(`
           *,
-          venue:venues(name, address),
-          event:events(title)
+          venue:venues(name, address, slug)
         `)
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
@@ -232,7 +222,6 @@ export default function ProfilePage() {
             id,
             title,
             starts_at,
-            location_name,
             venue:venues ( name, city )
           )
         `)
@@ -573,7 +562,7 @@ export default function ProfilePage() {
                       </div>
                       <h3 className="text-xl font-black uppercase tracking-tighter vibe-gradient-text mb-1">{tk.event?.title}</h3>
                       <p className="text-xs text-vibe-text-secondary flex items-center gap-2">
-                         <MapPin className="w-3 h-3 text-vibe-purple" /> {tk.event?.location_name || tk.event?.venue?.name || 'Vibe Location'}
+                         <MapPin className="w-3 h-3 text-vibe-purple" /> {tk.event?.venue?.name || 'Vibe Location'}
                       </p>
                       <p className="text-[10px] font-bold text-vibe-cyan uppercase tracking-widest mt-2">
                         {tk.event?.starts_at ? new Date(tk.event.starts_at).toLocaleDateString(locale, { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }) : 'Date TBD'}

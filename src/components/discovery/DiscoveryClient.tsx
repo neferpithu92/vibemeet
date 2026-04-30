@@ -14,18 +14,18 @@ import { ChevronRight, Compass, Users, MapPin, Calendar, Music, Hash, Search } f
 interface DiscoveryVenue {
   id: string;
   name: string;
-  type?: string;
-  slug?: string;
-  address?: string;
-  vibe_score?: number;
+  type: string | null;
+  slug: string | null;
+  address: string | null;
+  vibe_score: number | null;
 }
 
 interface DiscoveryEvent {
   id: string;
   title: string;
-  category?: string;
-  start_time: string;
-  end_time: string;
+  category: string | null;
+  starts_at: string;
+  ends_at: string | null;
   venue?: any;
 }
 
@@ -50,7 +50,7 @@ interface SearchResults {
 
 interface TrendingHashtag {
   tag: string;
-  post_count: number;
+  count: number;
   score?: number;
 }
 
@@ -377,7 +377,7 @@ export default function DiscoveryClient({ venues, events, categories }: Discover
                       <HashtagBadge 
                         key={tag.tag} 
                         tag={tag.tag} 
-                        count={tag.post_count} 
+                        count={tag.count} 
                         size="md"
                         className="hover:scale-110 transition-transform"
                       />

@@ -17,24 +17,24 @@ import { useIntersectionObserver } from '@/hooks/useIntersectionObserver';
 interface FeedProfile {
   id: string;
   username: string;
-  display_name?: string;
-  avatar_url?: string;
+  display_name: string | null;
+  avatar_url: string | null;
 }
 
 interface FeedPost {
   id: string;
   url: string;
   type: string;
-  caption?: string;
+  caption: string | null;
   created_at: string;
-  likes_count?: number;
-  comments_count?: number;
+  like_count?: number;
+  comment_count?: number;
   profiles?: FeedProfile | FeedProfile[];
 }
 
 interface FeedStory {
   id: string;
-  media_url: string;
+  media_url: string | null;
   type: string;
   profiles?: FeedProfile | FeedProfile[];
 }
@@ -56,9 +56,7 @@ export default function FeedClient({ initialPosts, stories }: FeedClientProps) {
   const [initialUserIndex, setInitialUserIndex] = useState(0);
   
   const [posts, setPosts] = useState<FeedPost[]>(initialPosts);
-  const [nextCursor, setNextCursor] = useState<string | null>(
-    initialPosts.length > 0 ? initialPosts[initialPosts.length - 1].created_at : null
-  );
+  const [currentOffset, setCurrentOffset] = useState(initialPosts.length);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(initialPosts.length >= 10);
 
@@ -98,22 +96,25 @@ export default function FeedClient({ initialPosts, stories }: FeedClientProps) {
   };
 
   const fetchMorePosts = useCallback(async () => {
-    if (isLoadingMore || !hasMore || !nextCursor) return;
+    if (isLoadingMore || !hasMore) return;
     setIsLoadingMore(true);
     try {
-      const response = await fetch(`/api/feed/foryou?limit=10&cursor=${nextCursor}`);
+      const response = await fetch(`/api/feed/foryou?limit=10&offset=${currentOffset}`);
+      if (!response.ok) throw new Error('Network error');
       const data = await response.json();
-      if (data.items) {
+      if (data.items && data.items.length > 0) {
         setPosts(prev => [...prev, ...data.items]);
-        setNextCursor(data.nextCursor);
+        setCurrentOffset(prev => prev + data.items.length);
         setHasMore(!!data.nextCursor);
+      } else {
+        setHasMore(false);
       }
     } catch (e) {
-      console.error(e);
+      console.error('[Feed] Load more error:', e);
     } finally {
       setIsLoadingMore(false);
     }
-  }, [isLoadingMore, hasMore, nextCursor]);
+  }, [isLoadingMore, hasMore, currentOffset]);
 
   useEffect(() => {
     if (isIntersecting && hasMore) fetchMorePosts();

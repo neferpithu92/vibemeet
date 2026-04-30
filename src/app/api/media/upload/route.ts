@@ -78,7 +78,7 @@ export async function POST(request: Request) {
         console.error('[Upload] Database error inserting into stories:', storyError);
         return NextResponse.json({ error: `DB Error: ${storyError.message}` }, { status: 500 });
       }
-      return NextResponse.json({ success: true, data: story });
+      return NextResponse.json({ success: true, url: publicUrl, data: story });
     } else {
       // Inserisci in 'media' per i post del feed
       const { data: media, error: mediaError } = await supabase
@@ -98,7 +98,7 @@ export async function POST(request: Request) {
         console.error('[Upload] Database error inserting into media:', mediaError);
         return NextResponse.json({ error: `DB Error: ${mediaError.message}` }, { status: 500 });
       }
-      return NextResponse.json({ success: true, data: media });
+      return NextResponse.json({ success: true, url: publicUrl, data: media });
     }
 
   } catch (error: any) {

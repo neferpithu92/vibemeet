@@ -30,11 +30,11 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
 
   let isAttending = false;
   if (user) {
-    const { data: rsvp } = await (supabase
-      .from('likes') as any)
-      .select('user_id')
-      .match({ user_id: user.id, entity_type: 'event', entity_id: id })
-      .single();
+    const { data: rsvp } = await supabase
+      .from('event_rsvps')
+      .select('id')
+      .match({ user_id: user.id, event_id: id })
+      .maybeSingle();
     isAttending = !!rsvp;
   }
 

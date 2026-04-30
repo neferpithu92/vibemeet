@@ -44,24 +44,33 @@ export default function CreatePost({ isOpen, onClose, onSuccess, initialMediaUrl
 
     setIsSubmitting(true);
     try {
-      const lng = Number(location?.lng);
-      const lat = Number(location?.lat);
-      if (isNaN(lng) || isNaN(lat)) throw new Error('Invalid coordinates');
+      const mediaType = initialType || (url.includes('mp4') || url.includes('webm') ? 'video' : 'photo');
 
-      const { data: media, error } = await (supabase.from('media') as any).insert({
-        user_id: user.id,
-        author_id: user.id, // Ensure author_id is set
-        url: url, // DB uses 'url' and 'type' in newer schema? Let me check.
-        media_url: url,
-        thumbnail_url: url,
-        media_type: initialType || (url.includes('mp4') || url.includes('webm') ? 'video' : 'photo'),
-        type: initialType || (url.includes('mp4') || url.includes('webm') ? 'video' : 'photo'),
+      const insertPayload: Record<string, any> = {
+        author_id: user.id,
+        entity_id: user.id,   // required by DB schema
+        entity_type: 'user',  // required by DB schema
+        url: url,
+        type: mediaType,
         caption: caption,
-        location: `POINT(${lng} ${lat})`,
-        location_name: location?.name,
         visibility: visibility,
-        allowed_circle_id: visibility === 'circles' ? selectedCircleId : null
-      }).select().single();
+        allowed_circle_id: visibility === 'circles' ? selectedCircleId : null,
+      };
+
+      // Location is optional — only add if provided
+      if (location) {
+        const lng = Number(location.lng);
+        const lat = Number(location.lat);
+        if (!isNaN(lng) && !isNaN(lat)) {
+          insertPayload.location = `POINT(${lng} ${lat})`;
+          insertPayload.location_name = location.name || null;
+        }
+      }
+
+      const { data: media, error } = await (supabase.from('media') as any)
+        .insert(insertPayload)
+        .select()
+        .single();
 
       if (error) throw error;
 
@@ -108,7 +117,7 @@ export default function CreatePost({ isOpen, onClose, onSuccess, initialMediaUrl
   const handleUploadComplete = (url: string) => savePost(url);
   const handlePublishCaptured = () => initialMediaUrl && savePost(initialMediaUrl);
 
-  const isFormValid = !!location;
+  const isFormValid = true; // Location is now optional
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={t('title')}>
@@ -186,7 +195,6 @@ export default function CreatePost({ isOpen, onClose, onSuccess, initialMediaUrl
         <LocationPicker 
           value={location} 
           onChange={setLocation} 
-          required 
         />
         <div className="space-y-2">
           {initialMediaUrl ? (

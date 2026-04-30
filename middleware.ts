@@ -82,23 +82,23 @@ export async function middleware(request: NextRequest) {
         return NextResponse.redirect(url);
       }
 
-      // Check account status (e.g., paused or deletion requested)
+      // Check account status — use is_active (the actual DB column)
       const { data: userData } = await supabase
         .from('users')
-        .select('is_paused, deletion_requested_at')
+        .select('is_active')
         .eq('id', user.id)
         .single();
 
       if (userData) {
         const isReactivatePage = pathname.includes('/reactivate');
         
-        if ((userData.is_paused || userData.deletion_requested_at) && !isReactivatePage) {
+        if (userData.is_active === false && !isReactivatePage) {
           const url = request.nextUrl.clone();
           url.pathname = `/${currentLocale}/reactivate`;
           return NextResponse.redirect(url);
         }
         
-        if (!userData.is_paused && !userData.deletion_requested_at && isReactivatePage) {
+        if (userData.is_active !== false && isReactivatePage) {
           const url = request.nextUrl.clone();
           url.pathname = `/${currentLocale}/map`;
           return NextResponse.redirect(url);

@@ -77,8 +77,7 @@ export async function POST(req: Request) {
          console.error('Errore registrazione pagamento singolo:', paymentError);
       } else {
         // Genera il vero biglietto digitale con QR Code
-        const { randomUUID } = require('crypto');
-        const qrCodeString = randomUUID(); // Stringa univoca sicura
+        const qrCodeString = crypto.randomUUID(); // Stringa univoca sicura (Web Crypto API nativa)
 
         const { error: ticketError } = await supabaseAdmin
           .from('tickets')

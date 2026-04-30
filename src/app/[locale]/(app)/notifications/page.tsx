@@ -12,6 +12,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { BackButton } from '@/components/ui/BackButton';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Button } from '@/components/ui/Button';
+import { Avatar } from '@/components/ui/Avatar';
 
 export default function NotificationsPage() {
   const t = useTranslations('nav');
@@ -111,10 +112,11 @@ export default function NotificationsPage() {
                 <div className="relative shrink-0">
                   <div className="w-12 h-12 rounded-full overflow-hidden border border-white/10 p-[1px] bg-vibe-gradient">
                     <div className="w-full h-full rounded-full bg-vibe-dark overflow-hidden p-0.5">
-                       <img 
-                        src={n.actor?.avatar_url || 'https://via.placeholder.com/150'} 
-                        alt="" 
-                        className="w-full h-full object-cover rounded-full"
+                       <Avatar
+                        src={n.actor?.avatar_url || undefined}
+                        fallback={n.actor?.display_name?.[0] || '?'}
+                        size="md"
+                        className="w-full h-full"
                       />
                     </div>
                   </div>

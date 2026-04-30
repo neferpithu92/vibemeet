@@ -21,9 +21,9 @@ interface UserProfileData {
   bio: string | null;
   is_verified: boolean;
   account_type: string;
-  follower_count: number;
-  following_count: number;
-  post_count: number;
+  follower_count?: number;
+  following_count?: number;
+  post_count?: number;
 }
 
 interface MediaPost {
@@ -98,7 +98,8 @@ export default function UserProfilePage() {
       setFollowingCount(following || 0);
       setPostCount(posts || 0);
 
-      // Check if following
+      // Check if following — use a local var to avoid stale closure
+      let currentlyFollowing = false;
       if (user) {
         const { data: followData } = await supabase
           .from('followers')
@@ -109,13 +110,14 @@ export default function UserProfilePage() {
             entity_type: 'user'
           })
           .maybeSingle();
-        setIsFollowing(!!followData);
+        currentlyFollowing = !!followData;
+        setIsFollowing(currentlyFollowing);
       }
 
       // Fetch media (only if public or own profile or following)
       const canView = p.account_type === 'public'
         || user?.id === p.id 
-        || isFollowing;
+        || currentlyFollowing;
 
       if (canView) {
         const { data: mediaData } = await supabase

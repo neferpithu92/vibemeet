@@ -25,9 +25,9 @@ export async function POST(request: Request) {
       // Check if already liked to prevent duplicates
       const { data: existing } = await (supabase
         .from('likes') as any)
-        .select('id')
+        .select('user_id')
         .match({ user_id: user.id, entity_id: entityId, entity_type: entityType })
-        .single();
+        .maybeSingle();
 
       if (!existing) {
         const { error } = await (supabase

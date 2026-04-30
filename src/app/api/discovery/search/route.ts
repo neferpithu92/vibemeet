@@ -21,7 +21,6 @@ export async function GET(request: Request) {
     .from('users')
     .select('id, username, display_name, avatar_url, is_verified, bio')
     .or(`username.ilike.%${query}%,display_name.ilike.%${query}%`)
-    .eq('is_active', true)
     .limit(8);
 
   // Search events
@@ -48,9 +47,9 @@ export async function GET(request: Request) {
   // Search hashtags
   const { data: hashtags } = await supabase
     .from('hashtags')
-    .select('id, tag, post_count')
+    .select('id, tag, count')
     .ilike('tag', `%${query}%`)
-    .order('post_count', { ascending: false })
+    .order('count', { ascending: false })
     .limit(5);
 
   return NextResponse.json({

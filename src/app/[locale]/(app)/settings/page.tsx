@@ -75,6 +75,7 @@ export default function SettingsPage() {
     async function loadData() {
       const { data: { user: authUser } } = await supabase.auth.getUser();
       if (!authUser) {
+        setLoading(false);
         router.push('/login');
         return;
       }
@@ -98,9 +99,16 @@ export default function SettingsPage() {
         }));
       }
 
-      const { data: priv } = await supabase.from('privacy_settings').select('*').eq('user_id', authUser.id).single();
-      const { data: notif } = await supabase.from('notification_settings').select('*').eq('user_id', authUser.id).single();
-      const { data: usage } = await supabase.from('usage_stats').select('*').eq('user_id', authUser.id).order('date', { ascending: false }).limit(7);
+      // Optional tables — may not exist in all environments
+      const [privResult, notifResult, usageResult] = await Promise.allSettled([
+        supabase.from('privacy_settings').select('*').eq('user_id', authUser.id).single(),
+        supabase.from('notification_settings').select('*').eq('user_id', authUser.id).single(),
+        supabase.from('usage_stats').select('*').eq('user_id', authUser.id).order('date', { ascending: false }).limit(7),
+      ]);
+
+      const priv = privResult.status === 'fulfilled' ? privResult.value.data : null;
+      const notif = notifResult.status === 'fulfilled' ? notifResult.value.data : null;
+      const usage = usageResult.status === 'fulfilled' ? usageResult.value.data : null;
 
       if (priv) {
         setSettings((prev: any) => ({
@@ -112,7 +120,7 @@ export default function SettingsPage() {
       if (notif) {
         setSettings((prev: any) => ({ ...prev, push_notifications: (notif as any).push_enabled }));
       }
-      if (usage) {
+      if (usage && Array.isArray(usage)) {
         const uItems = usage as any[];
         const daily = uItems.find((u: any) => u.date === new Date().toISOString().split('T')[0]);
         const weekly = uItems.reduce((acc: number, u: any) => acc + (u.minutes_used || 0), 0);

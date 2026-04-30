@@ -13,11 +13,11 @@ import { useLocale } from 'next-intl';
 interface Event {
   id: string;
   title: string;
-  description: string;
+  description: string | null;
   starts_at: string;
-  ends_at: string;
-  music_genres: string[];
-  ticket_price: number;
+  ends_at: string | null;
+  music_genres: string[] | null;
+  ticket_price: number | null;
   status: string;
   is_promoted: boolean;
   actual_crowd: number;
@@ -25,8 +25,8 @@ interface Event {
   category: string;
   venue?: {
     name: string;
-    city: string;
-  };
+    city: string | null;
+  } | null;
 }
 
 interface EventsClientProps {
