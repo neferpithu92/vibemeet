@@ -10,8 +10,8 @@ export default async function LivePage() {
     .from('live_streams')
     .select(`
       *,
-      host:users!host_id (id, username, display_name, avatar_url),
-      event:events (id, title, cover_url)
+      host:users!live_streams_host_id_fkey (id, username, display_name, avatar_url),
+      event:events!live_streams_event_id_fkey (id, title, cover_url)
     `)
     .eq('status', 'live')
     .order('viewer_count', { ascending: false })
@@ -22,7 +22,7 @@ export default async function LivePage() {
     .from('live_streams')
     .select(`
       *,
-      host:users!host_id (id, username, display_name, avatar_url)
+      host:users!live_streams_host_id_fkey (id, username, display_name, avatar_url)
     `)
     .eq('status', 'scheduled')
     .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())

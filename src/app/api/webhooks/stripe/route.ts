@@ -16,7 +16,14 @@ export async function POST(req: Request) {
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
   if (!signature || !webhookSecret) {
-    return NextResponse.json({ error: 'Config error' }, { status: 400 });
+    console.error('[Stripe Webhook] Missing signature or STRIPE_WEBHOOK_SECRET env var');
+    return NextResponse.json({ error: 'Config error: webhook secret not configured' }, { status: 400 });
+  }
+
+  // Log Stripe mode for clarity in production logs
+  const stripeMode = process.env.STRIPE_SECRET_KEY?.startsWith('sk_live') ? 'LIVE' : 'TEST';
+  if (stripeMode === 'TEST') {
+    console.warn('[Stripe Webhook] ⚠️  Running in TEST mode — no real payments processed');
   }
 
   let event;

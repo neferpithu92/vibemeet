@@ -57,8 +57,8 @@ export async function GET(req: Request) {
     .from('conversations') as any)
     .select(`
       *,
-      user1:users!user1_id(id, display_name, avatar_url),
-      user2:users!user2_id(id, display_name, avatar_url)
+      user1:users!conversations_user1_id_fkey(id, display_name, avatar_url),
+      user2:users!conversations_user2_id_fkey(id, display_name, avatar_url)
     `)
     .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`)
     .order('last_message_at', { ascending: false });

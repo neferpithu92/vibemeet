@@ -36,7 +36,7 @@ export default async function FeedPage() {
       id,
       media_url,
       type,
-      profiles:users!author_id (id, username, display_name, avatar_url)
+      profiles:users!stories_author_id_fkey (id, username, display_name, avatar_url)
     `)
     .gte('created_at', yesterday)
     .lte('expires_at', new Date(Date.now() + 25 * 60 * 60 * 1000).toISOString())

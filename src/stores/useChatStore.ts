@@ -62,8 +62,8 @@ export const useChatStore = create<ChatState>((set, get) => ({
       .from('conversations' as any)
       .select(`
         *,
-        user1:users!user1_id(*),
-        user2:users!user2_id(*)
+        user1:users!conversations_user1_id_fkey(*),
+        user2:users!conversations_user2_id_fkey(*)
       `)
       .or(`user1_id.eq.${userId},user2_id.eq.${userId}`)
       .order('last_message_at', { ascending: false });

@@ -25,7 +25,7 @@ export async function GET(req: Request) {
   // Altrimenti ritorna la lista delle amicizie dell'utente
   const { data, error } = await (supabase
     .from('friendships') as any)
-    .select('*, friend_profile:users!friend_id(id, display_name, avatar_url)')
+    .select('*, friend_profile:users!friendships_friend_id_fkey(id, display_name, avatar_url)')
     .or(`user_id.eq.${user.id},friend_id.eq.${user.id}`)
     .eq('status', 'accepted');
 
