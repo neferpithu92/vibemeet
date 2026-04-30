@@ -28,7 +28,7 @@ interface FeedPost {
   caption: string | null;
   created_at: string;
   like_count?: number;
-  comment_count?: number;
+  view_count?: number;
   profiles?: FeedProfile | FeedProfile[];
 }
 

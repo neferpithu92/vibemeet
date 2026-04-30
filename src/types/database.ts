@@ -425,6 +425,7 @@ export interface Database {
           updated_at: string
           venue_id: string | null
           view_count: number
+          weather_cache: Json | null
         }
         Insert: {
           actual_crowd?: number
@@ -450,6 +451,7 @@ export interface Database {
           updated_at?: string
           venue_id?: string | null
           view_count?: number
+          weather_cache?: Json | null
         }
         Update: {
           actual_crowd?: number
@@ -475,6 +477,7 @@ export interface Database {
           updated_at?: string
           venue_id?: string | null
           view_count?: number
+          weather_cache?: Json | null
         }
         Relationships: [
           {

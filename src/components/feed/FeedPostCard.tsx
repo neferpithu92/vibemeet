@@ -25,8 +25,8 @@ interface FeedPostCardProps {
       display_name: string | null;
       avatar_url: string | null;
     }[];
-    likes_count?: number;
-    comments_count?: number;
+    like_count?: number;
+    view_count?: number;
   };
   isLiked?: boolean;
   isSaved?: boolean;
@@ -146,7 +146,7 @@ export default function FeedPostCard({ post, isLiked, isSaved, onLike, onSave, o
         {/* Likes Count */}
         <div className="space-y-1">
           <p className="font-bold text-sm">
-            {post.likes_count || 0} {t('likes', { fallback: 'Like' })}
+            {post.like_count || 0} {t('likes', { fallback: 'Like' })}
           </p>
           
           {/* Caption */}
@@ -155,22 +155,20 @@ export default function FeedPostCard({ post, isLiked, isSaved, onLike, onSave, o
             <span className="text-vibe-text/90">{post.caption}</span>
           </div>
 
-          {/* Comments Link */}
-          {post.comments_count ? (
-            <button 
-              onClick={() => onComment(post.id)}
-              className="text-xs text-vibe-text-secondary font-medium hover:text-vibe-purple transition-colors block mt-1"
-            >
-              {t('viewAllComments', { count: post.comments_count })}
-            </button>
-          ) : (
-            <button 
-              onClick={() => onComment(post.id)}
-              className="text-xs text-vibe-text-secondary font-medium hover:text-vibe-purple transition-colors block mt-1"
-            >
-              {t('addComment')}
-            </button>
+          {/* Views */}
+          {(post.view_count ?? 0) > 0 && (
+            <p className="text-xs text-vibe-text-secondary font-medium mt-1">
+              {post.view_count?.toLocaleString()} visualizzazioni
+            </p>
           )}
+
+          {/* Add comment CTA */}
+          <button 
+            onClick={() => onComment(post.id)}
+            className="text-xs text-vibe-text-secondary font-medium hover:text-vibe-purple transition-colors block mt-1"
+          >
+            {t('addComment')}
+          </button>
 
           {/* Time */}
           <p className="text-[9px] text-vibe-text-secondary uppercase font-bold tracking-widest pt-1">

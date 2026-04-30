@@ -44,9 +44,9 @@ export async function GET(req: Request) {
           caption,
           created_at,
           like_count,
-          comment_count,
+          view_count,
           author_id,
-          profiles:users!author_id(id, username, display_name, avatar_url)
+          profiles:users!media_author_id_fkey(id, username, display_name, avatar_url)
         `)
         .order('created_at', { ascending: false })
         .range(offset, offset + limit - 1);

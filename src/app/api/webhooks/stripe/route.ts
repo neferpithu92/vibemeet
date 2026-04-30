@@ -37,7 +37,7 @@ export async function POST(req: Request) {
   // 1. Checkout Completato -> Attiva Abbonamento/Registra Biglietto
   if (event.type === 'checkout.session.completed') {
     const { userId, entityId, entityType, plan } = session.metadata;
-    const supabaseAdmin = getSupabaseAdmin() as any;
+    const supabaseAdmin = getSupabaseAdmin();
 
     if (session.mode === 'subscription') {
       const subscription = (await stripe.subscriptions.retrieve(session.subscription)) as any;

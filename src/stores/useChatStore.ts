@@ -146,16 +146,35 @@ export const useChatStore = create<ChatState>((set, get) => ({
       throw new Error("Could not initialize conversation.");
     }
 
+    // encryptDirectMessage returns base64(nonce || ciphertext)
+    // We store the full payload in encrypted_content and extract the real nonce separately
     const encryptedPayload = await encryptDirectMessage(content, recipientPublicKey, myPrivateKey);
+
+    // Dynamically import libsodium to get NONCEBYTES for correct extraction
+    let nonceB64: string;
+    try {
+      const { initSodium } = await import('@/lib/encryption');
+      const sodium = await initSodium();
+      if (sodium) {
+        const payloadBytes = sodium.from_base64(encryptedPayload);
+        const nonceBytes = payloadBytes.slice(0, sodium.crypto_box_NONCEBYTES);
+        nonceB64 = sodium.to_base64(nonceBytes);
+      } else {
+        // Fallback: generate a separate nonce identifier (won't be used for decryption — payload is self-contained)
+        nonceB64 = crypto.randomUUID();
+      }
+    } catch {
+      nonceB64 = crypto.randomUUID();
+    }
 
     const { data: userData } = await supabase.auth.getUser();
     if (!userData.user) return;
 
-    const { error } = await supabase.from('direct_messages' as any).insert({
+    const { error } = await supabase.from('direct_messages').insert({
       conversation_id: convId,
       sender_id: userData.user.id,
       encrypted_content: encryptedPayload,
-      nonce: encryptedPayload.substring(0, 32),
+      nonce: nonceB64,
       media_url: media?.url,
       media_type: media?.type
     });

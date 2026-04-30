@@ -17,7 +17,7 @@ export default async function FeedPage() {
       caption,
       created_at,
       like_count,
-      comment_count,
+      view_count,
       profiles:users!media_author_id_fkey (id, username, display_name, avatar_url)
     `)
     .order('created_at', { ascending: false })
