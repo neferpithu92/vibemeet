@@ -50,6 +50,7 @@ export async function POST(request: Request) {
       });
 
     if (storageError) {
+      console.error(`[Upload] Storage error in bucket ${bucket}:`, storageError);
       return NextResponse.json({ error: storageError.message }, { status: 500 });
     }
 
@@ -60,47 +61,48 @@ export async function POST(request: Request) {
 
     // 3. Inserisci il record nella tabella corrispondente
     if (bucket === 'stories') {
-      const { data: story, error: storyError } = await (supabase
-        .from('stories') as any)
+      const { data: story, error: storyError } = await supabase
+        .from('stories')
         .insert({
           author_id: user.id,
           media_url: publicUrl,
           type: file.type.startsWith('video') ? 'video' : 'photo',
           caption: caption || null,
-          expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
+          expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+          entity_type: 'user'
         })
         .select()
         .single();
 
       if (storyError) {
-        console.error('Story Insert Error:', storyError);
-        return NextResponse.json({ error: storyError.message }, { status: 500 });
+        console.error('[Upload] Database error inserting into stories:', storyError);
+        return NextResponse.json({ error: `DB Error: ${storyError.message}` }, { status: 500 });
       }
       return NextResponse.json({ success: true, data: story });
     } else {
       // Inserisci in 'media' per i post del feed
-      const { data: media, error: mediaError } = await (supabase
-        .from('media') as any)
+      const { data: media, error: mediaError } = await supabase
+        .from('media')
         .insert({
           author_id: user.id,
           entity_type: entityType || 'user',
           entity_id: entityId || user.id,
           url: publicUrl,
-          type: file.type.startsWith('video') ? 'video' : 'image',
+          type: file.type.startsWith('video') ? 'video' : 'photo',
           caption: caption || null
         })
         .select()
         .single();
 
       if (mediaError) {
-        console.error('Media Insert Error:', mediaError);
-        return NextResponse.json({ error: mediaError.message }, { status: 500 });
+        console.error('[Upload] Database error inserting into media:', mediaError);
+        return NextResponse.json({ error: `DB Error: ${mediaError.message}` }, { status: 500 });
       }
       return NextResponse.json({ success: true, data: media });
     }
 
   } catch (error: any) {
-    console.error('Upload Error:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error('[Upload] Fatal exception:', error);
+    return NextResponse.json({ error: `Fatal: ${error.message}` }, { status: 500 });
   }
 }

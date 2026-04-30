@@ -64,16 +64,26 @@ export default function StoryViewer({ groups, initialGroupIndex, onClose, curren
   // Mark story as viewed
   useEffect(() => {
     if (!currentStory || !currentUserId) return;
-    (supabase.from('story_views') as any).upsert({
+    
+    // UPSERT story view
+    supabase.from('story_views' as any).upsert({
       story_id: currentStory.id,
       viewer_id: currentUserId,
       viewed_at: new Date().toISOString()
-    }, { onConflict: 'story_id,viewer_id' }).then(() => {});
+    }, { onConflict: 'story_id,viewer_id' }).then(({ error }) => {
+      if (error) console.error('[StoryViewer] Error marking as viewed:', error);
+    });
+
     if (isOwnStory) {
-      (supabase.from('story_views') as any).select('count', { count: 'exact' })
-        .eq('story_id', currentStory.id).then(({ count }: any) => setViewCount(count || 0));
+      // Get exact count for authors
+      supabase.from('story_views' as any).select('viewer_id', { count: 'exact', head: true })
+        .eq('story_id', currentStory.id)
+        .then(({ count, error }) => {
+          if (!error) setViewCount(count || 0);
+          else console.error('[StoryViewer] Error fetching view count:', error);
+        });
     }
-  }, [currentStory?.id]);
+  }, [currentStory?.id, currentUserId, isOwnStory]);
 
   const goNext = useCallback(() => {
     if (storyIndex < currentGroup.stories.length - 1) {

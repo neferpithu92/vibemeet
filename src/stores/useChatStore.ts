@@ -58,8 +58,8 @@ export const useChatStore = create<ChatState>((set, get) => ({
     const supabase = createClient();
     
     // Recupera conversazioni e dati degli utenti (JOIN)
-    const { data, error } = await (supabase
-      .from('conversations') as any)
+    const { data, error } = await supabase
+      .from('conversations' as any)
       .select(`
         *,
         user1:users!user1_id(*),
@@ -69,7 +69,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
       .order('last_message_at', { ascending: false });
 
     if (error) {
-      console.error("Error fetching conversations:", error);
+      console.error("[Chat] Error fetching conversations:", error);
       set({ isLoading: false });
       return;
     }
@@ -86,14 +86,14 @@ export const useChatStore = create<ChatState>((set, get) => ({
     set({ isLoading: true });
     const supabase = createClient();
     
-    const { data, error } = await (supabase
-      .from('direct_messages') as any)
+    const { data, error } = await supabase
+      .from('direct_messages' as any)
       .select('*')
       .eq('conversation_id', conversationId)
       .order('created_at', { ascending: true });
 
     if (error) {
-      console.error("Error fetching messages:", error);
+      console.error("[Chat] Error fetching messages:", error);
       set({ isLoading: false });
       return;
     }
@@ -135,18 +135,23 @@ export const useChatStore = create<ChatState>((set, get) => ({
     const myPrivateKey = sessionStorage.getItem('vibe_private_key');
     
     if (!myPrivateKey || !recipientPublicKey) {
+       console.error('[Chat] Encryption keys missing');
        throw new Error("Encryption keys missing. Failed to send E2E message.");
     }
 
-    const { data: convId } = await (supabase as any).rpc('get_or_create_conversation', { p_user_id: recipientId });
-    if (!convId) throw new Error("Could not initialize conversation.");
+    console.log('[Chat] Getting or creating conversation for:', recipientId);
+    const { data: convId, error: rpcError } = await (supabase as any).rpc('get_or_create_conversation', { p_user_id: recipientId });
+    if (rpcError || !convId) {
+      console.error('[Chat] RPC Error:', rpcError);
+      throw new Error("Could not initialize conversation.");
+    }
 
     const encryptedPayload = await encryptDirectMessage(content, recipientPublicKey, myPrivateKey);
 
     const { data: userData } = await supabase.auth.getUser();
     if (!userData.user) return;
 
-    const { error } = await (supabase.from('direct_messages') as any).insert({
+    const { error } = await supabase.from('direct_messages' as any).insert({
       conversation_id: convId,
       sender_id: userData.user.id,
       encrypted_content: encryptedPayload,
@@ -155,15 +160,21 @@ export const useChatStore = create<ChatState>((set, get) => ({
       media_type: media?.type
     });
 
-    if (error) throw error;
+    if (error) {
+      console.error('[Chat] Error inserting message:', error);
+      throw error;
+    }
   },
 
   markAsRead: async (messageIds) => {
     if (messageIds.length === 0) return;
     const supabase = createClient();
-    await (supabase.from('direct_messages') as any)
+    
+    const { error } = await supabase.from('direct_messages' as any)
       .update({ read_at: new Date().toISOString() })
       .in('id', messageIds);
+    
+    if (error) console.error('[Chat] Error marking as read:', error);
     
     set(state => ({
       messages: state.messages.map(m => 

@@ -98,15 +98,30 @@ export default function LiveClient({ streams, scheduled, currentUserId }: LiveCl
 
   const goLive = async () => {
     if (!liveTitle.trim() || !currentUserId) return;
-    const { data } = await (supabase as any).from('live_streams').insert({
-      host_id: currentUserId,
-      title: liveTitle,
-      status: 'live',
-      started_at: new Date().toISOString()
-    }).select().single();
+    
+    console.log('[Live] Attempting to go live with title:', liveTitle);
+    
+    const { data, error } = await supabase
+      .from('live_streams')
+      .insert({
+        host_id: currentUserId,
+        title: liveTitle,
+        status: 'live',
+        started_at: new Date().toISOString()
+      })
+      .select()
+      .single();
+      
+    if (error) {
+      console.error('[Live] Error starting live stream:', error);
+      // Use a toast or alert if needed, but for now we'll just log
+      return;
+    }
+    
     if (data) {
+      console.log('[Live] Successfully started stream:', data.id);
       setIsGoingLive(false);
-      setActiveStreams(prev => [data as Stream, ...prev]);
+      setActiveStreams(prev => [data as unknown as Stream, ...prev]);
     }
   };
 

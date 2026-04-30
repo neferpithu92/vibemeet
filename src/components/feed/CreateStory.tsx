@@ -43,23 +43,28 @@ export default function CreateStory({ isOpen, onClose, onSuccess }: CreateStoryP
         console.warn('Story location skipped:', locErr);
       }
 
-      console.log('Inserting story for user:', user.id, { mediaType, url });
+      console.log('[CreateStory] Finalizing insert for user:', user.id, { mediaType, url });
 
-      const { error } = await (supabase
-        .from('stories') as any)
+      const { data, error } = await supabase
+        .from('stories')
         .insert({
           author_id: user.id,
           media_url: url,
-          type: mediaType, // Added for Migration 045 compatibility
+          type: mediaType,
           entity_type: 'user',
           location: locationWkt,
           expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-          created_at: new Date().toISOString()
-        });
+          text_content: null,
+          text_color: null,
+          bg_color: null,
+          duration: isVideo ? 15 : 5
+        })
+        .select()
+        .single();
 
       if (error) {
-        console.error('Supabase RLS/Insert Error:', error);
-        throw error;
+        console.error('[CreateStory] Supabase Insert Error:', error);
+        throw new Error(`Database Error: ${error.message}`);
       }
 
       showToast(t('success'), 'success', '📱');

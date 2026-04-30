@@ -141,53 +141,58 @@ export default function ProfilePage() {
       try {
         const { data: profileData, error: profileError } = await supabase
           .from('users')
-          .select('display_name, username, bio, avatar_url, is_verified, map_visibility')
+          .select('display_name, username, bio, avatar_url, is_verified, map_visibility, vibe_points')
           .eq('id', user.id)
           .single();
 
         if (profileError) {
-          console.error('ERROR (users table):', profileError);
-          // If 406 (PGRST106), it means some columns are missing. Try a minimal select as fallback.
-          if (profileError.code === 'PGRST106') {
-             const { data: fallbackData } = await supabase
-               .from('users')
-               .select('username, avatar_url')
-               .eq('id', user.id)
-               .single();
-             if (fallbackData) setProfile(fallbackData as any);
+          console.error('[Profile] Database error (users table):', profileError);
+          // If columns are missing, attempt a minimal select to keep basic functionality
+          const { data: fallbackData } = await supabase
+            .from('users')
+            .select('username, avatar_url')
+            .eq('id', user.id)
+            .single();
+            
+          if (fallbackData) {
+            console.warn('[Profile] Using fallback user data');
+            setProfile(fallbackData as any);
           }
         } else if (profileData) {
-          setProfile(profileData);
+          setProfile(profileData as any);
         }
       } catch (err) {
-        console.error('Fetch profile exception:', err);
+        console.error('[Profile] Fetch profile exception:', err);
       }
 
       // 2. Carica Post (Media)
-      const { data: mediaData } = await supabase
+      const { data: mediaData, error: mediaError } = await supabase
         .from('media')
-        .select(`
-          *,
-          venue:venues(name)
-        `)
-        .eq('user_id', user.id)
+        .select('*, venue:venues(name)')
+        .eq('author_id', user.id)
         .order('created_at', { ascending: false });
       
-      if (mediaData) {
-        const photoPosts: UserPost[] = (mediaData as any[]).filter(m => m.media_type === 'photo' || !m.media_url?.includes('.mp4'));
-        const videoPosts: UserPost[] = (mediaData as any[]).filter(m => m.media_type === 'video' || m.media_url?.includes('.mp4'));
-        setPosts(photoPosts);
-        setVibe(videoPosts);
+      if (mediaError) {
+        console.error('[Profile] Error loading media:', mediaError);
+      } else if (mediaData) {
+        const photoPosts = mediaData.filter(m => m.type === 'photo');
+        const videoPosts = mediaData.filter(m => m.type === 'video' || m.type === 'reel');
+        setPosts(photoPosts as any);
+        setVibe(videoPosts as any);
       }
 
       // 3. Carica Storie attive
-      const { data: storiesData } = await supabase
+      const { data: storiesData, error: storiesError } = await supabase
         .from('stories')
         .select('*')
         .eq('author_id', user.id)
         .order('created_at', { ascending: false });
       
-      if (storiesData) setStories(storiesData);
+      if (storiesError) {
+        console.error('[Profile] Error loading stories:', storiesError);
+      } else if (storiesData) {
+        setStories(storiesData as any);
+      }
 
       // 4. Carica Check-ins per tab Eventi/Stato
       const { data: checkInData } = await supabase
