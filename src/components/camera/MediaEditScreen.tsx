@@ -189,7 +189,7 @@ export default function MediaEditScreen({
                 <div
                   className={`w-16 h-20 rounded-xl overflow-hidden border-2 transition-all ${
                     selectedFilter.name === f.name
-                      ? 'border-purple-500 scale-105'
+                      ? 'border-purple-500 scale-105 shadow-[0_0_15px_rgba(168,85,247,0.4)]'
                       : 'border-white/10'
                   }`}
                 >
@@ -201,13 +201,19 @@ export default function MediaEditScreen({
                       style={{ filter: f.css }}
                     />
                   ) : (
-                    <div
-                      className="w-full h-full bg-gradient-to-br from-purple-900 to-pink-900"
-                      style={{ filter: f.css }}
-                    />
+                    <div className="w-full h-full relative">
+                      <video
+                        src={mediaUrl}
+                        className="w-full h-full object-cover"
+                        style={{ filter: f.css }}
+                        muted
+                        playsInline
+                      />
+                      <div className="absolute inset-0 bg-black/20" />
+                    </div>
                   )}
                 </div>
-                <span className={`text-xs ${selectedFilter.name === f.name ? 'text-purple-400' : 'text-white/50'}`}>
+                <span className={`text-[10px] font-bold uppercase tracking-tight ${selectedFilter.name === f.name ? 'text-purple-400' : 'text-white/50'}`}>
                   {f.name}
                 </span>
               </button>

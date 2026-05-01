@@ -43,6 +43,9 @@ interface ChatState {
   sendMessage: (content: string, recipientId: string, recipientPublicKey: string, media?: { url: string, type: string }) => Promise<void>;
   markAsRead: (messageIds: string[]) => Promise<void>;
   handleRealtimeMessage: (payload: any) => void;
+  setTyping: (isTyping: boolean) => void;
+  typingUsers: string[];
+  setTypingUsers: (users: string[]) => void;
 }
 
 export const useChatStore = create<ChatState>((set, get) => ({
@@ -50,6 +53,21 @@ export const useChatStore = create<ChatState>((set, get) => ({
   activeConversationId: null,
   messages: [],
   isLoading: false,
+  typingUsers: [],
+
+  setTypingUsers: (users) => set({ typingUsers: users }),
+  
+  setTyping: async (isTyping) => {
+    const convId = get().activeConversationId;
+    if (!convId) return;
+    const supabase = createClient();
+    const channel = supabase.channel(`chat_${convId}`);
+    if (isTyping) {
+      await channel.track({ typing: true, user_id: (await supabase.auth.getUser()).data.user?.id });
+    } else {
+      await channel.untrack();
+    }
+  },
 
   setActiveConversation: (id) => set({ activeConversationId: id, messages: [] }),
 

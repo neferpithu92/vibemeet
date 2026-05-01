@@ -115,9 +115,13 @@ export default function ReelEditor({ videoUrl, onConfirm, onBack, isUploading = 
     if (!isDraggingTrim) return;
     const t = getTimelineX(e.clientX);
     if (isDraggingTrim === 'start') {
-      setTrimStart(Math.min(t, trimEnd - 1));
+      const newStart = Math.max(0, Math.min(t, trimEnd - 0.5));
+      setTrimStart(newStart);
+      if (videoRef.current) videoRef.current.currentTime = newStart;
     } else {
-      setTrimEnd(Math.max(t, trimStart + 1));
+      const newEnd = Math.max(trimStart + 0.5, Math.min(t, duration));
+      setTrimEnd(newEnd);
+      if (videoRef.current) videoRef.current.currentTime = newEnd;
     }
   }, [isDraggingTrim, trimStart, trimEnd, duration]);
 

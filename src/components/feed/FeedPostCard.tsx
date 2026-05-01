@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Heart, MessageCircle, Share2, Bookmark, MoreHorizontal } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { ShareModal } from '@/components/social/ShareModal';
 
 interface FeedPostCardProps {
   post: {
@@ -40,6 +41,7 @@ import Image from 'next/image';
 export default function FeedPostCard({ post, isLiked, isSaved, onLike, onSave, onComment }: FeedPostCardProps) {
   const t = useTranslations('feed');
   const [showHeartAnimation, setShowHeartAnimation] = useState(false);
+  const [isShareOpen, setIsShareOpen] = useState(false);
 
   const profile = Array.isArray(post.profiles) ? post.profiles[0] : post.profiles;
 
@@ -131,7 +133,10 @@ export default function FeedPostCard({ post, isLiked, isSaved, onLike, onSave, o
             >
               <MessageCircle className="w-6 h-6" />
             </button>
-            <button className="text-vibe-text-secondary hover:text-vibe-purple transition-all active:scale-125">
+            <button 
+              onClick={() => setIsShareOpen(true)}
+              className="text-vibe-text-secondary hover:text-vibe-purple transition-all active:scale-125"
+            >
               <Share2 className="w-6 h-6" />
             </button>
           </div>
@@ -176,6 +181,14 @@ export default function FeedPostCard({ post, isLiked, isSaved, onLike, onSave, o
           </p>
         </div>
       </div>
+
+      <ShareModal 
+        isOpen={isShareOpen}
+        onClose={() => setIsShareOpen(false)}
+        entityId={post.id}
+        entityType="post"
+        title={post.caption}
+      />
     </Card>
   );
 }

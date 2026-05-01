@@ -25,7 +25,7 @@ const LIVE_FILTERS: LiveFilter[] = [
 const TIMER_OPTIONS = [0, 3, 10];
 const MAX_DURATIONS: Record<CameraMode, number> = {
   photo: 0,
-  video: 60,
+  video: 90, // Increased to 90s for standard video
   reel: 90,
   story: 15,
 };
@@ -132,6 +132,7 @@ export default function CameraCapture({
           facingMode: facing,
           width:  { ideal: 1920 },
           height: { ideal: 1080 },
+          frameRate: { ideal: 30 },
         },
         audio: mode !== 'photo',
       };
@@ -140,17 +141,24 @@ export default function CameraCapture({
       if (videoRef.current) {
         videoRef.current.srcObject = s;
       }
-      // Apply zoom via constraints if supported
+      
+      // Initialize zoom if supported
       const track = s.getVideoTracks()[0];
-      if (track && 'applyConstraints' in track) {
-        try {
-          await track.applyConstraints({ advanced: [{ zoom } as any] });
-        } catch {/* zoom not supported */}
+      if (track) {
+        const capabilities = track.getCapabilities() as any;
+        if (capabilities.zoom) {
+          try {
+            await track.applyConstraints({ advanced: [{ zoom: 1 } as any] });
+            setZoom(1);
+          } catch (e) {
+            console.warn('[Camera] Zoom constraint failed:', e);
+          }
+        }
       }
     } catch (err) {
       console.error('[Camera] stream error:', err);
     }
-  }, [facing, mode, zoom]);
+  }, [facing, mode]);
 
   useEffect(() => {
     startStream();
@@ -232,22 +240,34 @@ export default function CameraCapture({
     const video = videoRef.current;
     if (!video) return;
     const canvas = document.createElement('canvas');
+    
+    // Use video stream dimensions for better quality
     canvas.width  = video.videoWidth;
     canvas.height = video.videoHeight;
+    
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
+    
     if (facing === 'user') {
       ctx.translate(canvas.width, 0);
       ctx.scale(-1, 1);
     }
-    ctx.filter = filter.css !== 'none' ? filter.css : 'none';
+    
+    // Apply filters to canvas if any
+    if (filter.css !== 'none') {
+      ctx.filter = filter.css;
+    }
+    
     ctx.drawImage(video, 0, 0);
     const url = canvas.toDataURL('image/jpeg', 0.95);
     setCaptured({ url, type: 'photo' });
     setScreen('edit');
   }, [facing, filter]);
 
-  const handleShutterPhotoClick = () => withCountdown(takePhoto);
+  const handleShutterPhotoClick = () => {
+    if (isRecording) return;
+    withCountdown(takePhoto);
+  };
 
   // ── Start recording ───────────────────────────────────────────────────────
   const startRecording = useCallback(() => {
@@ -288,8 +308,10 @@ export default function CameraCapture({
 
   // ── Hold shutter logic ────────────────────────────────────────────────────
   const handleShutterDown = () => {
-    if (mode === 'photo') return;
-    holdTimerRef.current = setTimeout(() => startRecording(), 200);
+    if (mode === 'photo' || isRecording) return;
+    holdTimerRef.current = setTimeout(() => {
+      withCountdown(() => startRecording());
+    }, 200);
   };
   const handleShutterUp = () => {
     if (holdTimerRef.current) {
