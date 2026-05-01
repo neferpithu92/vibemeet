@@ -6,7 +6,7 @@ import { Modal } from '@/components/ui/Modal';
 import MediaUpload from '@/components/ui/MediaUpload';
 import { useToast } from '@/components/ui/ToastProvider';
 import { Button } from '@/components/ui/Button';
-import CameraCapture from '@/components/camera/CameraCapture';
+import CameraCapture, { type CaptureResult } from '@/components/camera/CameraCapture';
 import { createClient } from '@/lib/supabase/client';
 import { Camera, Upload } from 'lucide-react';
 
@@ -124,11 +124,11 @@ export default function CreateStory({ isOpen, onClose, onSuccess }: CreateStoryP
 
       {isCameraOpen && (
         <CameraCapture
-          mode="both"
+          initialMode="story"
           onClose={() => setIsCameraOpen(false)}
-          onCapture={(url) => {
+          onCapture={(result: CaptureResult) => {
             setIsCameraOpen(false);
-            handleUploadComplete(url);
+            handleUploadComplete(result.url);
           }}
         />
       )}
