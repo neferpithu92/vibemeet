@@ -41,15 +41,12 @@ export function ShareModal({ isOpen, onClose, entityId, entityType, title, url }
     if (!user) return;
 
     const { data } = await supabase
-      .from('friends' as any)
-      .select(`
-        *,
-        friend:users!friends_friend_id_fkey(id, username, display_name, avatar_url)
-      `)
-      .eq('user_id', user.id)
+      .from('users')
+      .select('id, username, display_name, avatar_url')
+      .neq('id', user.id)
       .limit(20);
 
-    setFriends(data?.map(f => (f as any).friend) || []);
+    setFriends(data || []);
     setIsLoading(false);
   };
 

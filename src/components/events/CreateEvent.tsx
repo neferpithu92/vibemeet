@@ -38,7 +38,8 @@ export default function CreateEvent({ isOpen, onClose, onSuccess, venueId: initi
     endTime: '',
     coverUrl: '',
     price: 0,
-    ticketLimit: 100
+    ticketLimit: 100,
+    address: ''
   });
 
   const categories = [
@@ -72,25 +73,29 @@ export default function CreateEvent({ isOpen, onClose, onSuccess, venueId: initi
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedVenueId) {
-      showToast(t('errorNoVenue'), 'error');
-      return;
-    }
-
     setIsLoading(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error(t('errorUnauthorized'));
 
+      let eventLocation = 'POINT(8.5417 47.3769)'; // Default to Zurich if no venue is selected
+      if (selectedVenueId) {
+        const { data: venueData } = await (supabase.from('venues') as any).select('location').eq('id', selectedVenueId).single();
+        if (venueData?.location) eventLocation = venueData.location;
+      }
+
       const { data, error } = await (supabase.from('events') as any).insert({
-        ...formData,
-        venue_id: selectedVenueId,
+        title: formData.title,
+        description: formData.description,
+        category: formData.category,
+        venue_id: selectedVenueId || null,
         organizer_id: user.id,
         starts_at: new Date(formData.startTime).toISOString(),
         ends_at: formData.endTime ? new Date(formData.endTime).toISOString() : null,
         ticket_price: formData.price,
         slug: formData.title.toLowerCase().replace(/ /g, '-') + '-' + Date.now(),
-        location: (await (supabase.from('venues') as any).select('location').eq('id', selectedVenueId).single()).data?.location
+        location: eventLocation,
+        address: selectedVenueId ? null : formData.address
       }).select().single();
 
       if (error) throw error;
@@ -126,20 +131,37 @@ export default function CreateEvent({ isOpen, onClose, onSuccess, venueId: initi
       <form onSubmit={handleSubmit} className="space-y-6">
         {step === 1 && (
           <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-4">
-            {!initialVenueId && userVenues.length > 0 && (
+            {!initialVenueId && (
               <div>
                 <label className="text-[10px] font-bold uppercase text-vibe-text-secondary tracking-widest">{t('selectVenue')}</label>
-                <select 
-                  className="input-field mt-1.5"
-                  value={selectedVenueId || ''}
-                  onChange={(e) => setSelectedVenueId(e.target.value)}
+                {userVenues.length > 0 ? (
+                  <select 
+                    className="input-field mt-1.5"
+                    value={selectedVenueId || ''}
+                    onChange={(e) => setSelectedVenueId(e.target.value)}
+                  >
+                    <option value="">Nessuna Venue (Usa indirizzo personalizzato)</option>
+                    {userVenues.map(v => (
+                      <option key={v.id} value={v.id}>{v.name}</option>
+                    ))}
+                  </select>
+                ) : (
+                  <div className="mt-1.5 text-xs text-white/40 italic">Nessuna venue posseduta. Inserisci un indirizzo qui sotto.</div>
+                )}
+              </div>
+            )}
+            
+            {!selectedVenueId && (
+              <div>
+                <label className="text-[10px] font-bold uppercase text-vibe-text-secondary tracking-widest">Indirizzo Custom</label>
+                <input
+                  type="text"
                   required
-                >
-                  <option value="">{t('chooseVenue')}</option>
-                  {userVenues.map(v => (
-                    <option key={v.id} value={v.id}>{v.name}</option>
-                  ))}
-                </select>
+                  value={formData.address}
+                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                  className="input-field mt-1.5"
+                  placeholder="Es: Via Roma 1, Milano"
+                />
               </div>
             )}
             <div>

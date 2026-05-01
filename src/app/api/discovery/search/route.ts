@@ -47,9 +47,9 @@ export async function GET(request: Request) {
   // Search hashtags
   const { data: hashtags } = await supabase
     .from('hashtags')
-    .select('id, tag, count')
+    .select('id, tag, post_count')
     .ilike('tag', `%${query}%`)
-    .order('count', { ascending: false })
+    .order('post_count', { ascending: false })
     .limit(5);
 
   return NextResponse.json({

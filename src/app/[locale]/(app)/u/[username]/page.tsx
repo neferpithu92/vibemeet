@@ -150,6 +150,12 @@ export default function UserProfilePage() {
         following_id: profile.id,
         entity_type: 'user'
       });
+      if (isPrivate) {
+        await (supabase as any).from('friendships').delete().match({
+          requester_id: user.id,
+          addressee_id: profile.id
+        });
+      }
       setIsFollowing(false);
       setFollowerCount(prev => prev - 1);
     } else {
@@ -158,6 +164,13 @@ export default function UserProfilePage() {
         following_id: profile.id,
         entity_type: 'user'
       });
+      if (isPrivate) {
+        await (supabase as any).from('friendships').insert({
+          requester_id: user.id,
+          addressee_id: profile.id,
+          status: 'pending'
+        });
+      }
       setIsFollowing(true);
       setFollowerCount(prev => prev + 1);
     }
