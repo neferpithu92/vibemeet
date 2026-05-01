@@ -35,24 +35,23 @@ export async function GET(req: Request) {
       console.warn('[FYP] RPC unavailable, falling back to direct query:', error.message);
 
       // Fallback: direct query with basic ranking
-      let query = supabase
-        .from('media')
+      let query = (supabase.from('media') as any)
         .select(`
           id,
-          url,
-          type,
+          media_url,
+          media_type,
           caption,
           created_at,
           like_count,
           view_count,
-          author_id,
-          profiles:users!media_author_id_fkey(id, username, display_name, avatar_url)
+          user_id,
+          profiles:users!media_user_id_fkey(id, username, display_name, avatar_url)
         `)
         .order('created_at', { ascending: false })
         .range(offset, offset + limit - 1);
 
       if (dbType) {
-        query = query.eq('type', dbType);
+        query = query.eq('media_type', dbType);
       }
 
       const { data: fallbackFeed, error: fallbackError } = await query;
@@ -64,6 +63,8 @@ export async function GET(req: Request) {
 
       const items = (fallbackFeed || []).map((item: any) => ({
         ...item,
+        url: item.media_url,
+        type: item.media_type,
         profiles: Array.isArray(item.profiles) ? item.profiles[0] : item.profiles,
       }));
 
@@ -74,8 +75,10 @@ export async function GET(req: Request) {
     // Map RPC result for frontend expectations
     const items = (feed || []).map((item: any) => ({
       ...item,
+      url: item.media_url || item.url,
+      type: item.media_type || item.type,
       profiles: {
-        id: item.author_id,
+        id: item.user_id || item.author_id,
         username: item.author_username,
         avatar_url: item.author_avatar,
         display_name: item.author_display_name

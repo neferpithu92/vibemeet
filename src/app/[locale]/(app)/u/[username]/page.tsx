@@ -28,9 +28,9 @@ interface UserProfileData {
 
 interface MediaPost {
   id: string;
-  url: string;
+  media_url: string;
   thumbnail_url: string | null;
-  type: string;
+  media_type: string;
   like_count: number;
   created_at: string;
 }
@@ -89,9 +89,9 @@ export default function UserProfilePage() {
           .select('*', { count: 'exact', head: true })
           .eq('follower_id', p.id)
           .eq('entity_type', 'user'),
-        supabase.from('media')
+        (supabase.from('media') as any)
           .select('*', { count: 'exact', head: true })
-          .eq('author_id', p.id)
+          .eq('user_id', p.id)
       ]);
 
       setFollowerCount(followers || 0);
@@ -120,18 +120,18 @@ export default function UserProfilePage() {
         || currentlyFollowing;
 
       if (canView) {
-        const { data: mediaData } = await supabase
-          .from('media')
-          .select('id, url, thumbnail_url, type, like_count, created_at')
-          .eq('author_id', p.id)
+        const { data: mediaData } = await (supabase
+          .from('media') as any)
+          .select('id, media_url, thumbnail_url, media_type, like_count, created_at')
+          .eq('user_id', p.id)
           .order('created_at', { ascending: false });
 
         if (mediaData) {
           const mItems = mediaData as any[];
-          setPosts(mItems.filter(m => 
-            m.type === 'photo' || m.type === 'image'));
-          setReels(mItems.filter(m => 
-            m.type === 'video' || m.type === 'reel'));
+          setPosts(mItems.filter((m: any) => 
+            m.media_type === 'photo' || m.media_type === 'image'));
+          setReels(mItems.filter((m: any) => 
+            m.media_type === 'video' || m.media_type === 'reel'));
         }
       }
 
@@ -342,10 +342,10 @@ export default function UserProfilePage() {
                 <div key={post.id}
                      className="relative aspect-square 
                                 bg-white/5 overflow-hidden group">
-                  {post.type === 'video' || post.type === 'reel' ? (
+                  {post.media_type === 'video' || post.media_type === 'reel' ? (
                     <>
                       <video
-                        src={post.url}
+                        src={post.media_url}
                         className="w-full h-full object-cover"
                         muted
                         playsInline
@@ -357,7 +357,7 @@ export default function UserProfilePage() {
                     </>
                   ) : (
                     <img
-                      src={post.thumbnail_url || post.url}
+                      src={post.thumbnail_url || post.media_url}
                       alt=""
                       className="w-full h-full object-cover 
                                  transition-transform duration-300 

@@ -9,6 +9,7 @@ import { useTranslations } from 'next-intl';
 import { format } from 'date-fns';
 import { it, enUS, de, fr } from 'date-fns/locale';
 import { useLocale } from 'next-intl';
+import CreateEvent from '@/components/events/CreateEvent';
 
 interface Event {
   id: string;
@@ -48,6 +49,7 @@ export default function EventsClient({ initialEvents }: EventsClientProps) {
 
   const [activeTimeFilter, setActiveTimeFilter] = useState<typeof timeFilters[number]>('all');
   const [activeGenreFilter, setActiveGenreFilter] = useState<typeof genres[number]>('all');
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   const filteredEvents = useMemo(() => {
     return initialEvents.filter(event => {
@@ -78,7 +80,7 @@ export default function EventsClient({ initialEvents }: EventsClientProps) {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <h1 className="font-display text-2xl font-bold vibe-gradient-text">{t('title')}</h1>
-        <Button variant="primary" size="sm" onClick={() => (window.location.href = '/create')}>
+        <Button variant="primary" size="sm" onClick={() => setIsCreateModalOpen(true)}>
           <span className="flex items-center gap-2">
             <span>➕</span> {t('createEvent')}
           </span>
@@ -180,6 +182,12 @@ export default function EventsClient({ initialEvents }: EventsClientProps) {
           <p className="text-vibe-text-secondary">{t('noEvents')}</p>
         </div>
       )}
+
+      <CreateEvent 
+        isOpen={isCreateModalOpen} 
+        onClose={() => setIsCreateModalOpen(false)} 
+        onSuccess={() => window.location.reload()} 
+      />
     </>
   );
 }

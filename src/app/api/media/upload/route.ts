@@ -84,13 +84,13 @@ export async function POST(request: Request) {
       const { data: media, error: mediaError } = await supabase
         .from('media')
         .insert({
-          author_id: user.id,
+          user_id: user.id,
           entity_type: entityType || 'user',
           entity_id: entityId || user.id,
-          url: publicUrl,
-          type: file.type.startsWith('video') ? 'video' : 'photo',
+          media_url: publicUrl,
+          media_type: file.type.startsWith('video') ? 'video' : 'photo',
           caption: caption || null
-        })
+        } as any)
         .select()
         .single();
 

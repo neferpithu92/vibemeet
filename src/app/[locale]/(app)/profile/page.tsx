@@ -157,17 +157,16 @@ export default function ProfilePage() {
       }
 
       // 2. Carica Post (Media)
-      const { data: mediaData, error: mediaError } = await supabase
-        .from('media')
+      const { data: mediaData, error: mediaError } = await (supabase.from('media') as any)
         .select('*, venue:venues(name)')
-        .eq('author_id', user.id)
+        .eq('user_id', user.id)
         .order('created_at', { ascending: false });
       
       if (mediaError) {
         console.error('[Profile] Error loading media:', mediaError);
       } else if (mediaData) {
-        const photoPosts = mediaData.filter(m => m.type === 'photo');
-        const videoPosts = mediaData.filter(m => m.type === 'video' || m.type === 'reel');
+        const photoPosts = mediaData.filter((m: any) => m.media_type === 'photo');
+        const videoPosts = mediaData.filter((m: any) => m.media_type === 'video' || m.media_type === 'reel');
         setPosts(photoPosts as any);
         setVibe(videoPosts as any);
       }
