@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useTranslations } from 'next-intl';
 import { Avatar } from '@/components/ui/Avatar';
 import { Card } from '@/components/ui/Card';
@@ -9,6 +9,9 @@ import { Button } from '@/components/ui/Button';
 import { Heart, MessageCircle, Share2, Bookmark, MoreHorizontal } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ShareModal } from '@/components/social/ShareModal';
+import Image from 'next/image';
+import { useInView } from 'react-intersection-observer';
+import { createClient } from '@/lib/supabase/client';
 
 interface FeedPostCardProps {
   post: {
@@ -36,8 +39,6 @@ interface FeedPostCardProps {
   onComment: (id: string) => void;
 }
 
-import Image from 'next/image';
-
 export default function FeedPostCard({ post, isLiked, isSaved, onLike, onSave, onComment }: FeedPostCardProps) {
   const t = useTranslations('feed');
   const [showHeartAnimation, setShowHeartAnimation] = useState(false);
@@ -56,6 +57,10 @@ export default function FeedPostCard({ post, isLiked, isSaved, onLike, onSave, o
     }
   };
 
+  const handleDoubleTap = () => {
+    handleLike();
+  };
+
   const handleSave = (e: React.MouseEvent) => {
     e.stopPropagation();
     onSave(post.id);
@@ -68,7 +73,7 @@ export default function FeedPostCard({ post, isLiked, isSaved, onLike, onSave, o
 
   // Interaction Tracking (View)
   const [hasTrackedView, setHasTrackedView] = useState(false);
-  const { ref: viewRef, inView } = require('react-intersection-observer').useInView({
+  const { ref: viewRef, inView } = useInView({
     threshold: 0.7,
     triggerOnce: true
   });
@@ -79,7 +84,8 @@ export default function FeedPostCard({ post, isLiked, isSaved, onLike, onSave, o
       // Log view to batch API
       const trackView = async () => {
         try {
-          const { data: { user } } = await require('@/lib/supabase/client').createClient().auth.getUser();
+          const supabase = createClient();
+          const { data: { user } } = await supabase.auth.getUser();
           if (!user) return;
           
           await fetch('/api/social/batch-interactions', {
@@ -89,7 +95,7 @@ export default function FeedPostCard({ post, isLiked, isSaved, onLike, onSave, o
               interactions: [{
                 user_id: user.id,
                 post_id: post.id,
-                author_id: (Array.isArray(post.profiles) ? post.profiles[0] : post.profiles)?.id || post.id,
+                author_id: (profile as any)?.id || post.id,
                 type: 'view',
                 watch_time: 0,
                 affinity_inc: 0.1
@@ -102,7 +108,7 @@ export default function FeedPostCard({ post, isLiked, isSaved, onLike, onSave, o
       };
       trackView();
     }
-  }, [inView, hasTrackedView, post.id, post.profiles]);
+  }, [inView, hasTrackedView, post.id, profile]);
 
   return (
     <Card ref={viewRef} className="overflow-hidden bg-vibe-dark/40 border-white/5 shadow-2xl backdrop-blur-sm rounded-3xl">

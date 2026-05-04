@@ -20,8 +20,8 @@ export async function GET(req: Request) {
     const offset = Number(searchParams.get('offset')) || 0;
     const type = searchParams.get('type'); // 'posts' or 'reels'
     
-    // Map 'posts' to 'photo' and 'reels' to 'video' for the RPC
-    const dbType = type === 'reels' ? 'video' : type === 'posts' ? 'photo' : null;
+    // Map 'posts' to 'photo' and 'reels' to 'reel' for the RPC
+    const dbType = type === 'reels' ? 'reel' : type === 'posts' ? 'photo' : null;
 
     // Try the RPC for intelligent ranking first
     const { data: feed, error } = await (supabase as any).rpc('get_fyp_algo_feed', {
@@ -45,7 +45,7 @@ export async function GET(req: Request) {
           like_count,
           view_count,
           user_id,
-          profiles:users!media_user_id_fkey(id, username, display_name, avatar_url)
+          profiles:users!user_id(id, username, display_name, avatar_url)
         `)
         .order('created_at', { ascending: false })
         .range(offset, offset + limit - 1);

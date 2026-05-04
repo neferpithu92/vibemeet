@@ -12,13 +12,13 @@ export default async function FeedPage() {
     .from('media')
     .select(`
       id,
-      url,
-      type,
+      url:media_url,
+      type:media_type,
       caption,
       created_at,
       like_count,
       view_count,
-      profiles:users!media_author_id_fkey (id, username, display_name, avatar_url)
+      profiles:users!user_id (id, username, display_name, avatar_url)
     `)
     .order('created_at', { ascending: false })
     .limit(10);

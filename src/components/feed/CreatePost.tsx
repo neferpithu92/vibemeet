@@ -47,11 +47,11 @@ export default function CreatePost({ isOpen, onClose, onSuccess, initialMediaUrl
       const mediaType = initialType || (url.includes('mp4') || url.includes('webm') ? 'video' : 'photo');
 
       const insertPayload: Record<string, any> = {
-        author_id: user.id,
+        user_id: user.id,
         entity_id: user.id,   // required by DB schema
         entity_type: 'user',  // required by DB schema
-        url: url,
-        type: mediaType,
+        media_url: url,
+        media_type: mediaType,
         caption: caption,
         visibility: visibility,
         allowed_circle_id: visibility === 'circles' ? selectedCircleId : null,

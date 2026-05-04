@@ -53,10 +53,10 @@ export async function GET(request: Request) {
     .limit(5);
 
   return NextResponse.json({
-    users: users || [],
-    events: events || [],
-    venues: venues || [],
-    artists: artists || [],
+    users: (users || []).map(u => ({ ...u, type: 'user', displayName: u.display_name })),
+    events: (events || []).map(e => ({ ...e, type: 'event', displayName: e.title })),
+    venues: (venues || []).map(v => ({ ...v, type: 'venue', displayName: v.name })),
+    artists: (artists || []).map(a => ({ ...a, type: 'artist', displayName: a.name })),
     hashtags: hashtags || []
   });
 }

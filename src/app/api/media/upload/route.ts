@@ -59,47 +59,11 @@ export async function POST(request: Request) {
       .from(bucket)
       .getPublicUrl(filePath);
 
-    // 3. Inserisci il record nella tabella corrispondente
-    if (bucket === 'stories') {
-      const { data: story, error: storyError } = await supabase
-        .from('stories')
-        .insert({
-          author_id: user.id,
-          media_url: publicUrl,
-          type: file.type.startsWith('video') ? 'video' : 'photo',
-          caption: caption || null,
-          expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-          entity_type: 'user'
-        })
-        .select()
-        .single();
-
-      if (storyError) {
-        console.error('[Upload] Database error inserting into stories:', storyError);
-        return NextResponse.json({ error: `DB Error: ${storyError.message}` }, { status: 500 });
-      }
-      return NextResponse.json({ success: true, url: publicUrl, data: story });
-    } else {
-      // Inserisci in 'media' per i post del feed
-      const { data: media, error: mediaError } = await supabase
-        .from('media')
-        .insert({
-          user_id: user.id,
-          entity_type: entityType || 'user',
-          entity_id: entityId || user.id,
-          media_url: publicUrl,
-          media_type: file.type.startsWith('video') ? 'video' : 'photo',
-          caption: caption || null
-        } as any)
-        .select()
-        .single();
-
-      if (mediaError) {
-        console.error('[Upload] Database error inserting into media:', mediaError);
-        return NextResponse.json({ error: `DB Error: ${mediaError.message}` }, { status: 500 });
-      }
-      return NextResponse.json({ success: true, url: publicUrl, data: media });
-    }
+    // 3. Ritorna l'URL pubblico (l'inserimento nel DB viene gestito dai chiamanti)
+    return NextResponse.json({ 
+      success: true, 
+      url: publicUrl 
+    });
 
   } catch (error: any) {
     console.error('[Upload] Fatal exception:', error);

@@ -146,7 +146,6 @@ export default function MapSearch() {
                 </button>
               ))}
             </div>
-          )}
         </Card>
       )}
     </div>

@@ -131,4 +131,20 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
+-- 5. RPC: get_venues_in_bounds
+CREATE OR REPLACE FUNCTION public.get_venues_in_bounds(
+  sw_lat FLOAT,
+  sw_lng FLOAT,
+  ne_lat FLOAT,
+  ne_lng FLOAT
+)
+RETURNS SETOF public.venues AS $$
+BEGIN
+  RETURN QUERY
+  SELECT *
+  FROM public.venues
+  WHERE location && ST_MakeEnvelope(sw_lng, sw_lat, ne_lng, ne_lat, 4326);
+END;
+$$ LANGUAGE plpgsql STABLE SECURITY DEFINER;
+
 COMMIT;

@@ -384,7 +384,7 @@ export default function CameraCapture({
       const uploadedUrl = await uploadMedia(reel.url, 'video');
       onCapture({
         url: uploadedUrl,
-        type: 'video',
+        type: 'reel',
         caption: reel.caption,
         hashtags: reel.hashtags,
       });
