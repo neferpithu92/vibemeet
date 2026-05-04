@@ -1,20 +1,17 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, memo, useMemo } from 'react';
 import Image from 'next/image';
 import { useRouter, usePathname, Link } from '@/lib/i18n/navigation';
 import { useParams } from 'next/navigation';
 import { useTranslations, useLocale } from 'next-intl';
 import { locales } from '@/lib/i18n/config';
-import { motion, AnimatePresence } from 'framer-motion';
+import dynamic from 'next/dynamic';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Avatar } from '@/components/ui/Avatar';
-import AvatarCropperModal from '@/components/ui/AvatarCropperModal';
-import EditProfileModal from '@/components/profile/EditProfileModal';
 import { createClient } from '@/lib/supabase/client';
-import { Skeleton } from '@/components/ui/Skeleton';
 import { 
   Share2, 
   Edit3, 
@@ -27,20 +24,16 @@ import {
   Grid, 
   Play, 
   Heart, 
-  Ghost,
   Users,
-  LayoutGrid,
-  CheckCircle2,
-  MessageSquare,
-  ChevronRight,
-  ShieldCheck,
-  Calendar,
   PackageCheck
 } from 'lucide-react';
 import { BackButton } from '@/components/ui/BackButton';
 import { EmptyState } from '@/components/ui/EmptyState';
-import PostModal from '@/components/feed/PostModal';
-import { localeNames } from '@/lib/i18n/config';
+
+// Lazy load modals to improve initial page load and memory usage
+const AvatarCropperModal = dynamic(() => import('@/components/ui/AvatarCropperModal'), { ssr: false });
+const EditProfileModal = dynamic(() => import('@/components/profile/EditProfileModal'), { ssr: false });
+const PostModal = dynamic(() => import('@/components/feed/PostModal'), { ssr: false });
 
 const tabs = ['posts', 'vibe', 'saved', 'checkIn', 'tickets'] as const;
 
@@ -90,18 +83,14 @@ interface UserTicket {
   } | null;
 }
 
-/**
- * Pagina Profilo utente — carica dati reali da Supabase.
- */
 export default function ProfilePage() {
   const router = useRouter();
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
 
   const [activeTab, setActiveTab] = useState<typeof tabs[number]>('posts');
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [posts, setPosts] = useState<UserPost[]>([]);
   const [vibe, setVibe] = useState<UserPost[]>([]);
-  const [stories, setStories] = useState<UserStory[]>([]);
   const [checkIns, setCheckIns] = useState<UserCheckIn[]>([]);
   const [ticketsData, setTickets] = useState<UserTicket[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -110,8 +99,6 @@ export default function ProfilePage() {
   const [isCropperOpen, setIsCropperOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedPost, setSelectedPost] = useState<UserPost | null>(null);
-  const [isNotificationsActive, setIsNotificationsActive] = useState(true);
-  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
   const [privacy, setPrivacy] = useState<'friends' | 'public' | 'private'>('friends');
   
   const t = useTranslations('profile');
@@ -128,28 +115,14 @@ export default function ProfilePage() {
         return;
       }
 
-      // 1. Carica profilo utente
       try {
-        const { data: profileData, error: profileError } = await supabase
+        const { data: profileData } = await supabase
           .from('users')
           .select('display_name, username, bio, avatar_url, is_verified, map_visibility, vibe_points')
           .eq('id', user.id)
           .single();
 
-        if (profileError) {
-          console.error('[Profile] Database error (users table):', profileError);
-          // If columns are missing, attempt a minimal select to keep basic functionality
-          const { data: fallbackData } = await supabase
-            .from('users')
-            .select('username, avatar_url')
-            .eq('id', user.id)
-            .single();
-            
-          if (fallbackData) {
-            console.warn('[Profile] Using fallback user data');
-            setProfile(fallbackData as any);
-          }
-        } else if (profileData) {
+        if (profileData) {
           setProfile(profileData as any);
         }
       } catch (err) {
@@ -157,34 +130,19 @@ export default function ProfilePage() {
       }
 
       // 2. Carica Post (Media)
-      const { data: mediaData, error: mediaError } = await (supabase.from('media') as any)
+      const { data: mediaData } = await (supabase.from('media') as any)
         .select('*, venue:venues(name)')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
       
-      if (mediaError) {
-        console.error('[Profile] Error loading media:', mediaError);
-      } else if (mediaData) {
+      if (mediaData) {
         const photoPosts = mediaData.filter((m: any) => m.media_type === 'photo');
         const videoPosts = mediaData.filter((m: any) => m.media_type === 'video' || m.media_type === 'reel');
         setPosts(photoPosts as any);
         setVibe(videoPosts as any);
       }
 
-      // 3. Carica Storie attive
-      const { data: storiesData, error: storiesError } = await supabase
-        .from('stories')
-        .select('*')
-        .eq('author_id', user.id)
-        .order('created_at', { ascending: false });
-      
-      if (storiesError) {
-        console.error('[Profile] Error loading stories:', storiesError);
-      } else if (storiesData) {
-        setStories(storiesData as any);
-      }
-
-      // 4. Carica Check-ins per tab Eventi/Stato
+      // 4. Carica Check-ins
       const { data: checkInData } = await supabase
         .from('check_ins')
         .select(`
@@ -212,7 +170,7 @@ export default function ProfilePage() {
       setFollowerCount(followersCount || 0);
       setFollowingCount(followingCount || 0);
 
-      // 6. Carica Biglietti Reali (Vibe Pass)
+      // 6. Carica Biglietti
       const { data: ticketsData } = await supabase
         .from('tickets')
         .select(`
@@ -276,81 +234,50 @@ export default function ProfilePage() {
     }
   };
 
-  const handleLanguageToggle = () => {
-    const currentIndex = locales.indexOf(locale as any);
-    const nextLocale = locales[(currentIndex + 1) % locales.length];
-    
-    router.replace(pathname, { locale: nextLocale });
-  };
-
-  const handlePrivacyToggle = async () => {
-    const modes: ('friends' | 'public' | 'private')[] = ['friends', 'public', 'private'];
-    const nextMode = modes[(modes.indexOf(privacy) + 1) % modes.length];
-    setPrivacy(nextMode);
-
-    // Sync to DB
-    const { data: { session } } = await supabase.auth.getSession();
-    if (session) {
-      await (supabase as any).from('users').update({ map_visibility: nextMode }).eq('id', session.user.id);
-    }
-  };
-
-  const handleThemeToggle = () => {
-    setTheme(prev => prev === 'dark' ? 'light' : 'dark');
-    // Future: implement persistent theme logic here
-  };
-
-  const handleNotificationsToggle = () => {
-    setIsNotificationsActive(prev => !prev);
-  };
-
   if (isLoading) {
     return (
-      <div className="page-container flex flex-col items-center justify-center min-h-[60vh]">
+      <div className="page-container flex flex-col items-center justify-center min-h-[60vh] gpu-accelerated">
         <div className="w-12 h-12 border-4 border-vibe-purple/30 border-t-vibe-purple rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="page-container">
+    <div className="page-container gpu-accelerated">
       <div className="max-w-2xl mx-auto px-4 py-4">
-        {/* Header con impostazioni */}
+        {/* Header */}
         <div className="flex items-center justify-between mb-6 relative">
           <div className="flex items-center gap-4">
              <BackButton className="!static" />
-             <h1 className="font-display text-2xl font-bold vibe-gradient-text">{t('title')}</h1>
+             <h1 className="font-display text-2xl font-bold vibe-gradient-text tracking-tighter">{t('title')}</h1>
           </div>
           <button 
             onClick={() => router.push('/settings')}
-            className="glass-card p-2 hover:bg-white/10 transition-all rounded-xl"
+            className="glass-card-static p-2 hover:bg-white/10 transition-all rounded-xl interactive-hover"
           >
             <Settings className="w-5 h-5 text-vibe-text" />
           </button>
         </div>
 
         {/* Profilo Card */}
-        <Card className="p-6 mb-6">
+        <Card className="p-6 mb-6 glass-card-static">
           <div className="flex flex-col sm:flex-row items-center gap-4">
-            <div className="relative group cursor-pointer" onClick={() => setIsCropperOpen(true)}>
+            <div className="relative group cursor-pointer tap-scale" onClick={() => setIsCropperOpen(true)}>
               <div className="story-ring p-1 rounded-full group-hover:scale-105 transition-transform duration-300">
-                <Avatar size="xl" src={profile?.avatar_url} fallback={profile?.display_name || 'U'} className="border-4 border-vibe-dark" />
+                <Avatar size="xl" src={profile?.avatar_url} fallback={profile?.display_name || 'U'} className="border-4 border-vibe-dark gpu-accelerated" />
               </div>
               <div className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-vibe-purple flex items-center justify-center border-2 border-vibe-dark shadow-lg group-hover:scale-110 transition-transform">
-                <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
+                <Camera className="w-4 h-4 text-white" />
               </div>
             </div>
             <div className="flex-1 text-center sm:text-left">
               <div className="flex items-center gap-2 justify-center sm:justify-start">
-                <h2 className="font-display text-xl font-bold">{profile?.display_name || 'Vibe User'}</h2>
+                <h2 className="font-display text-xl font-black">{profile?.display_name || 'Vibe User'}</h2>
                 {profile?.is_verified && <Badge variant="verified">✓</Badge>}
               </div>
-              <p className="text-sm text-vibe-text-secondary">@{profile?.username || 'utente'}</p>
+              <p className="text-sm text-vibe-text-secondary font-medium">@{profile?.username || 'utente'}</p>
               {profile?.bio && (
-                <p className="text-sm text-vibe-text mt-2 max-w-md">{profile.bio}</p>
+                <p className="text-sm text-vibe-text/80 mt-2 max-w-md leading-relaxed">{profile.bio}</p>
               )}
             </div>
           </div>
@@ -358,24 +285,24 @@ export default function ProfilePage() {
           {/* Stats */}
           <div className="flex justify-center sm:justify-start gap-8 mt-6 pt-4 border-t border-white/5">
             <div className="text-center">
-              <p className="font-bold text-lg">{posts.length}</p>
-              <p className="text-xs text-vibe-text-secondary">{t('posts')}</p>
+              <p className="font-black text-lg">{posts.length}</p>
+              <p className="text-[10px] uppercase font-bold text-vibe-text-secondary tracking-widest">{t('posts')}</p>
             </div>
             <div className="text-center">
-              <p className="font-bold text-lg">{followerCount.toLocaleString()}</p>
-              <p className="text-xs text-vibe-text-secondary">{t('followers')}</p>
+              <p className="font-black text-lg">{followerCount.toLocaleString()}</p>
+              <p className="text-[10px] uppercase font-bold text-vibe-text-secondary tracking-widest">{t('followers')}</p>
             </div>
             <div className="text-center">
-              <p className="font-bold text-lg">{followingCount}</p>
-              <p className="text-xs text-vibe-text-secondary">{t('following')}</p>
+              <p className="font-black text-lg">{followingCount}</p>
+              <p className="text-[10px] uppercase font-bold text-vibe-text-secondary tracking-widest">{t('following')}</p>
             </div>
           </div>
 
           {/* Actions */}
-          <div className="flex gap-3 mt-4">
+          <div className="flex gap-3 mt-6">
             <Button 
                 variant="secondary" 
-                className="flex-1 text-sm font-bold flex items-center justify-center gap-2 h-11 rounded-xl"
+                className="flex-1 text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 h-11 rounded-xl interactive-hover"
                 onClick={() => setIsEditModalOpen(true)}
             >
               <Edit3 className="w-4 h-4" /> {t('editProfile')}
@@ -383,35 +310,34 @@ export default function ProfilePage() {
             <Link href="/profile/circles">
               <Button 
                   variant="ghost" 
-                  className="text-sm h-11 w-11 p-0 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 flex items-center justify-center"
+                  className="h-11 w-11 p-0 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 flex items-center justify-center interactive-hover"
               >
                 <Users className="w-5 h-5 text-vibe-purple" />
               </Button>
             </Link>
             <Button 
                 variant="ghost" 
-                className="text-sm h-11 w-11 p-0 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 flex items-center justify-center"
+                className="h-11 w-11 p-0 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 flex items-center justify-center interactive-hover"
                 onClick={handleShare}
             >
               <Share2 className="w-5 h-5 text-white/70" />
             </Button>
           </div>
         </Card>
-        {/* Content Tabs (System 14 - Premium Interactions) */}
-        <div className="flex gap-1 mb-6 p-1 rounded-xl bg-white/5 relative">
+
+        {/* Content Tabs */}
+        <div className="flex gap-1 mb-6 p-1 rounded-xl bg-white/5 relative gpu-accelerated">
           {tabs.map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-colors duration-300 relative z-10 ${
-                activeTab === tab ? 'text-vibe-purple' : 'text-vibe-text-secondary hover:text-vibe-text'
+              className={`flex-1 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all duration-200 relative z-10 ${
+                activeTab === tab ? 'text-white' : 'text-vibe-text-secondary hover:text-vibe-text'
               }`}
             >
               {activeTab === tab && (
-                <motion.div 
-                  layoutId="activeTab"
-                  className="absolute inset-0 bg-vibe-purple/20 rounded-lg border border-vibe-purple/30"
-                  transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                <div 
+                  className="absolute inset-0 bg-vibe-purple/20 rounded-lg border border-vibe-purple/30 transition-all duration-300"
                 />
               )}
               <span className="relative z-10 flex items-center justify-center gap-2">
@@ -426,204 +352,166 @@ export default function ProfilePage() {
           ))}
         </div>
 
-        {/* Content Grid with AnimatePresence */}
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={activeTab}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.2 }}
-          >
-            {activeTab === 'posts' ? (
-          <div className="grid grid-cols-3 gap-1 rounded-xl overflow-hidden">
-            {posts.length > 0 ? posts.map((post) => (
-              <motion.div 
-                key={post.id} 
-                whileHover={{ scale: 1.02 }}
-                onClick={() => setSelectedPost(post)}
-                className="relative aspect-square bg-white/5 group cursor-pointer overflow-hidden border border-white/5"
-              >
-                <Image 
-                  src={post.media_url} 
-                  alt="" 
-                  fill
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
-                />
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-300 flex items-center justify-center">
-                  <div className="opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center gap-3 text-white">
-                    <span className="text-sm font-bold flex items-center gap-1">
-                       <Heart className="w-4 h-4 text-vibe-pink fill-current" /> 
-                       {post.likes_count || 0}
-                    </span>
+        {/* Content Area */}
+        <div className="min-h-[300px] animate-fade-in gpu-accelerated">
+          {activeTab === 'posts' ? (
+            <div className="grid grid-cols-3 gap-1 rounded-xl overflow-hidden">
+              {posts.length > 0 ? posts.map((post) => (
+                <div 
+                  key={post.id} 
+                  onClick={() => setSelectedPost(post)}
+                  className="relative aspect-square bg-white/5 group cursor-pointer overflow-hidden border border-white/5 tap-scale"
+                >
+                  <Image 
+                    src={post.media_url} 
+                    alt="" 
+                    fill
+                    sizes="(max-width: 768px) 33vw, 200px"
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 gpu-accelerated" 
+                  />
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-300 flex items-center justify-center">
+                    <Heart className="opacity-0 group-hover:opacity-100 transition-all duration-300 w-5 h-5 text-white fill-white" />
                   </div>
                 </div>
-              </motion.div>
-            )) : (
-              <div className="col-span-3">
-                <EmptyState
-                  icon={Camera}
-                  title="Ancora nessun post"
-                  description="Le tue foto appariranno qui. Inizia a condividere!"
-                  actionLabel="Crea Post"
-                  onAction={() => router.push('/create')}
-                />
-              </div>
-            )}
-          </div>
-        ) : activeTab === 'vibe' ? (
-          <div className="grid grid-cols-3 gap-1 rounded-xl overflow-hidden">
-            {vibe.length > 0 ? vibe.map((v) => (
-              <motion.div 
-                key={v.id} 
-                whileHover={{ scale: 1.02 }}
-                onClick={() => setSelectedPost({ ...v, profiles: { ...profile, username: profile?.username } } as any)}
-                className="relative aspect-square bg-black group cursor-pointer overflow-hidden border border-white/5"
-              >
-                <Image 
-                  src={v.media_url || '/placeholder.png'} 
-                  alt="" 
-                  fill
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 opacity-70 group-hover:opacity-100" 
-                />
-                <div className="absolute top-2 right-2 z-10">
-                   <Play className="w-4 h-4 text-white drop-shadow-lg" />
+              )) : (
+                <div className="col-span-3">
+                  <EmptyState
+                    icon={Camera}
+                    title="Ancora nessun post"
+                    description="Le tue foto appariranno qui."
+                    actionLabel="Crea Post"
+                    onAction={() => router.push('/create')}
+                  />
                 </div>
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all duration-300 flex items-center justify-center">
-                  <div className="opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center gap-3 text-white">
-                    <span className="text-sm font-bold flex items-center gap-1">
-                       <Heart className="w-4 h-4 text-vibe-pink fill-current" /> 
-                       {v.likes_count || 0}
-                    </span>
+              )}
+            </div>
+          ) : activeTab === 'vibe' ? (
+            <div className="grid grid-cols-3 gap-1 rounded-xl overflow-hidden">
+              {vibe.length > 0 ? vibe.map((v) => (
+                <div 
+                  key={v.id} 
+                  onClick={() => setSelectedPost({ ...v, profiles: { ...profile, username: profile?.username } } as any)}
+                  className="relative aspect-[9/16] bg-black group cursor-pointer overflow-hidden border border-white/5 tap-scale"
+                >
+                  <Image 
+                    src={v.media_url || '/placeholder.png'} 
+                    alt="" 
+                    fill
+                    sizes="(max-width: 768px) 33vw, 200px"
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 opacity-70 group-hover:opacity-100 gpu-accelerated" 
+                  />
+                  <div className="absolute top-2 right-2 z-10">
+                     <Play className="w-4 h-4 text-white drop-shadow-lg" />
                   </div>
                 </div>
-              </motion.div>
-            )) : (
-              <div className="col-span-3">
-                <EmptyState
-                  icon={Video}
-                  title="Nessun Vibe"
-                  description="I tuoi video verticali appariranno qui. Registra il tuo primo Vibe!"
-                  actionLabel="Registra Vibe"
-                  onAction={() => router.push('/create')}
-                />
-              </div>
-            )}
-          </div>
-        ) : activeTab === 'checkIn' ? (
-          <div className="space-y-3">
-            {checkIns.length > 0 ? checkIns.map((ci) => {
-              const v = Array.isArray(ci.venue) ? ci.venue[0] : ci.venue;
-              const e = Array.isArray(ci.event) ? ci.event[0] : ci.event;
-              return (
-                <Card key={ci.id} className="p-4 flex items-center justify-between hover:bg-white/10 transition-all cursor-pointer">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-2xl bg-vibe-gradient/20 flex items-center justify-center text-xl">
-                      {v ? '🏢' : '🎉'}
+              )) : (
+                <div className="col-span-3">
+                  <EmptyState
+                    icon={Video}
+                    title="Nessun Vibe"
+                    description="I tuoi video verticali appariranno qui."
+                    actionLabel="Registra Vibe"
+                    onAction={() => router.push('/create')}
+                  />
+                </div>
+              )}
+            </div>
+          ) : activeTab === 'checkIn' ? (
+            <div className="space-y-3">
+              {checkIns.length > 0 ? checkIns.map((ci) => {
+                const v = Array.isArray(ci.venue) ? ci.venue[0] : ci.venue;
+                const e = Array.isArray(ci.event) ? ci.event[0] : ci.event;
+                return (
+                  <Card key={ci.id} className="p-4 flex items-center justify-between hover:bg-white/10 transition-all cursor-pointer interactive-hover">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-2xl bg-vibe-purple/10 flex items-center justify-center text-xl">
+                        {v ? '🏢' : '🎉'}
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-sm tracking-tight">{v?.name || e?.title || t('checkIn')}</h4>
+                        <p className="text-xs text-vibe-text-secondary flex items-center gap-1 mt-0.5">
+                          <MapPin className="w-3 h-3" />
+                          {v?.address || t('nearby')}
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <h4 className="font-bold text-sm tracking-tight">{v?.name || e?.title || t('checkIn')}</h4>
-                      <p className="text-xs text-vibe-text-secondary flex items-center gap-1 mt-0.5">
-                        <MapPin className="w-3 h-3" />
-                        {v?.address || t('nearby')}
-                      </p>
-                      <p className="text-[10px] text-vibe-cyan mt-1.5 font-bold uppercase tracking-widest bg-vibe-cyan/10 w-fit px-2 py-0.5 rounded-full">
-                        {new Date(ci.created_at).toLocaleDateString(locale, { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })}
-                      </p>
-                    </div>
-                  </div>
-                  <Badge variant="live" className="animate-pulse">CHECKED-IN</Badge>
-                </Card>
-              );
-            }) : (
-              <div className="col-span-3">
-                <EmptyState
-                  icon={MapPin}
-                  title="Nessun check-in"
-                  description="Vai in un locale e fai il check-in per iniziare la tua storia!"
-                  actionLabel="Apri Mappa"
-                  onAction={() => router.push('/map')}
-                />
-              </div>
-            )}
-          </div>
-        ) : activeTab === 'tickets' ? (
-          <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            {ticketsData.length > 0 ? ticketsData.map((tk) => (
-              <Card key={tk.id} className="p-0 overflow-hidden border-vibe-purple/20 bg-vibe-purple/5 group relative">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-vibe-purple/10 blur-[60px] -mr-16 -mt-16" />
-                <div className="flex flex-col md:flex-row divide-y md:divide-y-0 md:divide-x divide-white/10 relative z-10">
-                  <div className="p-6 flex-1 flex flex-col justify-between">
-                    <div>
+                    <Badge variant="live" className="animate-pulse">LIVE</Badge>
+                  </Card>
+                );
+              }) : (
+                <div className="col-span-3">
+                  <EmptyState
+                    icon={MapPin}
+                    title="Nessun check-in"
+                    description="Esplora i locali intorno a te."
+                    actionLabel="Apri Mappa"
+                    onAction={() => router.push('/map')}
+                  />
+                </div>
+              )}
+            </div>
+          ) : activeTab === 'tickets' ? (
+            <div className="space-y-4">
+              {ticketsData.length > 0 ? ticketsData.map((tk) => (
+                <Card key={tk.id} className="p-0 overflow-hidden border-white/5 bg-white/5 group relative">
+                  <div className="flex flex-col md:flex-row relative z-10">
+                    <div className="p-6 flex-1">
                       <div className="flex items-center gap-2 mb-3">
-                         <Badge variant="premium">{tk.status === 'paid' ? 'VIBE PASS' : tk.status.toUpperCase()}</Badge>
-                         <span className="text-[10px] font-bold text-white/40 uppercase">#{tk.qr_code.slice(0, 8)}</span>
+                         <Badge variant="premium">VIBE PASS</Badge>
                       </div>
                       <h3 className="text-xl font-black uppercase tracking-tighter vibe-gradient-text mb-1">{tk.event?.title}</h3>
                       <p className="text-xs text-vibe-text-secondary flex items-center gap-2">
                          <MapPin className="w-3 h-3 text-vibe-purple" /> {tk.event?.venue?.name || 'Vibe Location'}
                       </p>
-                      <p className="text-[10px] font-bold text-vibe-cyan uppercase tracking-widest mt-2">
-                        {tk.event?.starts_at ? new Date(tk.event.starts_at).toLocaleDateString(locale, { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }) : 'Date TBD'}
-                      </p>
                     </div>
-                    <div className="mt-8 pt-4 border-t border-white/10 flex items-center justify-between">
-                       <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                          <span className="text-[10px] text-vibe-text-secondary font-bold uppercase tracking-widest">Active Ticket</span>
+                    <div className="p-4 bg-white/5 flex items-center justify-center">
+                       <div className="w-24 h-24 bg-white rounded-xl p-1.5">
+                          <img src={`https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${tk.qr_code}`} alt="QR" className="w-full h-full" />
                        </div>
                     </div>
                   </div>
-                  <div className="p-6 bg-white/5 flex flex-col items-center justify-center gap-4 text-center">
-                    <div className="w-32 h-32 bg-white rounded-2xl p-2 shadow-[0_0_30px_rgba(157,78,221,0.2)] group-hover:scale-105 transition-transform duration-500">
-                       <div className={`w-full h-full bg-cover opacity-90 mix-blend-multiply`} style={{ backgroundImage: `url('https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${tk.qr_code}')` }} />
-                    </div>
-                    <div>
-                       <p className="text-[10px] font-black uppercase text-vibe-purple tracking-widest">Scan to Validate</p>
-                       <p className="text-[9px] text-vibe-text-secondary mt-1">Valid for {tk.quantity || 1} Person</p>
-                    </div>
-                  </div>
+                </Card>
+              )) : (
+                <div className="col-span-3">
+                  <EmptyState
+                    icon={PackageCheck}
+                    title="Nessun biglietto"
+                    description="I tuoi pass per gli eventi appariranno qui."
+                    actionLabel="Scopri Eventi"
+                    onAction={() => router.push('/events')}
+                  />
                 </div>
-              </Card>
-            )) : (
-              <div className="p-12 text-center border-2 border-dashed border-white/5 rounded-3xl opacity-30">
-                <PackageCheck className="w-12 h-12 mx-auto mb-4" />
-                <p className="text-sm font-bold uppercase tracking-widest">Nessun biglietto acquistato</p>
-                <Link href="/events" className="text-xs text-vibe-purple font-bold mt-4 block hover:underline">Esplora Eventi</Link>
-              </div>
-            )}
-          </div>
-        ) : (
-          <div className="py-20 text-center glass-card border-dashed">
-            <p className="text-vibe-text-secondary text-sm">{t('noContent')} 🔖</p>
-          </div>
-        )}
-          </motion.div>
-        </AnimatePresence>
+              )}
+            </div>
+          ) : null}
+        </div>
 
         {/* Logout */}
         <div className="mt-12 text-center pb-10">
-          <p className="text-[10px] text-vibe-text-secondary uppercase tracking-widest opacity-30 mb-4">Vibe Platform v4.0</p>
+          <p className="text-[9px] text-vibe-text-secondary uppercase tracking-widest opacity-30 mb-4 font-bold">Vibe Platform v4.1 — Optimized</p>
           <Button variant="ghost" className="text-red-500/60 hover:text-red-500 hover:bg-red-500/10 rounded-2xl px-8 transition-all" onClick={handleLogout}>
             <LogOut className="w-4 h-4 mr-2" /> {t('logout')}
           </Button>
         </div>
 
-        <PostModal 
-          isOpen={!!selectedPost} 
-          onClose={() => setSelectedPost(null)} 
-          post={selectedPost} 
-        />
+        {selectedPost && (
+          <PostModal 
+            isOpen={!!selectedPost} 
+            onClose={() => setSelectedPost(null)} 
+            post={selectedPost} 
+          />
+        )}
 
-        <AvatarCropperModal 
-          isOpen={isCropperOpen} 
-          onClose={() => setIsCropperOpen(false)} 
-          onAvatarUpdated={handleAvatarUpdated}
-          currentAvatarUrl={profile?.avatar_url}
-        />
+        {isCropperOpen && (
+          <AvatarCropperModal 
+            isOpen={isCropperOpen} 
+            onClose={() => setIsCropperOpen(false)} 
+            onAvatarUpdated={handleAvatarUpdated}
+            currentAvatarUrl={profile?.avatar_url}
+          />
+        )}
 
-        {/* Edit Profile Modal (System 14) */}
-        {profile && (
+        {isEditModalOpen && profile && (
            <EditProfileModal
              isOpen={isEditModalOpen}
              onClose={() => setIsEditModalOpen(false)}
@@ -635,7 +523,6 @@ export default function ProfilePage() {
              onUpdate={handleProfileUpdate}
            />
         )}
-      </div>
     </div>
   );
 }

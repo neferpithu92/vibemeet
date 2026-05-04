@@ -1,13 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, memo } from 'react';
 import { Card } from '@/components/ui/Card';
 import { Avatar } from '@/components/ui/Avatar';
 import { Button } from '@/components/ui/Button';
 import { Link } from '@/lib/i18n/navigation';
 import { useMap } from 'react-map-gl/mapbox';
 import { useTranslations, useLocale } from 'next-intl';
-import { User, MapPin, Calendar, Building2 } from 'lucide-react';
+import { User, MapPin, Calendar, Building2, Search } from 'lucide-react';
 
 interface MapSearchResult {
   id: string;
@@ -25,7 +25,7 @@ interface MapSearchResult {
   source?: 'internal' | 'mapbox';
 }
 
-export default function MapSearch() {
+const MapSearch = memo(() => {
   const t = useTranslations('map');
   const tn = useTranslations('nav');
   const locale = useLocale();
@@ -95,59 +95,60 @@ export default function MapSearch() {
     if (lon && lat && map) {
       map.flyTo({
         center: [lon, lat],
-        zoom: item.source === 'mapbox' ? 12 : 16,
-        duration: 800
+        zoom: item.source === 'mapbox' ? 14 : 17,
+        duration: 1200,
+        essential: true
       });
     }
   };
 
   return (
-    <div className="relative w-full max-w-sm">
-      <div className="relative">
+    <div className="relative w-full max-w-sm gpu-accelerated">
+      <div className="relative group">
         <input
           type="text"
           placeholder="Cerca luoghi ed eventi..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          className="input-field pl-10 h-10 text-sm bg-vibe-dark/60 backdrop-blur-md"
+          className="input-field pl-10 h-11 text-sm bg-vibe-dark/60 backdrop-blur-xl border-white/10 focus:border-vibe-purple/50 transition-all"
         />
-        <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-vibe-text-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-        </svg>
+        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-vibe-text-secondary group-focus-within:text-vibe-purple transition-colors" />
         {isSearching && (
-          <div className="absolute right-3 top-1/2 -translate-y-1/2">
-            <div className="w-3 h-3 border-2 border-vibe-purple border-t-transparent rounded-full animate-spin" />
+          <div className="absolute right-3.5 top-1/2 -translate-y-1/2">
+            <div className="w-3.5 h-3.5 border-2 border-vibe-purple border-t-transparent rounded-full animate-spin" />
           </div>
         )}
       </div>
 
       {results.length > 0 && (
-        <Card className="absolute top-12 left-0 right-0 z-50 max-h-80 overflow-y-auto p-2 bg-vibe-dark/95 backdrop-blur-2xl border-white/10 shadow-2xl space-y-4">
-          {/* Section Map Results */}
-          <div className="space-y-1">
-              <p className="text-[10px] font-bold text-vibe-text-secondary px-2 uppercase tracking-widest mb-1">Luoghi ed Eventi</p>
-              {results.map((item) => (
-                <button
-                  key={item.id}
-                  onClick={() => handleSelect(item)}
-                  className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-white/10 text-left transition-colors group"
-                >
-                  <span className="text-lg">
-                    {item.source === 'mapbox' ? '📍' : (item.name ? '🏢' : '🎉')}
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-semibold truncate group-hover:text-vibe-purple transition-colors">
-                      {item.displayName}
-                    </p>
-                    <p className="text-[10px] text-vibe-text-secondary truncate uppercase tracking-wider">
-                      {item.source === 'mapbox' ? tn('map') : (item.type || item.venue?.name || tn('events'))}
-                    </p>
-                  </div>
-                </button>
-              ))}
-            </div>
+        <Card className="absolute top-13 left-0 right-0 z-50 max-h-80 overflow-y-auto p-2 bg-vibe-dark/95 backdrop-blur-2xl border-white/10 shadow-2xl space-y-1 gpu-accelerated animate-fade-in rounded-2xl">
+          <p className="text-[10px] font-black text-vibe-text-secondary px-3 py-2 uppercase tracking-[0.2em] opacity-60">
+            Risultati Scoperta
+          </p>
+          {results.map((item) => (
+            <button
+              key={item.id}
+              onClick={() => handleSelect(item)}
+              className="w-full flex items-center gap-3.5 p-3 rounded-xl hover:bg-white/5 text-left transition-all group tap-scale active:bg-white/10"
+            >
+              <div className="w-9 h-9 rounded-full bg-white/5 flex items-center justify-center text-lg shadow-inner group-hover:scale-110 transition-transform">
+                {item.source === 'mapbox' ? <MapPin className="w-4 h-4 text-vibe-purple" /> : (item.name ? <Building2 className="w-4 h-4 text-vibe-cyan" /> : <Calendar className="w-4 h-4 text-vibe-pink" />)}
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-bold truncate group-hover:text-vibe-purple transition-colors">
+                  {item.displayName}
+                </p>
+                <p className="text-[10px] text-vibe-text-secondary truncate uppercase font-black tracking-widest mt-0.5">
+                  {item.source === 'mapbox' ? 'Mappa' : (item.type || item.venue?.name || 'Evento')}
+                </p>
+              </div>
+            </button>
+          ))}
         </Card>
       )}
     </div>
   );
-}
+});
+
+MapSearch.displayName = 'MapSearch';
+export default MapSearch;

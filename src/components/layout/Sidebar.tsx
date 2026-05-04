@@ -22,11 +22,11 @@ export function Sidebar() {
   ];
 
   return (
-    <aside className="hidden lg:flex flex-col w-64 min-h-screen bg-vibe-surface border-r border-white/5 pt-20 px-4">
+    <aside className="hidden lg:flex flex-col w-64 min-h-screen bg-vibe-surface border-r border-vibe-border pt-20 px-4">
       {/* Profilo Business */}
       <div className="glass-card p-4 mb-6">
         <div className="flex items-center gap-3 mb-3">
-          <div className="w-10 h-10 rounded-xl bg-vibe-gradient flex items-center justify-center text-white font-bold">
+          <div className="w-10 h-10 rounded-xl bg-vibe-gradient flex items-center justify-center text-vibe-text font-black tracking-tighter">
             V
           </div>
           <div>
@@ -51,7 +51,7 @@ export function Sidebar() {
                 'flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300',
                 isActive
                    ? 'bg-vibe-purple/15 text-vibe-purple border border-vibe-purple/20'
-                  : 'text-vibe-text-secondary hover:text-vibe-text hover:bg-white/5'
+                  : 'text-vibe-text-secondary hover:text-vibe-text hover:bg-vibe-glass'
               )}
             >
               <span>{link.icon}</span>
@@ -62,7 +62,7 @@ export function Sidebar() {
       </nav>
 
       {/* Footer */}
-      <div className="py-4 border-t border-white/5">
+      <div className="py-4 border-t border-vibe-border">
         <p className="text-[10px] text-vibe-text-secondary text-center">
           VIBE Platform © 2026
         </p>

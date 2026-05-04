@@ -79,14 +79,14 @@ export function Navbar() {
     .toUpperCase();
 
   return (
-    <nav className="hidden md:flex fixed top-0 left-0 right-0 z-50 h-16 items-center justify-between px-6 bg-vibe-dark/80 backdrop-blur-xl border-b border-white/5">
+    <nav className="hidden md:flex fixed top-0 left-0 right-0 z-50 h-16 items-center justify-between px-6 bg-vibe-dark/80 backdrop-blur-xl border-b border-vibe-border">
       {/* Logo */}
       <Link href="/map" className="flex items-center gap-2">
         <div className="w-8 h-8 rounded-lg bg-vibe-gradient flex items-center justify-center">
           <span className="text-white font-bold text-sm">V</span>
         </div>
-        <span className="font-display text-xl font-bold vibe-gradient-text">
-          VIBE
+        <span className="font-display text-2xl font-black vibe-gradient-text tracking-tighter uppercase">
+          Vibe
         </span>
       </Link>
 
@@ -126,7 +126,7 @@ export function Navbar() {
             onClick={() => setShowMenu(!showMenu)}
             className="flex items-center gap-2"
           >
-            <div className="w-9 h-9 rounded-full bg-vibe-gradient flex items-center justify-center text-white text-sm font-bold">
+            <div className="w-9 h-9 rounded-full bg-vibe-gradient flex items-center justify-center text-vibe-text text-xs font-black tracking-tighter">
               {initials}
             </div>
           </button>

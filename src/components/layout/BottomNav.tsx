@@ -21,7 +21,7 @@ export function BottomNav() {
   ];
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-[100] bg-black/60 backdrop-blur-2xl border-t border-white/10 pb-[env(safe-area-inset-bottom)]">
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-[100] bg-vibe-dark/60 backdrop-blur-2xl border-t border-vibe-border pb-[env(safe-area-inset-bottom)]">
       <div className="flex items-center justify-around h-16 px-2">
         {tabs.map((tab) => {
           // Gestione route attive (reels/feed, ecc)
@@ -49,8 +49,8 @@ export function BottomNav() {
               className={cn(
                 'flex flex-col items-center justify-center gap-1 w-16 h-full transition-all duration-300 active:scale-90',
                 isActive
-                  ? 'text-white'
-                  : 'text-white/50 hover:text-white/80'
+                  ? 'text-vibe-purple'
+                  : 'text-vibe-text-secondary hover:text-vibe-text'
               )}
             >
               <Icon 

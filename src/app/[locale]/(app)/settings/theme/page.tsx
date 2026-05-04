@@ -7,14 +7,16 @@ import { useTheme, ThemePreset } from '@/contexts/ThemeContext';
 import { Button } from '@/components/ui/Button';
 
 const THEME_PRESETS: { id: ThemePreset; name: string; colors: string[] }[] = [
-  { id: 'system', name: 'System (Cyberpunk)', colors: ['#7C3AED', '#EC4899', '#06B6D4'] },
+  { id: 'system', name: 'System (Auto)', colors: ['#7C3AED', '#EC4899', '#06B6D4'] },
+  { id: 'light', name: 'Light Mode', colors: ['#FFFFFF', '#6D28D9', '#0F172A'] },
+  { id: 'dark', name: 'Dark Mode', colors: ['#0A0A0F', '#7C3AED', '#F8F8FF'] },
   { id: 'neon', name: 'Neon', colors: ['#D926A9', '#FF00FF', '#00FF00'] },
   { id: 'minimal', name: 'Minimal', colors: ['#FFFFFF', '#CCCCCC', '#050505'] },
   { id: 'aurora', name: 'Aurora', colors: ['#2F80ED', '#8F94FB', '#00FFB2'] },
   { id: 'sand', name: 'Sand', colors: ['#D4A373', '#FAEDCD', '#E9EDC9'] },
   { id: 'ocean', name: 'Ocean', colors: ['#0077B6', '#90E0EF', '#00B4D8'] },
   { id: 'forest', name: 'Forest', colors: ['#84CC16', '#D9F99D', '#A3E635'] },
-  { id: 'custom', name: 'Custom', colors: [] }, // Custom uses HSL picker
+  { id: 'custom', name: 'Custom', colors: [] },
 ];
 
 export default function ThemeSettingsPage() {

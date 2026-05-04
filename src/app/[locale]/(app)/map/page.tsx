@@ -2,24 +2,31 @@
 
 import { useTranslations } from 'next-intl';
 import { Link, usePathname, useRouter } from '@/lib/i18n/navigation';
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, memo } from 'react';
+import dynamic from 'next/dynamic';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Avatar } from '@/components/ui/Avatar';
-import { MapView } from '@/components/map/MapView';
-import { VenueMarker, EventMarker, StoryMarker, PresenceMarker, MediaMarker } from '@/components/map/Markers';
-import MapSearch from '@/components/map/MapSearch';
-import HeatmapLayer from '@/components/map/HeatmapLayer';
-import ActivityFeed from '@/components/social/ActivityFeed';
-import { Compass, Crosshair, Map as MapIcon, Layers, Calendar, Users, TrendingUp, Clock, Navigation, Share2, Building2 } from 'lucide-react';
+import { Compass, Crosshair, Map as MapIcon, Layers, Calendar, Users, TrendingUp, Clock, Navigation, Share2, Building2, Search, X } from 'lucide-react';
 
 import { useMapRealtime } from '@/lib/supabase/useMapRealtime';
 import { useUserLocation } from '@/hooks/useUserLocation';
 import { createClient } from '@/lib/supabase/client';
 import { ListSkeleton, Skeleton } from '@/components/ui/Skeleton';
 import CheckInButton from '@/components/social/CheckInButton';
-import FollowButton from '@/components/social/FollowButton';
+
+// Lazy load heavy map components
+const MapView = dynamic(() => import('@/components/map/MapView').then(mod => mod.MapView), { 
+  ssr: false,
+  loading: () => <div className="w-full h-full bg-vibe-dark/50 animate-pulse flex items-center justify-center"><MapIcon className="w-12 h-12 text-vibe-purple/20" /></div>
+});
+const MapSearch = dynamic(() => import('@/components/map/MapSearch'), { ssr: false });
+const HeatmapLayer = dynamic(() => import('@/components/map/HeatmapLayer'), { ssr: false });
+const ActivityFeed = dynamic(() => import('@/components/social/ActivityFeed'), { ssr: false });
+
+// Markers are relatively lightweight but we can still import them normally or lazy load if many
+import { VenueMarker, EventMarker, StoryMarker, PresenceMarker, MediaMarker } from '@/components/map/Markers';
 
 interface MapVenue {
   id: string;
@@ -47,49 +54,9 @@ interface MapEvent {
   description?: string;
 }
 
-interface MapStory {
-  id: string;
-  media_url: string;
-  caption?: string;
-  location?: {
-    coordinates: [number, number];
-  };
-  profiles?: {
-    username: string;
-    avatar_url: string;
-  };
-}
-
-interface MapUser {
-  id: string;
-  username: string;
-  avatar_url: string;
-  latitude: number;
-  longitude: number;
-}
-
-interface MapMedia {
-  id: string;
-  media_url: string;
-  thumbnail_url?: string;
-  media_type?: string;
-  caption?: string;
-  location?: {
-    coordinates: [number, number];
-  };
-  profiles?: {
-    username: string;
-    avatar_url: string;
-  };
-}
-
-/**
- * Pagina Mappa Interattiva — visualizza Mapbox con dati reali e real-time da Supabase.
- */
 export default function MapPage() {
   const t = useTranslations('map');
   const te = useTranslations('events');
-  const tv = useTranslations('venues');
   const tc = useTranslations('common');
   
   const layers = [
@@ -104,37 +71,32 @@ export default function MapPage() {
   const [selectedItem, setSelectedItem] = useState<any>(null);
   const [showFilters, setShowFilters] = useState(false);
   const [showActivity, setShowActivity] = useState(false);
-  const [isFollowing, setIsFollowing] = useState(false);
   const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
   const [dateFilter, setDateFilter] = useState<'today' | 'upcoming' | 'all'>('all');
   
   const [venues, setVenues] = useState<MapVenue[]>([]);
   const [events, setEvents] = useState<MapEvent[]>([]);
-  const [stories, setStories] = useState<MapStory[]>([]);
-  const [media, setMedia] = useState<MapMedia[]>([]);
-  const [users, setUsers] = useState<MapUser[]>([]);
+  const [stories, setStories] = useState<any[]>([]);
+  const [media, setMedia] = useState<any[]>([]);
+  const [users, setUsers] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isCentering, setIsCentering] = useState(false);
   
   const supabaseClient = createClient();
 
-  // Attiva il tracciamento posizione utente
   useUserLocation();
 
   const [userPosition, setUserPosition] = useState<{ lat: number, lng: number } | null>(null);
   const mapRef = useRef<any>(null);
   const hasCentered = useRef(false);
 
-  // Ottieni posizione iniziale con cache aggressiva (quasi istantaneo)
   useEffect(() => {
     if (typeof window === 'undefined' || !navigator.geolocation) return;
-    // Prima prova: posizione cached (risponde in <100ms se disponibile)
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         setUserPosition({ lat: pos.coords.latitude, lng: pos.coords.longitude });
       },
       () => {
-        // Seconda prova: GPS fresco con timeout aggressivo
         navigator.geolocation.getCurrentPosition(
           (pos) => setUserPosition({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
           (err) => console.warn('[Map] GPS non disponibile:', err.message),
@@ -145,15 +107,9 @@ export default function MapPage() {
     );
   }, []);
 
-  /**
-   * centerOnMe — quasi istantaneo:
-   * - Se la posizione è già in cache → fly immediato (0ms delay)
-   * - Altrimenti → richiede GPS con timeout max 2.5s, poi fly
-   */
   const centerOnMe = useCallback(() => {
     if (!mapRef.current) return;
 
-    // Posizione già disponibile → centra SUBITO
     if (userPosition) {
       mapRef.current.flyTo({
         center: [userPosition.lng, userPosition.lat],
@@ -165,15 +121,11 @@ export default function MapPage() {
       return;
     }
 
-    // Non disponibile → GPS rapido con feedback visivo
     if (!navigator.geolocation) return;
     setIsCentering(true);
 
-    const timeout = setTimeout(() => setIsCentering(false), 3000); // safety
-
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        clearTimeout(timeout);
         const coords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
         setUserPosition(coords);
         mapRef.current?.flyTo({
@@ -186,7 +138,6 @@ export default function MapPage() {
         setIsCentering(false);
       },
       (err) => {
-        clearTimeout(timeout);
         console.warn('[Map] GPS error:', err.message);
         setIsCentering(false);
       },
@@ -200,37 +151,8 @@ export default function MapPage() {
     }
   }, [userPosition, centerOnMe]);
 
-  // Effetto per controllare se l'utente segue la venue selezionata
-  useEffect(() => {
-    async function checkFollow() {
-      if (!selectedItem || selectedItem.type !== 'venue') {
-        setIsFollowing(false);
-        return;
-      }
-      
-      const { data: { user } } = await supabaseClient.auth.getUser();
-      if (!user) return;
-
-      const { data: follow } = await supabaseClient
-        .from('followers')
-        .select('follower_id')
-        .match({ 
-          follower_id: user.id, 
-          following_id: selectedItem.id, 
-          entity_type: 'venue' 
-        })
-        .single();
-      
-      setIsFollowing(!!follow);
-    }
-    
-    checkFollow();
-  }, [selectedItem, supabaseClient]);
-  
-  // Ref per memorizzare gli ultimi bounds e ricaricare in tempo reale
   const currentBounds = useRef<{ sw: [number, number]; ne: [number, number] } | null>(null);
 
-  /** Funzione core per recuperare i dati */
   const fetchData = async (bounds: { sw: [number, number]; ne: [number, number] }) => {
     setIsLoading(true);
     try {
@@ -251,28 +173,24 @@ export default function MapPage() {
     }
   };
 
-  // Refetch when filters change
   useEffect(() => {
     if (currentBounds.current) {
       fetchData(currentBounds.current);
     }
   }, [selectedGenres, dateFilter]);
 
-  /** Abilita Realtime: quando il DB cambia, ricarica i dati dei bounds correnti */
   useMapRealtime(() => {
     if (currentBounds.current) {
       fetchData(currentBounds.current);
     }
   });
 
-  /** Toggles per i layer della mappa */
   const toggleLayer = (id: string) => {
     setActiveLayers(prev => prev.map(l => 
       l.id === id ? { ...l, active: !l.active } : l
     ));
   };
 
-  /** Fetch dati quando i bounds della mappa cambiano (manuale o trascinamento) */
   const handleBoundsChange = (bounds: { sw: [number, number]; ne: [number, number] }) => {
     fetchData(bounds);
   };
@@ -280,24 +198,14 @@ export default function MapPage() {
   const isLayerActive = (id: string) => activeLayers.find(l => l.id === id)?.active;
 
   return (
-    <div className="relative h-[calc(100vh-64px)] w-full bg-vibe-dark overflow-hidden">
-      {/* MAPPA REALE */}
+    <div className="relative h-[calc(100vh-64px)] w-full bg-vibe-dark overflow-hidden gpu-accelerated">
       <MapView onBoundsChange={handleBoundsChange} ref={mapRef}>
-        {/* Indicatore di caricamento asincrono */}
-        {isLoading && (
-          <div className="absolute top-20 right-4 z-50 flex flex-col gap-2">
-            <Skeleton className="w-8 h-8 rounded-full" />
-          </div>
-        )}
-        {/* Barra di ricerca Mappa */}
         <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 w-full max-w-xs px-2 pointer-events-auto">
           <MapSearch />
         </div>
 
-        {/* Heatmap Layer */}
         <HeatmapLayer visible={isLayerActive('heatmap') || false} />
 
-        {/* Render markers per Venues */}
         {isLayerActive('venues') && venues.map(venue => (
           <VenueMarker 
             key={venue.id}
@@ -308,7 +216,6 @@ export default function MapPage() {
           />
         ))}
 
-        {/* Marker delle Storie */}
         {isLayerActive('stories') && stories.map((story) => {
           const coords = story.location?.coordinates || [0, 0];
           return (
@@ -324,24 +231,6 @@ export default function MapPage() {
           );
         })}
 
-        {/* Marker del Feed Media (Post Personali) */}
-        {isLayerActive('stories') && media.map((item) => {
-          const coords = item.location?.coordinates || [0, 0];
-          return (
-            <MediaMarker
-              key={item.id}
-              longitude={coords[0]}
-              latitude={coords[1]}
-              mediaUrl={item.media_url}
-              thumbnailUrl={item.thumbnail_url}
-              mediaType={item.media_type}
-              isActive={selectedItem?.id === item.id}
-              onClick={() => setSelectedItem({ ...item, type: 'media' })}
-            />
-          );
-        })}
-
-        {/* Marker Utenti Vicini (Nearby People) */}
         {isLayerActive('people') && users.map((user) => (
           <PresenceMarker
             key={user.id}
@@ -353,7 +242,6 @@ export default function MapPage() {
           />
         ))}
 
-        {/* Render markers per Eventi */}
         {isLayerActive('events') && events.map(event => (
           <EventMarker 
             key={event.id}
@@ -365,17 +253,17 @@ export default function MapPage() {
         ))}
       </MapView>
 
-      {/* Layer Controls (Top Left) */}
+      {/* Layer Controls */}
       <div className="absolute top-4 left-4 z-20 flex flex-col gap-2">
-        <Card className="p-1.5 flex flex-col gap-1 w-fit">
+        <Card className="p-1.5 flex flex-col gap-1 w-fit glass-card-static">
           {activeLayers.map((layer) => (
             <button
               key={layer.id}
               onClick={() => toggleLayer(layer.id)}
-              className={`flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium transition-all duration-300 ${
+              className={`flex items-center gap-3 px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 interactive-hover ${
                 layer.active 
                   ? 'bg-vibe-purple/20 text-vibe-purple border border-vibe-purple/20' 
-                  : 'bg-vibe-dark/40 text-vibe-text-secondary hover:bg-white/10'
+                  : 'bg-vibe-dark/40 text-vibe-text-secondary'
               }`}
             >
               <span>{layer.icon}</span>
@@ -384,51 +272,34 @@ export default function MapPage() {
           ))}
         </Card>
 
-        {/* Tasto Centra su di me — risposta <100ms se posizione in cache */}
         <Button 
           variant="secondary" 
           size="sm" 
           onClick={centerOnMe}
           disabled={isCentering}
-          className={`shadow-xl backdrop-blur-md border-white/10 transition-all
-            ${isCentering
-              ? 'bg-vibe-purple/20 border-vibe-purple/30'
-              : 'bg-vibe-dark/80'}`}
+          className="shadow-xl bg-vibe-dark/80 backdrop-blur-md border-white/10 interactive-hover"
         >
           <Crosshair className={`w-4 h-4 mr-2 ${isCentering ? 'animate-spin text-vibe-purple' : ''}`} />
           {isCentering ? '...' : t('centerOnMe')}
         </Button>
 
-        {/* Tasto Filtri */}
         <Button 
           variant="secondary" 
           size="sm" 
           onClick={() => setShowFilters(!showFilters)}
-          className="shadow-xl bg-vibe-dark/80 backdrop-blur-md border-white/10"
+          className="shadow-xl bg-vibe-dark/80 backdrop-blur-md border-white/10 interactive-hover"
         >
           <Layers className="w-4 h-4 mr-2" />
           {t('filters')}
         </Button>
-
-        {/* Tasto Eventi Salvi */}
-        <Link href="/saved">
-          <Button 
-            variant="secondary" 
-            size="sm" 
-            className="shadow-xl bg-vibe-dark/80 backdrop-blur-md border-white/10"
-          >
-            <MapIcon className="w-4 h-4 mr-2" />
-            {t('saved')}
-          </Button>
-        </Link>
       </div>
 
-      {/* Pannello Attività Live (Left Sidebar) */}
+      {/* Activity Panel */}
       {showActivity && (
-        <Card className="absolute top-4 left-4 md:left-24 z-30 w-full max-w-[320px] p-0 animate-slide-in-left overflow-hidden bg-vibe-dark/95 backdrop-blur-2xl border-white/10 h-[70vh] flex flex-col">
+        <Card className="absolute top-4 left-4 md:left-24 z-30 w-full max-w-[320px] p-0 overflow-hidden bg-vibe-dark/95 backdrop-blur-2xl border-white/10 h-[70vh] flex flex-col gpu-accelerated animate-slide-in-left">
           <div className="p-4 border-b border-white/5 flex items-center justify-between">
             <h3 className="font-display font-bold text-lg">⚡ Live Activity</h3>
-            <button onClick={() => setShowActivity(false)} className="text-vibe-text-secondary hover:text-white transition-colors">✕</button>
+            <button onClick={() => setShowActivity(false)} className="interactive-hover"><X className="w-5 h-5" /></button>
           </div>
           <div className="flex-1 overflow-y-auto">
             <ActivityFeed />
@@ -436,170 +307,89 @@ export default function MapPage() {
         </Card>
       )}
 
-      {/* Pannello Filtri (Left Sidebar) */}
+      {/* Filters Panel */}
       {showFilters && (
-        <Card className="absolute top-4 left-32 z-20 w-72 p-6 animate-slide-in-left">
+        <Card className="absolute top-4 left-32 z-20 w-72 p-6 bg-vibe-dark/95 backdrop-blur-2xl border-white/10 gpu-accelerated animate-slide-in-left">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="font-display font-bold text-lg">{t('filters')}</h3>
-            <button onClick={() => setShowFilters(false)} className="text-vibe-text-secondary">✕</button>
+            <h3 className="font-display font-bold text-lg uppercase tracking-tighter">{t('filters')}</h3>
+            <button onClick={() => setShowFilters(false)} className="interactive-hover"><X className="w-5 h-5" /></button>
           </div>
           
           <div className="space-y-6">
             <div>
-              <label className="block text-xs font-bold text-vibe-text-secondary uppercase mb-3 text-left">{te('filters.genre')}</label>
-              <div className="flex flex-wrap gap-2 text-left">
+              <label className="block text-[10px] font-black text-vibe-text-secondary uppercase mb-3 tracking-[0.2em]">{te('filters.genre')}</label>
+              <div className="flex flex-wrap gap-2">
                 {['Techno', 'House', 'Jazz', 'Hip-Hop', 'Pop'].map(g => (
                   <Badge 
                     key={g} 
-                    className={`cursor-pointer transition-colors ${selectedGenres.includes(g) ? 'bg-vibe-purple/30 text-vibe-purple ring-1 ring-vibe-purple/50' : 'hover:bg-vibe-purple/20'}`}
+                    className={`cursor-pointer transition-all tap-scale ${selectedGenres.includes(g) ? 'bg-vibe-purple/30 text-vibe-purple ring-1 ring-vibe-purple/50' : 'bg-white/5 hover:bg-white/10'}`}
                     onClick={() => setSelectedGenres(prev => prev.includes(g) ? prev.filter(x => x !== g) : [...prev, g])}
                   >{g}</Badge>
                 ))}
               </div>
             </div>
-            
-            <div className="text-left">
-              <label className="block text-xs font-bold text-vibe-text-secondary uppercase mb-3">{te('filters.date')}</label>
-              <div className="grid grid-cols-2 gap-2">
-                <Button variant={dateFilter === 'today' ? 'primary' : 'ghost'} size="sm" className="text-xs" onClick={() => setDateFilter(dateFilter === 'today' ? 'all' : 'today')}>{te('today')}</Button>
-                <Button variant={dateFilter === 'upcoming' ? 'primary' : 'ghost'} size="sm" className="text-xs" onClick={() => setDateFilter(dateFilter === 'upcoming' ? 'all' : 'upcoming')}>{te('upcoming')}</Button>
-              </div>
-            </div>
           </div>
         </Card>
       )}
 
-      {/* Pannello Dettaglio (Right Sidebar / Bottom Mobile) */}
+      {/* Detail Panel */}
       {selectedItem && (
-        <Card className="absolute bottom-6 left-6 right-6 md:top-4 md:bottom-4 md:right-4 md:left-auto md:w-96 z-20 p-6 animate-slide-in-right overflow-y-auto max-h-[80vh] md:max-h-none text-left">
+        <Card className="absolute bottom-6 left-6 right-6 md:top-4 md:bottom-4 md:right-4 md:left-auto md:w-96 z-20 p-6 overflow-y-auto max-h-[80vh] md:max-h-none text-left bg-vibe-dark/95 backdrop-blur-2xl border-white/10 gpu-accelerated animate-slide-in-right">
           <button 
             onClick={() => setSelectedItem(null)}
-            className="absolute top-4 right-4 text-vibe-text-secondary hover:text-white"
+            className="absolute top-4 right-4 interactive-hover"
           >
-            ✕
+            <X className="w-5 h-5" />
           </button>
 
-          {selectedItem.type === 'story' || selectedItem.type === 'media' ? (
-            <div className="space-y-6">
-              <div className="relative aspect-[9/16] w-full rounded-2xl overflow-hidden bg-vibe-dark border border-white/10 shadow-2xl">
-                <img 
-                  src={selectedItem.media_url} 
-                  alt="Content" 
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute top-4 left-4 flex items-center gap-3 bg-black/40 backdrop-blur-md p-1.5 pr-4 rounded-full">
-                  <Avatar size="sm" src={selectedItem.profiles?.avatar_url} fallback={selectedItem.profiles?.username || 'U'} />
-                  <span className="text-xs font-bold text-white">@{selectedItem.profiles?.username}</span>
+          <div className="space-y-6">
+            <div className="w-full aspect-[16/10] rounded-2xl bg-vibe-gradient/20 mb-4 overflow-hidden relative shadow-2xl">
+              {selectedItem.type === 'venue' ? (
+                <div className="absolute inset-0 flex items-center justify-center bg-vibe-dark/40">
+                  <Building2 className="w-16 h-16 text-vibe-purple/20" />
                 </div>
+              ) : (
+                <div className="absolute inset-0 flex items-center justify-center bg-vibe-dark/40">
+                  <Calendar className="w-16 h-16 text-vibe-pink/20" />
+                </div>
+              )}
+            </div>
+            
+            <h2 className="font-display text-2xl font-black vibe-gradient-text tracking-tighter">{selectedItem.name || selectedItem.title}</h2>
+            <p className="text-vibe-text-secondary text-sm flex items-center gap-2">
+              <Navigation className="w-3.5 h-3.5 text-vibe-purple" />
+              {selectedItem.address || selectedItem.venue?.address || 'Indirizzo non disponibile'}
+            </p>
+
+            <div className="flex gap-4">
+              <div className="flex-1 p-3.5 rounded-2xl bg-white/5 border border-white/10 text-center">
+                <p className="text-[9px] text-vibe-text-secondary uppercase font-black tracking-widest mb-1">Vibe Score</p>
+                <p className="text-xl font-black text-vibe-pink">
+                  {selectedItem.vibe_score ? Number(selectedItem.vibe_score).toFixed(1) : '5.0'}
+                </p>
               </div>
-              <div className="space-y-4 p-2">
-                <p className="text-sm leading-relaxed text-vibe-text">{selectedItem.caption || 'Live! ✨'}</p>
-                <div className="flex items-center justify-between p-3 rounded-xl bg-white/5">
-                  <span className="text-[10px] uppercase font-bold tracking-widest text-vibe-pink">
-                    {selectedItem.type === 'story' ? t('stories') : 'Post Feed'}
-                  </span>
-                </div>
+              <div className="flex-1 p-3.5 rounded-2xl bg-white/5 border border-white/10 text-center">
+                <p className="text-[9px] text-vibe-text-secondary uppercase font-black tracking-widest mb-1">{t('crowd')}</p>
+                <p className="text-xl font-black text-vibe-cyan">
+                  {selectedItem.crowd_density ?? 25}%
+                </p>
               </div>
             </div>
-          ) : (
-            <>
-              <div className="mb-6">
-                <div className="w-full aspect-[16/10] rounded-2xl bg-vibe-gradient/20 mb-4 overflow-hidden relative group shadow-2xl">
-                  {selectedItem.type === 'venue' ? (
-                     <div className="absolute inset-0 flex items-center justify-center bg-vibe-dark/40 backdrop-blur-[2px]">
-                        <Building2 className="w-16 h-16 text-vibe-purple/40" />
-                     </div>
-                  ) : (
-                     <div className="absolute inset-0 flex items-center justify-center bg-vibe-dark/40 backdrop-blur-[2px]">
-                        <Calendar className="w-16 h-16 text-vibe-pink/40" />
-                     </div>
-                  )}
-                  <div className="absolute top-3 left-3 flex gap-2">
-                    <Badge variant="live" className="animate-pulse">LIVE</Badge>
-                    <Badge variant="verified">OFFICIAL</Badge>
-                  </div>
-                  <div className="absolute bottom-3 right-3">
-                    <div className="bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-xl">
-                      <TrendingUp className="w-3.5 h-3.5 text-vibe-cyan" />
-                      <span className="text-xs font-bold text-white">Vibe High</span>
-                    </div>
-                  </div>
-                </div>
-                
-                <h2 className="font-display text-2xl font-bold mb-1 tracking-tight">{selectedItem.name || selectedItem.title}</h2>
-                <div className="flex flex-col gap-1.5">
-                  <p className="text-vibe-text-secondary text-sm flex items-center gap-2">
-                    <Navigation className="w-3.5 h-3.5 text-vibe-purple" />
-                    {selectedItem.address || selectedItem.venue?.address || 'Indirizzo non disponibile'}
-                  </p>
-                  <p className="text-[11px] text-vibe-text-secondary font-medium flex items-center gap-2">
-                    <Clock className="w-3.5 h-3.5 text-green-400" />
-                    <span className="text-green-400 font-bold uppercase tracking-wider">Aperto ora</span> • Chiusura ore 04:00
-                  </p>
-                </div>
-              </div>
 
-              <div className="space-y-6">
-                <div className="flex gap-4">
-                  <div className="flex-1 p-3.5 rounded-2xl bg-white/5 border border-white/10 text-center group hover:bg-vibe-pink/5 transition-colors">
-                    <p className="text-[10px] text-vibe-text-secondary uppercase font-bold tracking-widest mb-1 group-hover:text-vibe-pink transition-colors">Vibe Score</p>
-                    <p className="text-xl font-bold text-white flex items-center justify-center gap-1.5">
-                       <span className="text-vibe-pink">
-                         {selectedItem.vibe_score ? Number(selectedItem.vibe_score).toFixed(1) : '5.0'}
-                       </span>
-                       <span className="text-xs opacity-40">/10</span>
-                    </p>
-                  </div>
-                  <div className="flex-1 p-3.5 rounded-2xl bg-white/5 border border-white/10 text-center group hover:bg-vibe-cyan/5 transition-colors">
-                    <p className="text-[10px] text-vibe-text-secondary uppercase font-bold tracking-widest mb-1 group-hover:text-vibe-cyan transition-colors">{t('crowd')}</p>
-                    <p className="text-xl font-bold text-white flex items-center justify-center gap-1.5">
-                       <span className="text-vibe-cyan">
-                         {selectedItem.crowd_density ?? 25}%
-                       </span>
-                       <Users className="w-3.5 h-3.5 opacity-40" />
-                    </p>
-                  </div>
-                </div>
-
-                <div className="p-4 rounded-2xl bg-white/5 border border-white/5">
-                  <h3 className="font-bold text-sm mb-2 uppercase tracking-widest text-vibe-text-secondary flex items-center gap-2">
-                    <TrendingUp className="w-3.5 h-3.5" /> Info
-                  </h3>
-                  <p className="text-sm text-vibe-text leading-relaxed">
-                    {selectedItem.description || 'Nessuna descrizione disponibile per questo locale. Carica un Vibe per mostrarci l\'atmosfera!'}
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <Link 
-                    href={selectedItem.type === 'venue' ? `/venues/${selectedItem.slug || selectedItem.id}` : `/events/${selectedItem.id}`}
-                    className="flex-1"
-                  >
-                    <Button variant="outline" className="w-full font-bold">
-                       Profilo
-                    </Button>
-                  </Link>
-                  <Button variant="secondary" className="w-full font-bold flex items-center justify-center gap-2">
-                    <Share2 className="w-4 h-4" /> Condividi
-                  </Button>
-                </div>
-
-                <CheckInButton 
-                  venueId={selectedItem.type === 'venue' ? selectedItem.id : undefined} 
-                  eventId={selectedItem.type === 'event' ? selectedItem.id : undefined} 
-                  className="w-full py-4 text-base font-bold shadow-vibe-purple/20 shadow-lg"
-                />
-              </div>
-            </>
-          )}
+            <CheckInButton 
+              venueId={selectedItem.type === 'venue' ? selectedItem.id : undefined} 
+              eventId={selectedItem.type === 'event' ? selectedItem.id : undefined} 
+              className="w-full py-4 text-sm font-black uppercase tracking-widest shadow-vibe-purple/20 shadow-lg interactive-hover"
+            />
+          </div>
         </Card>
       )}
 
-      {/* Indicatore di caricamento */}
+      {/* Loading Indicator */}
       {isLoading && (
-        <div className="absolute bottom-10 left-1/2 -translate-x-1/2 z-30 bg-vibe-dark/80 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 flex items-center gap-3 animate-fade-in">
+        <div className="absolute bottom-10 left-1/2 -translate-x-1/2 z-30 bg-vibe-dark/90 backdrop-blur-xl px-5 py-2.5 rounded-full border border-white/10 flex items-center gap-3 animate-fade-in shadow-2xl">
           <div className="w-4 h-4 border-2 border-vibe-purple border-t-transparent rounded-full animate-spin" />
-          <span className="text-xs font-medium">{tc('loading')}</span>
+          <span className="text-[10px] font-black uppercase tracking-[0.2em]">{tc('loading')}</span>
         </div>
       )}
     </div>

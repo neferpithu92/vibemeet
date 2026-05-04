@@ -1,13 +1,12 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, memo } from 'react';
 import { useTranslations } from 'next-intl';
 import { Avatar } from '@/components/ui/Avatar';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Heart, MessageCircle, Share2, Bookmark, MoreHorizontal } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { ShareModal } from '@/components/social/ShareModal';
 import Image from 'next/image';
 import { useInView } from 'react-intersection-observer';
@@ -39,7 +38,7 @@ interface FeedPostCardProps {
   onComment: (id: string) => void;
 }
 
-export default function FeedPostCard({ post, isLiked, isSaved, onLike, onSave, onComment }: FeedPostCardProps) {
+const FeedPostCard = memo(({ post, isLiked, isSaved, onLike, onSave, onComment }: FeedPostCardProps) => {
   const t = useTranslations('feed');
   const [showHeartAnimation, setShowHeartAnimation] = useState(false);
   const [isShareOpen, setIsShareOpen] = useState(false);
@@ -50,7 +49,6 @@ export default function FeedPostCard({ post, isLiked, isSaved, onLike, onSave, o
     if (e) e.stopPropagation();
     onLike(post.id);
     
-    // Immediate UI feedback for heart animation on click (not just double tap)
     if (!isLiked) {
       setShowHeartAnimation(true);
       setTimeout(() => setShowHeartAnimation(false), 800);
@@ -71,7 +69,6 @@ export default function FeedPostCard({ post, isLiked, isSaved, onLike, onSave, o
     onComment(post.id);
   };
 
-  // Interaction Tracking (View)
   const [hasTrackedView, setHasTrackedView] = useState(false);
   const { ref: viewRef, inView } = useInView({
     threshold: 0.7,
@@ -81,7 +78,6 @@ export default function FeedPostCard({ post, isLiked, isSaved, onLike, onSave, o
   useEffect(() => {
     if (inView && !hasTrackedView) {
       setHasTrackedView(true);
-      // Log view to batch API
       const trackView = async () => {
         try {
           const supabase = createClient();
@@ -111,8 +107,7 @@ export default function FeedPostCard({ post, isLiked, isSaved, onLike, onSave, o
   }, [inView, hasTrackedView, post.id, profile]);
 
   return (
-    <Card ref={viewRef} className="overflow-hidden bg-vibe-dark/40 border-white/5 shadow-2xl backdrop-blur-sm rounded-3xl">
-      {/* Header */}
+    <Card ref={viewRef} className="overflow-hidden bg-vibe-dark/40 border-white/5 shadow-2xl rounded-[2rem] gpu-accelerated mb-6">
       <div className="flex items-center justify-between p-4">
         <div className="flex items-center gap-3">
           <Avatar 
@@ -120,42 +115,34 @@ export default function FeedPostCard({ post, isLiked, isSaved, onLike, onSave, o
             src={profile?.avatar_url} 
             fallback={profile?.username?.[0] || 'U'} 
             hasStory={true}
+            className="gpu-accelerated"
           />
           <div>
             <div className="flex items-center gap-1.5">
               <span className="font-bold text-sm tracking-tight">{profile?.display_name || profile?.username}</span>
               <Badge variant="verified" className="scale-75 origin-left">✓</Badge>
             </div>
-            <p className="text-[10px] text-vibe-text-secondary uppercase font-bold tracking-widest">
+            <p className="text-[10px] text-vibe-text-secondary uppercase font-black tracking-widest opacity-60">
                {profile?.username}
             </p>
           </div>
         </div>
-        <button className="p-2 text-vibe-text-secondary hover:text-white transition-colors">
+        <button className="p-3 text-vibe-text-secondary hover:text-white transition-all interactive-hover rounded-2xl active:scale-90">
           <MoreHorizontal className="w-5 h-5" />
         </button>
       </div>
 
-      {/* Media Content */}
       <div 
-        className="relative aspect-square bg-black flex items-center justify-center overflow-hidden cursor-pointer"
+        className="relative aspect-square bg-black flex items-center justify-center overflow-hidden cursor-pointer gpu-accelerated group"
         onDoubleClick={handleDoubleTap}
       >
-        <AnimatePresence>
-          {showHeartAnimation && (
-            <motion.div 
-              initial={{ scale: 0, opacity: 0 }}
-              animate={{ scale: [0, 1.5, 1], opacity: [0, 1, 0] }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.8, ease: "easeOut" }}
-              className="absolute z-10 pointer-events-none"
-            >
-              <Heart className="w-24 h-24 text-white fill-white drop-shadow-[0_0_20px_rgba(236,72,153,0.8)]" />
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {showHeartAnimation && (
+          <div className="absolute z-10 pointer-events-none animate-scale-heart">
+            <Heart className="w-28 h-28 text-white fill-white drop-shadow-[0_0_30px_rgba(236,72,153,0.9)]" />
+          </div>
+        )}
 
-        {post.type === 'video' ? (
+        {post.type === 'video' || post.type === 'reel' ? (
           <video 
             src={post.url} 
             className="w-full h-full object-cover"
@@ -169,71 +156,68 @@ export default function FeedPostCard({ post, isLiked, isSaved, onLike, onSave, o
             src={post.url} 
             alt="Content" 
             fill
-            className="w-full h-full object-cover"
+            sizes="(max-width: 768px) 100vw, 640px"
+            className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
+            priority={false}
           />
         )}
       </div>
 
-      {/* Actions */}
-      <div className="p-4 space-y-4">
+      <div className="p-5 space-y-5">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-5">
+          <div className="flex items-center gap-6">
             <button 
               onClick={handleLike}
-              className={`transition-all active:scale-125 ${isLiked ? 'text-vibe-pink' : 'text-vibe-text-secondary hover:text-white'}`}
+              className={`tap-scale active:scale-125 transition-transform ${isLiked ? 'text-vibe-pink' : 'text-vibe-text-secondary hover:text-white'}`}
             >
-              <Heart className={`w-6 h-6 ${isLiked ? 'fill-vibe-pink' : ''}`} />
+              <Heart className={`w-7 h-7 ${isLiked ? 'fill-vibe-pink' : ''}`} />
             </button>
             <button 
               onClick={handleComment}
-              className="text-vibe-text-secondary hover:text-vibe-cyan transition-all active:scale-125"
+              className="text-vibe-text-secondary hover:text-vibe-cyan tap-scale active:scale-125 transition-transform"
             >
-              <MessageCircle className="w-6 h-6" />
+              <MessageCircle className="w-7 h-7" />
             </button>
             <button 
               onClick={(e) => { e.stopPropagation(); setIsShareOpen(true); }}
-              className="text-vibe-text-secondary hover:text-vibe-purple transition-all active:scale-125"
+              className="text-vibe-text-secondary hover:text-vibe-purple tap-scale active:scale-125 transition-transform"
             >
-              <Share2 className="w-6 h-6" />
+              <Share2 className="w-7 h-7" />
             </button>
           </div>
           <button 
             onClick={handleSave}
-            className={`transition-all active:scale-125 ${isSaved ? 'text-vibe-purple' : 'text-vibe-text-secondary hover:text-white'}`}
+            className={`tap-scale active:scale-125 transition-transform ${isSaved ? 'text-vibe-purple' : 'text-vibe-text-secondary hover:text-white'}`}
           >
-            <Bookmark className={`w-6 h-6 ${isSaved ? 'fill-vibe-purple' : ''}`} />
+            <Bookmark className={`w-7 h-7 ${isSaved ? 'fill-vibe-purple' : ''}`} />
           </button>
         </div>
 
-        {/* Likes Count */}
-        <div className="space-y-1">
-          <p className="font-bold text-sm">
-            {post.like_count || 0} {t('likes', { fallback: 'Like' })}
+        <div className="space-y-2">
+          <p className="font-black text-sm uppercase tracking-widest">
+            {post.like_count || 0} Likes
           </p>
           
-          {/* Caption */}
           <div className="text-sm leading-relaxed">
-            <span className="font-extrabold mr-2">@{profile?.username}</span>
-            <span className="text-vibe-text/90">{post.caption}</span>
+            <span className="font-black mr-2 uppercase tracking-tighter vibe-gradient-text">@{profile?.username}</span>
+            <span className="text-vibe-text/90 font-medium">{post.caption}</span>
           </div>
 
-          {/* Views */}
-          {(post.view_count ?? 0) > 0 && (
-            <p className="text-xs text-vibe-text-secondary font-medium mt-1">
-              {post.view_count?.toLocaleString()} visualizzazioni
-            </p>
-          )}
+          <div className="flex items-center gap-4 pt-1">
+            {(post.view_count ?? 0) > 0 && (
+              <p className="text-[10px] text-vibe-text-secondary font-black uppercase tracking-widest opacity-60">
+                {post.view_count?.toLocaleString()} Views
+              </p>
+            )}
+            <button 
+              onClick={() => onComment(post.id)}
+              className="text-[10px] text-vibe-purple font-black uppercase tracking-widest hover:underline transition-all"
+            >
+              {t('addComment')}
+            </button>
+          </div>
 
-          {/* Add comment CTA */}
-          <button 
-            onClick={() => onComment(post.id)}
-            className="text-xs text-vibe-text-secondary font-medium hover:text-vibe-purple transition-colors block mt-1"
-          >
-            {t('addComment')}
-          </button>
-
-          {/* Time */}
-          <p className="text-[9px] text-vibe-text-secondary uppercase font-bold tracking-widest pt-1">
+          <p className="text-[9px] text-vibe-text-secondary uppercase font-black tracking-[0.2em] pt-2 opacity-40">
              {new Date(post.created_at).toLocaleDateString()}
           </p>
         </div>
@@ -248,4 +232,7 @@ export default function FeedPostCard({ post, isLiked, isSaved, onLike, onSave, o
       />
     </Card>
   );
-}
+});
+
+FeedPostCard.displayName = 'FeedPostCard';
+export default FeedPostCard;

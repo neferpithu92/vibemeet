@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 
-export type ThemePreset = 'system' | 'neon' | 'minimal' | 'aurora' | 'sand' | 'ocean' | 'forest' | 'custom';
+export type ThemePreset = 'system' | 'light' | 'dark' | 'neon' | 'minimal' | 'aurora' | 'sand' | 'ocean' | 'forest' | 'custom';
 
 export interface CustomThemeColors {
   h: number; // 0-360

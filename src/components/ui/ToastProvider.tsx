@@ -36,15 +36,15 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
         {toasts.map((toast) => (
           <div
             key={toast.id}
-            className="pointer-events-auto animate-slide-in-right glass-card-hover p-4 flex items-center gap-3 min-w-[280px] border-white/10 shadow-2xl"
+            className="pointer-events-auto animate-slide-in-right glass-card-hover p-4 flex items-center gap-3 min-w-[280px] border-vibe-border shadow-2xl"
           >
             <div className="text-xl">
               {toast.icon || (toast.type === 'success' ? '✅' : toast.type === 'error' ? '❌' : '🔔')}
             </div>
-            <p className="text-sm font-medium text-white">{toast.message}</p>
+            <p className="text-sm font-medium text-vibe-text">{toast.message}</p>
             <button 
               onClick={() => setToasts(prev => prev.filter(t => t.id !== toast.id))}
-              className="ml-auto text-vibe-text-secondary hover:text-white"
+              className="ml-auto text-vibe-text-secondary hover:text-vibe-text"
             >
               ✕
             </button>

@@ -3,16 +3,19 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslations } from 'next-intl';
+import dynamic from 'next/dynamic';
 import { Avatar } from '@/components/ui/Avatar';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { useToast } from '@/components/ui/ToastProvider';
 import { createClient } from '@/lib/supabase/client';
-import CreateStory from './CreateStory';
 import FeedPostCard from './FeedPostCard';
-import StoryViewer from './StoryViewer';
 import { mutationManager } from '@/lib/social/MutationManager';
 import { useIntersectionObserver } from '@/hooks/useIntersectionObserver';
+
+// Lazy load heavy modals
+const CreateStory = dynamic(() => import('./CreateStory'), { ssr: false });
+const StoryViewer = dynamic(() => import('./StoryViewer'), { ssr: false });
 
 interface FeedProfile {
   id: string;
@@ -46,11 +49,9 @@ interface FeedClientProps {
 
 export default function FeedClient({ initialPosts, stories }: FeedClientProps) {
   const t = useTranslations('feed');
-  const tNav = useTranslations('nav');
   const { showToast } = useToast();
-  const supabase = createClient();
   
-  const [activeTab, setActiveTab] = useState<'perTe' | 'seguiti' | 'tendenze'>('perTe');
+  const [activeTab, setActiveTab] = useState<'perTe' | 'seguiti'>('perTe');
   const [isCreateStoryOpen, setIsCreateStoryOpen] = useState(false);
   const [isViewerOpen, setIsViewerOpen] = useState(false);
   const [initialUserIndex, setInitialUserIndex] = useState(0);
@@ -64,7 +65,7 @@ export default function FeedClient({ initialPosts, stories }: FeedClientProps) {
   const [savedPosts, setSavedPosts] = useState<Set<string>>(new Set());
 
   const { targetRef, isIntersecting } = useIntersectionObserver({
-    rootMargin: '400px',
+    rootMargin: '600px', // Fetch earlier for smoother experience
   });
 
   // Group stories by user
@@ -120,48 +121,45 @@ export default function FeedClient({ initialPosts, stories }: FeedClientProps) {
     if (isIntersecting && hasMore) fetchMorePosts();
   }, [isIntersecting, hasMore, fetchMorePosts]);
 
-  const handleLike = async (postId: string) => {
-    const isLiked = likedPosts.has(postId);
+  const handleLike = useCallback(async (postId: string) => {
     setLikedPosts(prev => {
       const next = new Set(prev);
-      isLiked ? next.delete(postId) : next.add(postId);
+      prev.has(postId) ? next.delete(postId) : next.add(postId);
       return next;
     });
-    // Record impression & call API... (simplified for brevity here as already implemented)
-  };
+  }, []);
 
-  const handleSave = async (postId: string) => {
-    const isSaved = savedPosts.has(postId);
+  const handleSave = useCallback(async (postId: string) => {
     setSavedPosts(prev => {
       const next = new Set(prev);
-      isSaved ? next.delete(postId) : next.add(postId);
+      prev.has(postId) ? next.delete(postId) : next.add(postId);
       return next;
     });
-  };
+  }, []);
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-4 mb-20 animate-fade-in">
+    <div className="max-w-2xl mx-auto px-4 py-4 mb-20 gpu-accelerated">
       {/* Header */}
       <div className="flex items-center justify-between mb-6 sticky top-0 z-20 bg-vibe-dark/80 backdrop-blur-xl -mx-4 px-4 py-2 border-b border-white/5">
         <h1 className="font-display text-2xl font-black vibe-gradient-text tracking-tighter">VIBEMEET</h1>
         <div className="flex items-center gap-4">
-          <button className="relative p-2 hover:bg-white/5 rounded-full transition-all">
+          <button className="relative p-2 hover:bg-white/5 rounded-full transition-all interactive-hover">
              <span className="absolute top-2 right-2 w-2 h-2 bg-vibe-pink rounded-full animate-pulse"></span>
              <span className="text-xl">🔔</span>
           </button>
-          <button className="p-2 hover:bg-white/5 rounded-full transition-all text-xl">
+          <button className="p-2 hover:bg-white/5 rounded-full transition-all text-xl interactive-hover">
              <span>💬</span>
           </button>
         </div>
       </div>
 
       {/* Story Bar */}
-      <div className="flex gap-4 mb-8 overflow-x-auto hide-scrollbar pb-2">
+      <div className="flex gap-4 mb-8 overflow-x-auto hide-scrollbar pb-2 gpu-accelerated">
         <button 
           onClick={() => setIsCreateStoryOpen(true)}
-          className="flex flex-col items-center gap-2 min-w-fit group"
+          className="flex flex-col items-center gap-2 min-w-fit group tap-scale"
         >
-          <div className="relative p-[3px] rounded-full bg-gradient-to-tr from-vibe-purple via-vibe-pink to-vibe-cyan group-active:scale-90 transition-all">
+          <div className="relative p-[3px] rounded-full bg-gradient-to-tr from-vibe-purple via-vibe-pink to-vibe-cyan transition-all">
             <div className="bg-vibe-dark rounded-full p-[2px]">
               <Avatar size="lg" fallback={t('yourStoryFallback') || 'Tu'} />
             </div>
@@ -176,9 +174,9 @@ export default function FeedClient({ initialPosts, stories }: FeedClientProps) {
           <button 
             key={group.id} 
             onClick={() => handleStoryClick(index)}
-            className="flex flex-col items-center gap-2 min-w-fit group"
+            className="flex flex-col items-center gap-2 min-w-fit group tap-scale"
           >
-            <div className="relative p-[3px] rounded-full bg-gradient-to-tr from-vibe-purple to-vibe-pink group-active:scale-95 transition-all">
+            <div className="relative p-[3px] rounded-full bg-gradient-to-tr from-vibe-purple to-vibe-pink transition-all">
               <div className="bg-vibe-dark rounded-full p-[2px]">
                 <Avatar
                   size="lg"
@@ -206,9 +204,8 @@ export default function FeedClient({ initialPosts, stories }: FeedClientProps) {
           >
             {label}
             {activeTab === key && (
-              <motion.div 
-                layoutId="activeTab"
-                className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-vibe-purple"
+              <div 
+                className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-vibe-purple transition-all duration-300"
               />
             )}
           </button>
@@ -237,21 +234,24 @@ export default function FeedClient({ initialPosts, stories }: FeedClientProps) {
       </div>
 
       {/* Modals & Overlays */}
-      <StoryViewer 
-        isOpen={isViewerOpen}
-        onClose={() => setIsViewerOpen(false)}
-        userGroups={userStoryGroups}
-        initialUserIndex={initialUserIndex}
-      />
+      {isViewerOpen && (
+        <StoryViewer 
+          isOpen={isViewerOpen}
+          onClose={() => setIsViewerOpen(false)}
+          userGroups={userStoryGroups}
+          initialUserIndex={initialUserIndex}
+        />
+      )}
 
-      <CreateStory 
-        isOpen={isCreateStoryOpen} 
-        onClose={() => setIsCreateStoryOpen(false)} 
-        onSuccess={() => {
-           showToast("Storia pubblicata con successo!", "success");
-           // Ideally re-fetch stories here
-        }}
-      />
+      {isCreateStoryOpen && (
+        <CreateStory 
+          isOpen={isCreateStoryOpen} 
+          onClose={() => setIsCreateStoryOpen(false)} 
+          onSuccess={() => {
+             showToast("Storia pubblicata con successo!", "success");
+          }}
+        />
+      )}
     </div>
   );
 }
