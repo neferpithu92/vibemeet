@@ -1,43 +1,51 @@
 import { cn } from '@/lib/utils';
 import React, { ButtonHTMLAttributes, forwardRef } from 'react';
 
-type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'outline';
-type ButtonSize = 'xs' | 'sm' | 'md' | 'lg';
+type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'outline' | 'premium' | 'shining';
+type ButtonSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'icon';
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant;
   size?: ButtonSize;
   isLoading?: boolean;
+  leftIcon?: React.ReactNode;
+  rightIcon?: React.ReactNode;
+  fullWidth?: boolean;
 }
 
-const variantClasses: Record<ButtonVariant, string> = {
-  primary: 'btn-primary',
-  secondary: 'btn-secondary',
-  ghost: 'btn-ghost',
-  danger: 'btn-danger',
-  outline: 'btn-outline',
+const variants: Record<ButtonVariant, string> = {
+  primary: 'bg-primary text-white hover:bg-primary/90',
+  secondary: 'bg-secondary text-white hover:bg-secondary/90',
+  ghost: 'hover:bg-accent hover:text-accent-foreground',
+  danger: 'bg-red-500/10 text-red-500 border border-red-500/20 hover:bg-red-500 hover:text-white',
+  outline: 'border border-input bg-background hover:bg-accent hover:text-accent-foreground',
+  premium: 'bg-vibe-gradient text-white shadow-[0_0_20px_rgba(157,78,221,0.4)] hover:shadow-[0_0_30px_rgba(157,78,221,0.6)]',
+  shining: 'vibe-shining-border text-white shadow-xl',
 };
 
-const sizeClasses: Record<ButtonSize, string> = {
-  xs: 'px-2.5 py-1 text-[10px]',
-  sm: 'px-4 py-2 text-sm',
-  md: 'px-6 py-3 text-base',
-  lg: 'px-8 py-4 text-lg',
+const sizes: Record<ButtonSize, string> = {
+  xs: 'h-8 px-3 text-xs',
+  sm: 'h-9 px-4 text-sm',
+  md: 'h-11 px-6 text-base',
+  lg: 'h-14 px-8 text-lg',
+  xl: 'h-16 px-10 text-xl',
+  icon: 'h-10 w-10',
 };
 
 /**
  * Bottone VIBE con varianti (primary, secondary, ghost, danger) e dimensioni.
  */
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant = 'primary', size = 'md', isLoading, children, disabled, ...props }, ref) => {
+  ({ className, variant = 'primary', size = 'md', isLoading, children, disabled, fullWidth, leftIcon, rightIcon, ...props }, ref) => {
     return (
       <button
         ref={ref}
         className={cn(
-          variantClasses[variant],
-          sizeClasses[size],
-          isLoading && 'opacity-70 cursor-wait',
-          disabled && 'opacity-50 cursor-not-allowed',
+          'inline-flex items-center justify-center rounded-2xl font-display font-black tracking-widest uppercase transition-all duration-300 tap-bounce',
+          variants[variant],
+          sizes[size],
+          fullWidth ? 'w-full' : '',
+          isLoading || disabled ? 'opacity-50 cursor-not-allowed pointer-events-none' : 'active:scale-95',
           className
         )}
         disabled={disabled || isLoading}

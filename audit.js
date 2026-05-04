@@ -72,7 +72,7 @@ for (const f of allFiles) {
     }
 
     // Wrong Supabase URL
-    if (line.toLowerCase().includes('kvmdeolhkpnhkomnhlsy')) {
+    if (line.toLowerCase().includes('wxykpghfcnfkxafqzvwc')) {
       issues.wrong_supabase.push(`${rel}:${ln}`);
     }
   });
@@ -174,3 +174,4 @@ console.log(`  TODO/FIXME: ${issues.todo_fixme.length}`);
 console.log(`  Hardcoded text in pages: ${issues.hardcoded_text.length}`);
 console.log(`  Wrong Supabase URL: ${issues.wrong_supabase.length}`);
 console.log('='.repeat(65));
+

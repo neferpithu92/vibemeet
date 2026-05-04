@@ -10,6 +10,7 @@ import type { User } from '@supabase/supabase-js';
 import { LanguageSwitcher } from './LanguageSwitcher';
 import { GlobalSearch } from './GlobalSearch';
 import { NotificationDropdown } from './NotificationDropdown';
+import { ThemeToggle } from './ThemeToggle';
 
 /**
  * Navbar superiore per desktop — logo VIBE, link navigazione, ricerca, avatar utente.
@@ -114,6 +115,7 @@ export function Navbar() {
 
       {/* Ricerca + Avatar */}
       <div className="flex items-center gap-4">
+        <ThemeToggle />
         <LanguageSwitcher />
         <GlobalSearch />
 

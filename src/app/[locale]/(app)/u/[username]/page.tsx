@@ -10,8 +10,10 @@ import { Badge } from '@/components/ui/Badge';
 import { BackButton } from '@/components/ui/BackButton';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { motion } from 'framer-motion';
-import { Camera, Video, Ghost, Lock } from 'lucide-react';
+import { Camera, Video, Ghost, Lock, MoreHorizontal, Share, MessageCircle } from 'lucide-react';
 import { Link } from '@/lib/i18n/navigation';
+import { useTranslations } from 'next-intl';
+import { useToast } from '@/components/ui/ToastProvider';
 
 interface UserProfileData {
   id: string;
@@ -53,6 +55,8 @@ export default function UserProfilePage() {
   const [followerCount, setFollowerCount] = useState(0);
   const [followingCount, setFollowingCount] = useState(0);
   const [postCount, setPostCount] = useState(0);
+  const t = useTranslations('profile');
+  const { showToast } = useToast();
 
   useEffect(() => {
     async function load() {
@@ -197,9 +201,11 @@ export default function UserProfilePage() {
   );
 
   if (!profile) return (
-    <div className="min-h-screen flex flex-col items-center justify-center gap-4">
-      <span className="text-6xl">👤</span>
-      <h2 className="text-xl font-bold">Utente non trovato</h2>
+    <div className="min-h-screen flex flex-col items-center justify-center gap-6 text-center px-6">
+      <div className="w-24 h-24 rounded-[2rem] bg-vibe-gradient rotate-12 flex items-center justify-center shadow-2xl animate-float">
+        <Ghost className="w-12 h-12 text-white -rotate-12" />
+      </div>
+      <h2 className="text-2xl font-display font-black vibe-gradient-text uppercase tracking-tighter">{t('userNotFound')}</h2>
       <BackButton />
     </div>
   );
@@ -210,13 +216,11 @@ export default function UserProfilePage() {
       <div className="sticky top-0 z-10 bg-vibe-dark/80 
                       backdrop-blur-xl border-b border-white/5 
                       px-4 py-3 flex items-center gap-3">
-        <BackButton />
-        <h1 className="font-bold text-lg flex-1">
+        <h1 className="font-display font-black text-lg flex-1 uppercase tracking-tighter">
           @{profile.username}
         </h1>
-        {/* Three dots menu */}
-        <button className="p-2 rounded-xl hover:bg-white/10">
-          <span className="text-xl">⋯</span>
+        <button className="p-2 rounded-xl hover:bg-white/10 transition-all tap-bounce">
+          <MoreHorizontal className="w-5 h-5 text-vibe-text-secondary" />
         </button>
       </div>
 
@@ -244,16 +248,16 @@ export default function UserProfilePage() {
                     Post
                   </p>
                 </div>
-                <div className="text-center cursor-pointer">
-                  <p className="font-bold text-lg">{followerCount}</p>
-                  <p className="text-xs text-vibe-text-secondary">
-                    Follower
+                <div className="text-center cursor-pointer group tap-bounce">
+                  <p className="font-black text-lg group-hover:text-vibe-purple transition-colors">{followerCount}</p>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-vibe-text-secondary opacity-60">
+                    {t('followers')}
                   </p>
                 </div>
-                <div className="text-center cursor-pointer">
-                  <p className="font-bold text-lg">{followingCount}</p>
-                  <p className="text-xs text-vibe-text-secondary">
-                    Seguiti
+                <div className="text-center cursor-pointer group tap-bounce">
+                  <p className="font-black text-lg group-hover:text-vibe-purple transition-colors">{followingCount}</p>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-vibe-text-secondary opacity-60">
+                    {t('following')}
                   </p>
                 </div>
               </div>
@@ -278,12 +282,13 @@ export default function UserProfilePage() {
                     className="flex-1 text-sm py-2"
                     onClick={handleFollow}
                   >
-                    {isFollowing ? 'Seguito' : 'Segui'}
+                    {isFollowing ? t('followingStatus') : t('followAction')}
                   </Button>
-                  <Button variant="secondary" 
-                          className="flex-1 text-sm py-2">
-                    Messaggio
-                  </Button>
+                  <Link href={`/chat?u=${profile.id}`} className="flex-1">
+                    <Button variant="secondary" className="w-full text-sm py-2 h-10 rounded-xl bg-white/5 border border-white/10 hover:bg-vibe-purple/10 transition-all flex items-center justify-center gap-2">
+                      <MessageCircle className="w-4 h-4" /> {t('message')}
+                    </Button>
+                  </Link>
                 </div>
               )}
             </div>
@@ -311,9 +316,9 @@ export default function UserProfilePage() {
         {isPrivate && !isOwnProfile && !isFollowing ? (
           <EmptyState
             icon={Lock}
-            title="Account privato"
-            description="Segui questo account per vedere foto e video"
-            actionLabel={isFollowing ? 'Richiesta inviata' : 'Segui'}
+            title={t('privateAccount')}
+            description={t('privateDescription')}
+            actionLabel={isFollowing ? t('requestSent') : t('followAction')}
             onAction={handleFollow}
           />
         ) : (

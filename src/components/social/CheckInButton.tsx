@@ -3,6 +3,9 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { useToast } from '@/components/ui/ToastProvider';
+import { useTranslations } from 'next-intl';
+import { MapPin, Loader2 } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 interface CheckInButtonProps {
   venueId?: string;
@@ -13,6 +16,7 @@ interface CheckInButtonProps {
 export default function CheckInButton({ venueId, eventId, className }: CheckInButtonProps) {
   const [isLoading, setIsLoading] = useState(false);
   const { showToast } = useToast();
+  const t = useTranslations('social');
 
   const handleCheckIn = async () => {
     setIsLoading(true);
@@ -38,18 +42,18 @@ export default function CheckInButton({ venueId, eventId, className }: CheckInBu
       });
 
       if (res.ok) {
-        showToast('Check-in completato! 📍', 'success', '👋');
+        showToast(t('checkInSuccess'), 'success', '📍');
       } else {
         const data = await res.json();
-        if (data.error === 'Non autorizzato') {
-          showToast('Devi essere loggato per fare il check-in', 'error', '🔒');
+        if (res.status === 401) {
+          showToast(t('loginRequired'), 'error', '🔒');
         } else {
-          showToast('Errore durante il check-in', 'error', '❌');
+          showToast(t('checkInError'), 'error', '❌');
         }
       }
     } catch (err) {
       console.error('Check-in Error:', err);
-      showToast('Errore di connessione', 'error', '🔌');
+      showToast(t('connectionError'), 'error', '🔌');
     } finally {
       setIsLoading(false);
     }
@@ -58,11 +62,18 @@ export default function CheckInButton({ venueId, eventId, className }: CheckInBu
   return (
     <Button 
       variant="secondary" 
-      className={className || "w-full"}
+      className={className || "w-full rounded-xl py-6 flex items-center justify-center gap-2 font-bold tracking-tight bg-white/5 border-white/10 hover:bg-vibe-purple/10 hover:border-vibe-purple/30 transition-all tap-bounce"}
       onClick={handleCheckIn}
       disabled={isLoading}
     >
-      {isLoading ? 'In corso...' : '📍 Check-in'}
+      {isLoading ? (
+        <Loader2 className="w-5 h-5 animate-spin text-vibe-purple" />
+      ) : (
+        <>
+          <MapPin className="w-5 h-5" />
+          {t('checkIn')}
+        </>
+      )}
     </Button>
   );
 }

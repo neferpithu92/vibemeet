@@ -12,6 +12,9 @@ import { createClient } from '@/lib/supabase/client';
 import FeedPostCard from './FeedPostCard';
 import { mutationManager } from '@/lib/social/MutationManager';
 import { useIntersectionObserver } from '@/hooks/useIntersectionObserver';
+import { PostSkeleton } from './FeedSkeleton';
+import { cn } from '@/lib/utils';
+import { Bell, MessageCircle, Plus } from 'lucide-react';
 
 // Lazy load heavy modals
 const CreateStory = dynamic(() => import('./CreateStory'), { ssr: false });
@@ -28,11 +31,21 @@ interface FeedPost {
   id: string;
   url: string;
   type: string;
-  caption: string | null;
+  caption?: string;
   created_at: string;
+  author_username?: string;
+  author_display_name?: string | null;
+  author_avatar?: string | null;
+  author_is_verified?: boolean;
   like_count?: number;
+  comment_count?: number;
   view_count?: number;
-  profiles?: FeedProfile | FeedProfile[];
+  profiles?: {
+    id: string;
+    username: string;
+    display_name: string | null;
+    avatar_url: string | null;
+  };
 }
 
 interface FeedStory {
@@ -143,12 +156,12 @@ export default function FeedClient({ initialPosts, stories }: FeedClientProps) {
       <div className="flex items-center justify-between mb-6 sticky top-0 z-20 bg-vibe-dark/80 backdrop-blur-xl -mx-4 px-4 py-2 border-b border-white/5">
         <h1 className="font-display text-2xl font-black vibe-gradient-text tracking-tighter">VIBEMEET</h1>
         <div className="flex items-center gap-4">
-          <button className="relative p-2 hover:bg-white/5 rounded-full transition-all interactive-hover">
-             <span className="absolute top-2 right-2 w-2 h-2 bg-vibe-pink rounded-full animate-pulse"></span>
-             <span className="text-xl">🔔</span>
+          <button className="relative p-2.5 bg-white/5 hover:bg-vibe-purple/10 rounded-2xl transition-all tap-bounce border border-white/5">
+             <span className="absolute top-2 right-2 w-2 h-2 bg-vibe-pink rounded-full animate-pulse shadow-[0_0_10px_rgba(236,72,153,0.8)]"></span>
+             <Bell className="w-5 h-5 text-vibe-text" />
           </button>
-          <button className="p-2 hover:bg-white/5 rounded-full transition-all text-xl interactive-hover">
-             <span>💬</span>
+          <button className="p-2.5 bg-white/5 hover:bg-vibe-purple/10 rounded-2xl transition-all border border-white/5 tap-bounce">
+             <MessageCircle className="w-5 h-5 text-vibe-text" />
           </button>
         </div>
       </div>
@@ -163,8 +176,8 @@ export default function FeedClient({ initialPosts, stories }: FeedClientProps) {
             <div className="bg-vibe-dark rounded-full p-[2px]">
               <Avatar size="lg" fallback={t('yourStoryFallback') || 'Tu'} />
             </div>
-            <div className="absolute bottom-0 right-0 w-6 h-6 rounded-full bg-vibe-purple flex items-center justify-center text-white text-xs border-[3px] border-vibe-dark">
-              +
+            <div className="absolute bottom-0 right-0 w-6 h-6 rounded-full bg-vibe-purple flex items-center justify-center text-white border-[3px] border-vibe-dark shadow-xl">
+              <Plus className="w-3.5 h-3.5" />
             </div>
           </div>
           <span className="text-[11px] font-bold text-vibe-text-secondary">{t('yourStory')}</span>
@@ -226,9 +239,12 @@ export default function FeedClient({ initialPosts, stories }: FeedClientProps) {
           />
         ))}
 
-        <div ref={targetRef} className="py-10 flex justify-center">
+        <div ref={targetRef} className="py-10">
           {isLoadingMore && (
-            <div className="w-8 h-8 border-3 border-vibe-purple border-t-transparent rounded-full animate-spin"></div>
+            <div className="space-y-10">
+              <PostSkeleton />
+              <PostSkeleton />
+            </div>
           )}
         </div>
       </div>

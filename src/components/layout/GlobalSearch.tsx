@@ -45,9 +45,10 @@ export function GlobalSearch() {
         const res = await fetch(`/api/discovery/search?q=${encodeURIComponent(query)}`);
         const data = await res.json();
         
-        // Filter out everything except users and artists
+        // Include Users, Venues, Artists
         const combined = [
           ...(data.users || []),
+          ...(data.venues || []),
           ...(data.artists || [])
         ].map(item => ({
           ...item,
@@ -65,20 +66,9 @@ export function GlobalSearch() {
     return () => clearTimeout(timer);
   }, [query]);
 
-  const handleSelect = (item: GlobalSearchResult) => {
+  const handleSelect = () => {
     setQuery('');
     setResults([]);
-    
-    // Navigate to profile or venue/event page
-    if (item.type === 'user') {
-      router.push(`/u/${item.username || item.id}`);
-    } else if (item.type === 'venue') {
-      router.push(`/venues/${(item as any).slug || item.id}`);
-    } else if (item.type === 'artist') {
-      router.push(`/artists/${item.id}`);
-    } else if (item.type === 'event') {
-      router.push(`/events/${item.id}`);
-    }
   };
 
   return (
@@ -110,31 +100,44 @@ export function GlobalSearch() {
       {results.length > 0 && (
         <Card className="absolute top-12 left-0 right-0 p-2 glass-card animate-fade-in z-[100] border-white/10 shadow-2xl">
           <div className="max-h-80 overflow-y-auto space-y-1">
-            {results.map((item) => (
-              <button
-                key={`${item.type}-${item.id}`}
-                onClick={() => handleSelect(item)}
-                className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-white/10 text-left transition-colors group"
-              >
-                <div className="w-8 h-8 rounded-full bg-vibe-gradient/20 flex items-center justify-center text-lg overflow-hidden border border-white/5">
-                  {item.avatar_url ? (
-                    <img src={item.avatar_url} alt="" className="w-full h-full object-cover" />
-                  ) : (
-                    <span>{item.type === 'user' ? '👥' : (item.type === 'artist' ? '🎙️' : (item.type === 'venue' ? '🏢' : '🎉'))}</span>
-                  )}
-                </div>
-                <div className="min-w-0">
-                  <p className="text-sm font-semibold truncate group-hover:text-vibe-purple transition-colors">
-                    {item.displayName}
-                  </p>
-                  <p className="text-[10px] text-vibe-text-secondary truncate uppercase tracking-widest">
-                    {item.type === 'user' ? tm('friends') : 
-                     item.type === 'artist' ? 'Artist' : 
-                     item.type === 'venue' ? tm('venues') : tm('events')}
-                  </p>
-                </div>
-              </button>
-            ))}
+            {results.map((item) => {
+              const href = item.type === 'user' 
+                ? `/u/${item.username || item.id}`
+                : item.type === 'venue'
+                ? `/venues/${(item as any).slug || item.id}`
+                : item.type === 'artist'
+                ? `/artists/${item.id}`
+                : `/events/${item.id}`;
+              
+              return (
+                <Link
+                  key={`${item.type}-${item.id}`}
+                  href={href as any}
+                  onClick={handleSelect}
+                  className="w-full flex items-center gap-3 p-2.5 rounded-2xl hover:bg-white/10 text-left transition-all group tap-bounce"
+                >
+                  <div className="w-10 h-10 rounded-full bg-vibe-gradient/20 flex items-center justify-center text-lg overflow-hidden border border-white/5 shadow-sm">
+                    {item.avatar_url ? (
+                      <img src={item.avatar_url} alt="" className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="text-xl">
+                        {item.type === 'user' ? '👥' : (item.type === 'artist' ? '🎙️' : (item.type === 'venue' ? '🏢' : '🎉'))}
+                      </span>
+                    )}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-bold truncate group-hover:text-vibe-purple transition-colors">
+                      {item.displayName}
+                    </p>
+                    <p className="text-[10px] text-vibe-text-secondary truncate uppercase tracking-[0.2em] font-black opacity-60">
+                      {item.type === 'user' ? tm('friends') : 
+                       item.type === 'artist' ? 'Artist' : 
+                       item.type === 'venue' ? tm('venues') : tm('events')}
+                    </p>
+                  </div>
+                </Link>
+              );
+            })}
           </div>
         </Card>
       )}

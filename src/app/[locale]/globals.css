@@ -49,8 +49,8 @@
   }
 
   /* System theme auto-switching */
-  [data-theme='system'] {
-    @media (prefers-color-scheme: light) {
+  @media (prefers-color-scheme: light) {
+    [data-theme='system'] {
       --vibe-purple: #6D28D9;
       --vibe-purple-rgb: 109, 40, 217;
       --vibe-cyan: #0891B2;
@@ -68,7 +68,10 @@
       --vibe-text-secondary: #64748B;
       --vibe-text-secondary-rgb: 100, 116, 139;
     }
-    @media (prefers-color-scheme: dark) {
+  }
+
+  @media (prefers-color-scheme: dark) {
+    [data-theme='system'] {
       --vibe-purple: #7C3AED;
       --vibe-purple-rgb: 124, 58, 237;
       --vibe-cyan: #06B6D4;
@@ -274,18 +277,76 @@
 @layer components {
   /* ---- Glassmorphism Card ---- */
   .glass-card {
-    @apply backdrop-blur-md rounded-2xl;
+    @apply backdrop-blur-md rounded-2xl transition-all duration-300;
     background-color: var(--vibe-glass);
     border: 1px solid var(--vibe-border);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
   }
 
+  .glass-panel {
+    @apply backdrop-blur-xl transition-all duration-500;
+    background: linear-gradient(180deg, var(--vibe-glass) 0%, rgba(var(--vibe-dark-rgb), 0.4) 100%);
+    border-bottom: 1px solid var(--vibe-border);
+  }
+ 
   .glass-card-hover {
-    @apply glass-card transition-all duration-300;
+    @apply glass-card hover:bg-white/5 hover:border-vibe-purple/30 hover:shadow-[0_0_20px_rgba(124,58,237,0.15)] active:scale-[0.98];
   }
 
-  .glass-card-hover:hover {
-    @apply bg-white/10 border-white/20 shadow-lg;
-    box-shadow: 0 8px 32px rgba(124, 58, 237, 0.15);
+  .tap-bounce {
+    @apply active:scale-95 transition-transform duration-200 ease-out;
+  }
+
+  .vibe-shining-border {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .vibe-shining-border::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: conic-gradient(
+      from 0deg,
+      transparent 0 340deg,
+      var(--vibe-purple) 360deg
+    );
+    animation: rotate 4s linear infinite;
+    z-index: -1;
+  }
+
+  .vibe-shining-border::before {
+    content: '';
+    position: absolute;
+    inset: 1px;
+    background: var(--vibe-surface);
+    border-radius: inherit;
+    z-index: -1;
+  }
+
+  @keyframes rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  /* Shimmer Animation */
+  .shimmer {
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.05) 50%,
+      transparent 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer-anim 2s infinite;
+  }
+
+  @keyframes shimmer-anim {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
   }
 
   /* Optimized Performance Variants */

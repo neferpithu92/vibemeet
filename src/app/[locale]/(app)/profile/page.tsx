@@ -29,6 +29,7 @@ import {
 } from 'lucide-react';
 import { BackButton } from '@/components/ui/BackButton';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { useToast } from '@/components/ui/ToastProvider';
 
 // Lazy load modals to improve initial page load and memory usage
 const AvatarCropperModal = dynamic(() => import('@/components/ui/AvatarCropperModal'), { ssr: false });
@@ -100,6 +101,7 @@ export default function ProfilePage() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedPost, setSelectedPost] = useState<UserPost | null>(null);
   const [privacy, setPrivacy] = useState<'friends' | 'public' | 'private'>('friends');
+  const { showToast } = useToast();
   
   const t = useTranslations('profile');
   const locale = useLocale();
@@ -230,7 +232,7 @@ export default function ProfilePage() {
       }
     } else {
       navigator.clipboard.writeText(window.location.href);
-      alert('Link copiato negli appunti! 🔗');
+      showToast(t('linkCopied'), 'success');
     }
   };
 
@@ -246,81 +248,84 @@ export default function ProfilePage() {
     <div className="page-container gpu-accelerated">
       <div className="max-w-2xl mx-auto px-4 py-4">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6 relative">
+        <div className="flex items-center justify-between mb-8 sticky top-0 z-30 -mx-4 px-4 py-3 bg-vibe-dark/80 backdrop-blur-xl border-b border-white/5">
           <div className="flex items-center gap-4">
              <BackButton className="!static" />
-             <h1 className="font-display text-2xl font-bold vibe-gradient-text tracking-tighter">{t('title')}</h1>
+             <h1 className="font-display text-2xl font-black vibe-gradient-text tracking-tighter uppercase">{t('title')}</h1>
           </div>
           <button 
             onClick={() => router.push('/settings')}
-            className="glass-card-static p-2 hover:bg-white/10 transition-all rounded-xl interactive-hover"
+            className="p-2.5 bg-white/5 hover:bg-vibe-purple/20 transition-all rounded-2xl tap-bounce border border-white/5"
           >
             <Settings className="w-5 h-5 text-vibe-text" />
           </button>
         </div>
 
         {/* Profilo Card */}
-        <Card className="p-6 mb-6 glass-card-static">
-          <div className="flex flex-col sm:flex-row items-center gap-4">
-            <div className="relative group cursor-pointer tap-scale" onClick={() => setIsCropperOpen(true)}>
-              <div className="story-ring p-1 rounded-full group-hover:scale-105 transition-transform duration-300">
-                <Avatar size="xl" src={profile?.avatar_url} fallback={profile?.display_name || 'U'} className="border-4 border-vibe-dark gpu-accelerated" />
+        <Card className="p-8 mb-8 glass-panel border border-white/10 relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-vibe-purple/10 blur-[60px] pointer-events-none" />
+          
+          <div className="flex flex-col sm:flex-row items-center gap-6 relative z-10">
+            <div className="relative group cursor-pointer tap-bounce" onClick={() => setIsCropperOpen(true)}>
+              <div className="story-ring p-1 rounded-full group-hover:scale-105 transition-transform duration-500">
+                <Avatar size="xl" src={profile?.avatar_url} fallback={profile?.display_name || 'U'} className="border-4 border-vibe-dark shadow-2xl" />
               </div>
-              <div className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-vibe-purple flex items-center justify-center border-2 border-vibe-dark shadow-lg group-hover:scale-110 transition-transform">
+              <div className="absolute bottom-0 right-0 w-10 h-10 rounded-full bg-vibe-purple flex items-center justify-center border-4 border-vibe-dark shadow-xl group-hover:scale-110 transition-transform">
                 <Camera className="w-4 h-4 text-white" />
               </div>
             </div>
-            <div className="flex-1 text-center sm:text-left">
+            
+            <div className="flex-1 text-center sm:text-left space-y-1">
               <div className="flex items-center gap-2 justify-center sm:justify-start">
-                <h2 className="font-display text-xl font-black">{profile?.display_name || 'Vibe User'}</h2>
-                {profile?.is_verified && <Badge variant="verified">✓</Badge>}
+                <h2 className="font-display text-2xl font-black tracking-tight">{profile?.display_name || 'Vibe User'}</h2>
+                {profile?.is_verified && <Badge variant="verified" className="scale-110">✓</Badge>}
               </div>
-              <p className="text-sm text-vibe-text-secondary font-medium">@{profile?.username || 'utente'}</p>
+              <p className="text-sm text-vibe-purple font-black uppercase tracking-widest opacity-80">@{profile?.username || 'utente'}</p>
               {profile?.bio && (
-                <p className="text-sm text-vibe-text/80 mt-2 max-w-md leading-relaxed">{profile.bio}</p>
+                <p className="text-sm text-vibe-text/80 mt-3 max-w-md leading-relaxed font-medium">{profile.bio}</p>
               )}
             </div>
           </div>
-
-          {/* Stats */}
-          <div className="flex justify-center sm:justify-start gap-8 mt-6 pt-4 border-t border-white/5">
-            <div className="text-center">
-              <p className="font-black text-lg">{posts.length}</p>
-              <p className="text-[10px] uppercase font-bold text-vibe-text-secondary tracking-widest">{t('posts')}</p>
+          
+          {/* Stats Bar */}
+          <div className="grid grid-cols-3 gap-4 mt-8 pt-6 border-t border-white/5 relative z-10">
+            <div className="text-center group cursor-pointer tap-bounce">
+              <p className="font-black text-xl group-hover:text-vibe-purple transition-colors">{posts.length}</p>
+              <p className="text-[10px] uppercase font-bold text-vibe-text-secondary tracking-widest opacity-60">{t('posts')}</p>
             </div>
-            <div className="text-center">
-              <p className="font-black text-lg">{followerCount.toLocaleString()}</p>
-              <p className="text-[10px] uppercase font-bold text-vibe-text-secondary tracking-widest">{t('followers')}</p>
+            <div className="text-center group cursor-pointer tap-bounce">
+              <p className="font-black text-xl group-hover:text-vibe-purple transition-colors">{followerCount.toLocaleString()}</p>
+              <p className="text-[10px] uppercase font-bold text-vibe-text-secondary tracking-widest opacity-60">{t('followers')}</p>
             </div>
-            <div className="text-center">
-              <p className="font-black text-lg">{followingCount}</p>
-              <p className="text-[10px] uppercase font-bold text-vibe-text-secondary tracking-widest">{t('following')}</p>
+            <div className="text-center group cursor-pointer tap-bounce">
+              <p className="font-black text-xl group-hover:text-vibe-purple transition-colors">{followingCount}</p>
+              <p className="text-[10px] uppercase font-bold text-vibe-text-secondary tracking-widest opacity-60">{t('following')}</p>
             </div>
           </div>
 
           {/* Actions */}
-          <div className="flex gap-3 mt-6">
+          <div className="flex gap-4 mt-8 relative z-10">
             <Button 
-                variant="secondary" 
-                className="flex-1 text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 h-11 rounded-xl interactive-hover"
+                variant="shining" 
+                className="flex-[2] text-[10px] font-black uppercase tracking-[0.2em] h-12 rounded-2xl"
                 onClick={() => setIsEditModalOpen(true)}
             >
-              <Edit3 className="w-4 h-4" /> {t('editProfile')}
+              <Edit3 className="w-4 h-4 mr-2" /> {t('editProfile')}
             </Button>
             <Link href="/profile/circles">
               <Button 
-                  variant="ghost" 
-                  className="h-11 w-11 p-0 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 flex items-center justify-center interactive-hover"
+                  variant="secondary" 
+                  className="h-12 w-12 p-0 rounded-2xl bg-white/5 border border-white/10 hover:bg-vibe-purple/20 transition-all flex items-center justify-center tap-bounce"
               >
                 <Users className="w-5 h-5 text-vibe-purple" />
               </Button>
             </Link>
             <Button 
-                variant="ghost" 
-                className="h-11 w-11 p-0 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 flex items-center justify-center interactive-hover"
+                variant="secondary" 
+                className="h-12 w-12 p-0 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all flex items-center justify-center tap-bounce"
                 onClick={handleShare}
             >
-              <Share2 className="w-5 h-5 text-white/70" />
+              <Share2 className="w-5 h-5 text-vibe-text-secondary" />
             </Button>
           </div>
         </Card>
@@ -360,26 +365,27 @@ export default function ProfilePage() {
                 <div 
                   key={post.id} 
                   onClick={() => setSelectedPost(post)}
-                  className="relative aspect-square bg-white/5 group cursor-pointer overflow-hidden border border-white/5 tap-scale"
+                  className="relative aspect-square bg-vibe-surface group cursor-pointer overflow-hidden border border-white/5 tap-bounce"
                 >
+                  <div className="absolute inset-0 shimmer opacity-20" />
                   <Image 
                     src={post.media_url} 
                     alt="" 
                     fill
                     sizes="(max-width: 768px) 33vw, 200px"
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 gpu-accelerated" 
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
                   />
                   <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-300 flex items-center justify-center">
-                    <Heart className="opacity-0 group-hover:opacity-100 transition-all duration-300 w-5 h-5 text-white fill-white" />
+                    <Heart className="opacity-0 group-hover:opacity-100 transition-all duration-500 scale-50 group-hover:scale-100 w-6 h-6 text-white fill-white" />
                   </div>
                 </div>
               )) : (
                 <div className="col-span-3">
                   <EmptyState
                     icon={Camera}
-                    title="Ancora nessun post"
-                    description="Le tue foto appariranno qui."
-                    actionLabel="Crea Post"
+                    title={t('noPosts')}
+                    description={t('postsDescription')}
+                    actionLabel={t('createPost')}
                     onAction={() => router.push('/create')}
                   />
                 </div>
@@ -408,9 +414,9 @@ export default function ProfilePage() {
                 <div className="col-span-3">
                   <EmptyState
                     icon={Video}
-                    title="Nessun Vibe"
-                    description="I tuoi video verticali appariranno qui."
-                    actionLabel="Registra Vibe"
+                    title={t('noVibes')}
+                    description={t('vibesDescription')}
+                    actionLabel={t('registerVibe')}
                     onAction={() => router.push('/create')}
                   />
                 </div>
@@ -442,9 +448,9 @@ export default function ProfilePage() {
                 <div className="col-span-3">
                   <EmptyState
                     icon={MapPin}
-                    title="Nessun check-in"
-                    description="Esplora i locali intorno a te."
-                    actionLabel="Apri Mappa"
+                    title={t('noCheckIns')}
+                    description={t('checkInsDescription')}
+                    actionLabel={t('openMap')}
                     onAction={() => router.push('/map')}
                   />
                 </div>
@@ -453,20 +459,29 @@ export default function ProfilePage() {
           ) : activeTab === 'tickets' ? (
             <div className="space-y-4">
               {ticketsData.length > 0 ? ticketsData.map((tk) => (
-                <Card key={tk.id} className="p-0 overflow-hidden border-white/5 bg-white/5 group relative">
+                <Card key={tk.id} className="p-0 overflow-hidden border-white/10 bg-vibe-dark/40 group relative tap-bounce hover:shadow-[0_0_30px_rgba(157,78,221,0.1)] transition-all duration-500">
+                  <div className="absolute top-0 left-0 w-2 h-full bg-vibe-gradient" />
                   <div className="flex flex-col md:flex-row relative z-10">
-                    <div className="p-6 flex-1">
-                      <div className="flex items-center gap-2 mb-3">
-                         <Badge variant="premium">VIBE PASS</Badge>
+                    <div className="p-6 flex-1 space-y-4">
+                      <div className="flex items-center justify-between">
+                         <Badge variant="premium" className="px-3 py-1">VIBE PASS</Badge>
+                         <span className="text-[10px] font-black text-vibe-text-secondary uppercase tracking-[0.2em]">#{tk.id.slice(0,8)}</span>
                       </div>
-                      <h3 className="text-xl font-black uppercase tracking-tighter vibe-gradient-text mb-1">{tk.event?.title}</h3>
-                      <p className="text-xs text-vibe-text-secondary flex items-center gap-2">
-                         <MapPin className="w-3 h-3 text-vibe-purple" /> {tk.event?.venue?.name || 'Vibe Location'}
-                      </p>
+                      <div>
+                        <h3 className="text-2xl font-black uppercase tracking-tighter vibe-gradient-text leading-tight">{tk.event?.title}</h3>
+                        <div className="flex flex-col gap-2 mt-3">
+                          <p className="text-xs text-vibe-text-secondary flex items-center gap-2 font-bold uppercase tracking-widest opacity-80">
+                             <MapPin className="w-4 h-4 text-vibe-purple" /> {tk.event?.venue?.name || 'Vibe Location'}
+                          </p>
+                          <p className="text-xs text-vibe-text-secondary flex items-center gap-2 font-bold uppercase tracking-widest opacity-80">
+                             <Play className="w-4 h-4 text-vibe-pink" /> {tk.event?.starts_at ? new Date(tk.event.starts_at).toLocaleDateString() : ''}
+                          </p>
+                        </div>
+                      </div>
                     </div>
-                    <div className="p-4 bg-white/5 flex items-center justify-center">
-                       <div className="w-24 h-24 bg-white rounded-xl p-1.5">
-                          <img src={`https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${tk.qr_code}`} alt="QR" className="w-full h-full" />
+                    <div className="p-6 bg-white/5 flex items-center justify-center border-l border-white/5 md:w-40">
+                       <div className="w-28 h-28 bg-white rounded-2xl p-2 shadow-2xl transition-transform duration-500 group-hover:scale-110">
+                          <img src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${tk.qr_code}`} alt="QR" className="w-full h-full" />
                        </div>
                     </div>
                   </div>
@@ -475,9 +490,9 @@ export default function ProfilePage() {
                 <div className="col-span-3">
                   <EmptyState
                     icon={PackageCheck}
-                    title="Nessun biglietto"
-                    description="I tuoi pass per gli eventi appariranno qui."
-                    actionLabel="Scopri Eventi"
+                    title={t('noTickets')}
+                    description={t('ticketsDescription')}
+                    actionLabel={t('discoverEvents')}
                     onAction={() => router.push('/events')}
                   />
                 </div>
@@ -523,6 +538,7 @@ export default function ProfilePage() {
              onUpdate={handleProfileUpdate}
            />
         )}
+      </div>
     </div>
   );
 }

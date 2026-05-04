@@ -121,24 +121,24 @@ const MapSearch = memo(() => {
       </div>
 
       {results.length > 0 && (
-        <Card className="absolute top-13 left-0 right-0 z-50 max-h-80 overflow-y-auto p-2 bg-vibe-dark/95 backdrop-blur-2xl border-white/10 shadow-2xl space-y-1 gpu-accelerated animate-fade-in rounded-2xl">
-          <p className="text-[10px] font-black text-vibe-text-secondary px-3 py-2 uppercase tracking-[0.2em] opacity-60">
-            Risultati Scoperta
+        <Card className="absolute top-13 left-0 right-0 z-50 max-h-80 overflow-y-auto p-2 glass-panel shadow-[0_0_50px_rgba(0,0,0,0.5)] space-y-1 gpu-accelerated animate-fade-in rounded-[2rem] border-white/10">
+          <p className="text-[10px] font-black text-vibe-purple px-4 py-2 uppercase tracking-[0.2em]">
+            Discovery Results
           </p>
           {results.map((item) => (
             <button
               key={item.id}
               onClick={() => handleSelect(item)}
-              className="w-full flex items-center gap-3.5 p-3 rounded-xl hover:bg-white/5 text-left transition-all group tap-scale active:bg-white/10"
+              className="w-full flex items-center gap-3.5 p-3 rounded-2xl hover:bg-vibe-purple/10 text-left transition-all group tap-bounce"
             >
-              <div className="w-9 h-9 rounded-full bg-white/5 flex items-center justify-center text-lg shadow-inner group-hover:scale-110 transition-transform">
+              <div className="w-10 h-10 rounded-xl bg-vibe-surface/60 flex items-center justify-center text-lg shadow-inner group-hover:scale-110 group-hover:bg-vibe-purple/20 transition-all border border-white/5">
                 {item.source === 'mapbox' ? <MapPin className="w-4 h-4 text-vibe-purple" /> : (item.name ? <Building2 className="w-4 h-4 text-vibe-cyan" /> : <Calendar className="w-4 h-4 text-vibe-pink" />)}
               </div>
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-bold truncate group-hover:text-vibe-purple transition-colors">
+                <p className="text-sm font-black truncate group-hover:text-white transition-colors">
                   {item.displayName}
                 </p>
-                <p className="text-[10px] text-vibe-text-secondary truncate uppercase font-black tracking-widest mt-0.5">
+                <p className="text-[10px] text-vibe-text-secondary truncate uppercase font-bold tracking-widest mt-0.5 opacity-60">
                   {item.source === 'mapbox' ? 'Mappa' : (item.type || item.venue?.name || 'Evento')}
                 </p>
               </div>

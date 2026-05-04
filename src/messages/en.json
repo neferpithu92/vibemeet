@@ -126,7 +126,10 @@
     "layers": "Map layers",
     "crowd": "Crowd density",
     "enableLocation": "Enable location to see nearby events",
-    "saved": "Saved Events"
+    "saved": "Saved Events",
+    "liveActivity": "Live Activity",
+    "addressNotAvailable": "Address not available",
+    "vibeScore": "Vibe Score"
   },
   "events": {
     "title": "Events",
@@ -152,6 +155,8 @@
     "gallery": "Gallery",
     "comments": "Comments",
     "noEvents": "No events found",
+    "noEventsFound": "Try changing the filters to find more events.",
+    "resetFilters": "Reset Filters",
     "filters": {
       "city": "City",
       "date": "Date",
@@ -317,7 +322,25 @@
       "private": "Private",
       "dark": "Dark",
       "light": "Light"
-    }
+    },
+    "linkCopied": "Link copied to clipboard! 🔗",
+    "noPosts": "No posts yet",
+    "postsDescription": "Your photos will appear here.",
+    "createPost": "Create Post",
+    "noVibes": "No Vibes",
+    "vibesDescription": "Your vertical videos will appear here.",
+    "registerVibe": "Record Vibe",
+    "noCheckIns": "No check-ins",
+    "checkInsDescription": "Explore venues around you.",
+    "openMap": "Open Map",
+    "noTickets": "No tickets",
+    "ticketsDescription": "Your event passes will appear here.",
+    "discoverEvents": "Discover Events",
+    "userNotFound": "User not found",
+    "followingStatus": "Following",
+    "followAction": "Follow",
+    "message": "Message",
+    "requestSent": "Request sent"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -660,6 +683,18 @@
     "errorNoVenue": "Select a venue for the event",
     "errorUnauthorized": "Unauthorized",
     "errorUnexpected": "Unexpected error",
+    "stepInfo": "Info",
+    "stepMedia": "Media",
+    "stepPricing": "Pricing",
+    "noVenue": "No Venue (Custom address)",
+    "noVenuesOwned": "You don't own any venues. Enter an address below.",
+    "category": "Category",
+    "next": "Next",
+    "back": "Back",
+    "summary": "Summary",
+    "summaryEvent": "Event",
+    "summaryDate": "Date",
+    "summaryPrice": "Price",
     "mutualFriends": "Mutual Friends",
     "friendRequests": "Friend Requests",
     "sendRequest": "Send Request",
@@ -674,6 +709,15 @@
     "endToEndEncrypted": "E2E Encrypted",
     "chatSecurityWarning": "Messages are secured by VIBE End-to-End encryption (VEL)."
   },
+  "social": {
+    "checkIn": "Check-in",
+    "checkInSuccess": "Check-in complete!",
+    "loginRequired": "You must be logged in to check-in",
+    "checkInError": "Error during check-in",
+    "connectionError": "Connection error",
+    "follow": "Follow",
+    "following": "Following"
+  },
   "chat": {
     "title": "Messages",
     "e2e": "E2E Protected",
@@ -685,7 +729,12 @@
     "securityTitle": "Fort Knox Security",
     "securityDescription": "All messages on VIBE are protected by Curve25519 asymmetric encryption. Only you and the recipient have the keys to decrypt the content.",
     "seeConversations": "See conversations",
-    "encrypted": "[Encrypting...]"
+    "encrypted": "Encrypted",
+    "userFallback": "User",
+    "encryptedMessage": "Encrypted message",
+    "typePlaceholder": "Type a message...",
+    "e2eDescription": "Your conversations are protected by end-to-end encryption. Only you and the recipient can read the messages.",
+    "showChats": "Go to chats"
   },
   "messages": {
     "title": "Messages",

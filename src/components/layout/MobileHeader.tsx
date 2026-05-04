@@ -1,29 +1,29 @@
 'use client';
 
-import { Link } from '@/lib/i18n/navigation';
-import { NotificationDropdown } from './NotificationDropdown';
-import { GlobalSearch } from './GlobalSearch';
+import { useRouter } from '@/lib/i18n/navigation';
 
 /**
- * Header superiore per mobile — Logo VIBE e Notifiche.
+ * Mobile Header — Premium Vibe.
  */
 export function MobileHeader() {
+  const router = useRouter();
+  
   return (
-    <header className="md:hidden fixed top-0 left-0 right-0 z-50 h-14 flex items-center justify-between px-4 bg-vibe-dark/60 backdrop-blur-2xl border-b border-vibe-border">
-      {/* Logo */}
-      <Link href="/map" className="flex items-center gap-2">
-        <div className="w-7 h-7 rounded-lg bg-vibe-gradient flex items-center justify-center">
-          <span className="text-white font-bold text-xs">V</span>
+    <header className="fixed top-0 left-0 right-0 z-[40] md:hidden glass-panel px-4 h-14 flex items-center justify-between border-b border-white/5">
+      <div className="flex items-center gap-3">
+        <div className="w-9 h-9 rounded-xl bg-vibe-gradient flex items-center justify-center shadow-lg shadow-vibe-purple/20 border border-white/10">
+          <span className="text-white text-sm font-black italic">V</span>
         </div>
-        <span className="font-display text-lg font-bold vibe-gradient-text uppercase tracking-wider">
-          Vibe
-        </span>
-      </Link>
-
-      {/* Action Buttons */}
-      <div className="flex items-center gap-1">
-        <GlobalSearch />
-        <NotificationDropdown />
+        <h1 className="font-display text-xl font-black vibe-gradient-text tracking-tighter uppercase italic">VIBEMEET</h1>
+      </div>
+      
+      <div className="flex items-center gap-3">
+        <button 
+          onClick={() => router.push('/map')}
+          className="w-10 h-10 flex items-center justify-center bg-white/5 rounded-2xl tap-bounce border border-white/5 shadow-inner"
+        >
+           <span className="text-xl">🔍</span>
+        </button>
       </div>
     </header>
   );

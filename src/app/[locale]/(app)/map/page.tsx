@@ -54,6 +54,25 @@ interface MapEvent {
   description?: string;
 }
 
+interface MapStory {
+  id: string;
+  profiles: {
+    username: string;
+    avatar_url: string | null;
+  };
+  location: {
+    coordinates: [number, number];
+  };
+}
+
+interface MapUser {
+  id: string;
+  username: string;
+  avatar_url: string | null;
+  latitude: number;
+  longitude: number;
+}
+
 export default function MapPage() {
   const t = useTranslations('map');
   const te = useTranslations('events');
@@ -76,9 +95,9 @@ export default function MapPage() {
   
   const [venues, setVenues] = useState<MapVenue[]>([]);
   const [events, setEvents] = useState<MapEvent[]>([]);
-  const [stories, setStories] = useState<any[]>([]);
+  const [stories, setStories] = useState<MapStory[]>([]);
   const [media, setMedia] = useState<any[]>([]);
-  const [users, setUsers] = useState<any[]>([]);
+  const [users, setUsers] = useState<MapUser[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isCentering, setIsCentering] = useState(false);
   
@@ -298,7 +317,7 @@ export default function MapPage() {
       {showActivity && (
         <Card className="absolute top-4 left-4 md:left-24 z-30 w-full max-w-[320px] p-0 overflow-hidden bg-vibe-dark/95 backdrop-blur-2xl border-white/10 h-[70vh] flex flex-col gpu-accelerated animate-slide-in-left">
           <div className="p-4 border-b border-white/5 flex items-center justify-between">
-            <h3 className="font-display font-bold text-lg">⚡ Live Activity</h3>
+            <h3 className="font-display font-bold text-lg">⚡ {t('liveActivity')}</h3>
             <button onClick={() => setShowActivity(false)} className="interactive-hover"><X className="w-5 h-5" /></button>
           </div>
           <div className="flex-1 overflow-y-auto">
@@ -358,12 +377,12 @@ export default function MapPage() {
             <h2 className="font-display text-2xl font-black vibe-gradient-text tracking-tighter">{selectedItem.name || selectedItem.title}</h2>
             <p className="text-vibe-text-secondary text-sm flex items-center gap-2">
               <Navigation className="w-3.5 h-3.5 text-vibe-purple" />
-              {selectedItem.address || selectedItem.venue?.address || 'Indirizzo non disponibile'}
+              {selectedItem.address || selectedItem.venue?.address || t('addressNotAvailable')}
             </p>
 
             <div className="flex gap-4">
               <div className="flex-1 p-3.5 rounded-2xl bg-white/5 border border-white/10 text-center">
-                <p className="text-[9px] text-vibe-text-secondary uppercase font-black tracking-widest mb-1">Vibe Score</p>
+                <p className="text-[9px] text-vibe-text-secondary uppercase font-black tracking-widest mb-1">{t('vibeScore')}</p>
                 <p className="text-xl font-black text-vibe-pink">
                   {selectedItem.vibe_score ? Number(selectedItem.vibe_score).toFixed(1) : '5.0'}
                 </p>

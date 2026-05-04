@@ -24,6 +24,7 @@ export function LocationPicker({ value, onChange, required = false }: LocationPi
   const [nearbyVenues, setNearbyVenues] = useState<NearbyVenue[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [loadingSearch, setLoadingSearch] = useState(false);
 
   useEffect(() => {
     if (!value) {
@@ -79,36 +80,85 @@ export function LocationPicker({ value, onChange, required = false }: LocationPi
     );
   }, [value, onChange, supabase, t]);
 
-  // Handle mapbox geocoding search
+  // Combined Search (Venues + Mapbox)
   useEffect(() => {
-    if (!searchQuery) return;
+    if (!searchQuery || searchQuery.length < 2) {
+      setNearbyVenues([]);
+      return;
+    }
+    
     const t_out = setTimeout(async () => {
+      setLoadingSearch(true);
       try {
         const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
-        if (!token || token.startsWith('pk.insert')) return;
         
-        const res = await fetch(
-          `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(searchQuery)}.json` +
-          `?access_token=${token}` +
-          `&proximity=8.5417,47.3769` + 
-          `&country=ch&limit=5`
-        );
-        const data = await res.json();
-        if (data.features) {
-          const mapboxVenues = data.features.map((f: { id: string; text: string; center: [number, number] }) => ({
-            id: f.id,
-            name: f.text,
-            lng: f.center[0],
-            lat: f.center[1]
-          }));
-          setNearbyVenues(mapboxVenues);
+        // 1. Search existing Venues in VIBE DB
+        const { data: dbVenues } = await supabase
+          .from('venues')
+          .select('id, name, address, location')
+          .ilike('name', `%${searchQuery}%`)
+          .limit(3);
+
+        const mappedDbVenues: NearbyVenue[] = (dbVenues || []).map(v => {
+          // Supabase returns PostGIS geography as GeoJSON or object
+          const loc = v.location as any;
+          let lat = 47.3769;
+          let lng = 8.5417;
+
+          if (loc && loc.coordinates) {
+            lng = loc.coordinates[0];
+            lat = loc.coordinates[1];
+          } else if (typeof loc === 'string') {
+            // Handle POINT(lng lat) string
+            const matches = loc.match(/POINT\(([-\d.]+) ([-\d.]+)\)/);
+            if (matches) {
+              lng = parseFloat(matches[1]);
+              lat = parseFloat(matches[2]);
+            }
+          }
+
+          return {
+            id: v.id,
+            name: v.name,
+            address: v.address,
+            lat,
+            lng,
+            isDbVenue: true
+          };
+        });
+
+        // 2. Search Mapbox Places
+        let mapboxVenues: NearbyVenue[] = [];
+        if (token && !token.startsWith('pk.insert')) {
+          const res = await fetch(
+            `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(searchQuery)}.json` +
+            `?access_token=${token}` +
+            `&proximity=8.5417,47.3769` + 
+            `&country=ch&limit=5`
+          );
+          const data = await res.json();
+          if (data.features) {
+            mapboxVenues = data.features.map((f: any) => ({
+              id: f.id,
+              name: f.text,
+              address: f.place_name,
+              lng: f.center[0],
+              lat: f.center[1],
+              isDbVenue: false
+            }));
+          }
         }
+
+        // Combine and deduplicate if necessary
+        setNearbyVenues([...mappedDbVenues, ...mapboxVenues]);
       } catch (e) {
-        console.error(e);
+        console.error("Search failed", e);
+      } finally {
+        setLoadingSearch(false);
       }
-    }, 500);
+    }, 400);
     return () => clearTimeout(t_out);
-  }, [searchQuery]);
+  }, [searchQuery, supabase]);
 
   return (
     <div className="w-full bg-white/5 border border-white/10 p-4 rounded-xl">
@@ -153,37 +203,56 @@ export function LocationPicker({ value, onChange, required = false }: LocationPi
         </div>
       ) : (
         <div className="space-y-3">
-          <input
-            type="text"
-            placeholder={t('searchPlaceholder')}
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full px-3 py-2 rounded-lg bg-vibe-dark/50 border border-white/10 text-sm focus:border-vibe-purple transition-colors outline-none"
-          />
-          
-          {nearbyVenues.length > 0 && (
-            <div>
-              <p className="text-xs text-vibe-text-secondary mb-2">{t('resultsSuggestions')}</p>
-              <div className="flex flex-wrap gap-2">
+          <div className="relative">
+            <input
+              type="text"
+              placeholder={t('searchPlaceholder')}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full px-4 py-3 rounded-xl bg-vibe-dark/50 border border-white/10 text-sm focus:border-vibe-purple transition-all outline-none focus:ring-1 focus:ring-vibe-purple/50"
+            />
+            
+            {loadingSearch && (
+              <div className="absolute right-4 top-1/2 -translate-y-1/2">
+                <div className="w-4 h-4 border-2 border-vibe-purple/30 border-t-vibe-purple rounded-full animate-spin" />
+              </div>
+            )}
+            
+            {nearbyVenues.length > 0 && (
+              <div className="absolute top-full left-0 right-0 mt-2 z-[60] glass-card overflow-hidden shadow-2xl animate-fade-in max-h-[240px] overflow-y-auto">
                 {nearbyVenues.map((venue, idx) => (
                   <button
                     key={venue.id || idx}
                     type="button"
-                    onClick={() => onChange({
-                      lat: venue.lat,
-                      lng: venue.lng,
-                      name: venue.name,
-                      venue_id: venue.id.includes('.') ? undefined : venue.id // Mapbox IDs have dots
-                    })}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 hover:bg-vibe-purple/20 hover:border-vibe-purple/30 text-xs font-medium transition-colors"
+                    onClick={() => {
+                      onChange({
+                        lat: venue.lat,
+                        lng: venue.lng,
+                        name: venue.name,
+                        venue_id: (venue as any).isDbVenue ? venue.id : undefined
+                      });
+                      setSearchQuery('');
+                      setNearbyVenues([]);
+                    }}
+                    className="w-full flex items-center gap-3 px-4 py-3 hover:bg-vibe-purple/20 transition-colors text-left border-b border-white/5 last:border-0"
                   >
-                    <span>🏢</span>
-                    <span className="truncate max-w-[120px]">{venue.name}</span>
+                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-lg ${(venue as any).isDbVenue ? 'bg-vibe-purple/30' : 'bg-white/10'}`}>
+                      {(venue as any).isDbVenue ? '🏢' : '📍'}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-bold text-vibe-text truncate">{venue.name}</p>
+                      <p className="text-[10px] text-vibe-text-secondary truncate">
+                        {(venue as any).address || (venue as any).isDbVenue ? 'Venue Registrata' : 'Luogo Mappa'}
+                      </p>
+                    </div>
+                    {(venue as any).isDbVenue && (
+                      <span className="text-[8px] bg-vibe-purple/20 text-vibe-purple px-1.5 py-0.5 rounded font-black uppercase">Vibe</span>
+                    )}
                   </button>
                 ))}
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       )}
     </div>

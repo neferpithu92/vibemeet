@@ -19,17 +19,22 @@ const paddingClasses = {
 /**
  * Card glassmorphism VIBE — base per tutti i container.
  */
-export function Card({ children, className, hover = false, padding = 'md', onClick }: CardProps) {
-  return (
-    <div
-      onClick={onClick}
-      className={cn(
-        hover ? 'glass-card-hover' : 'glass-card',
-        paddingClasses[padding],
-        className
-      )}
-    >
-      {children}
-    </div>
-  );
-}
+export const Card = React.forwardRef<HTMLDivElement, CardProps>(
+  ({ children, className, hover = false, padding = 'md', onClick }, ref) => {
+    return (
+      <div
+        ref={ref}
+        onClick={onClick}
+        className={cn(
+          hover ? 'glass-card-hover' : 'glass-card',
+          paddingClasses[padding],
+          className
+        )}
+      >
+        {children}
+      </div>
+    );
+  }
+);
+
+Card.displayName = 'Card';

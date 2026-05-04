@@ -76,20 +76,55 @@ export default function CreateEvent({ isOpen, onClose, onSuccess, venueId: initi
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    console.log("Starting event creation with data:", formData);
+    
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error(t('errorUnauthorized'));
+      if (!user) {
+        console.error("No authenticated user found");
+        throw new Error(t('errorUnauthorized'));
+      }
 
-      let eventLocation = 'POINT(8.5417 47.3769)'; // Default to Zurich if no venue is selected
+      let eventLocation = 'POINT(8.5417 47.3769)'; // Default to Zurich
       let finalAddress = formData.address;
 
       if (selectedVenueId) {
-        const { data: venueData } = await (supabase.from('venues') as any).select('location').eq('id', selectedVenueId).single();
+        console.log("Selected venue ID:", selectedVenueId);
+        const { data: venueData, error: venueError } = await (supabase.from('venues') as any).select('location, address').eq('id', selectedVenueId).single();
+        if (venueError) {
+          console.error("Error fetching venue data:", venueError);
+        }
         if (venueData?.location) eventLocation = venueData.location;
+        if (venueData?.address) finalAddress = venueData.address;
       } else if (formData.locationData) {
-        eventLocation = `POINT(${formData.locationData.lng} ${formData.locationData.lat})`;
+        console.log("Using custom location data:", formData.locationData);
+        // PostGIS geography expects WKT or GeoJSON. PostgREST handles both, but GeoJSON is safer for JS.
+        eventLocation = {
+          type: 'Point',
+          coordinates: [formData.locationData.lng, formData.locationData.lat]
+        };
         finalAddress = formData.locationData.name || 'Custom Location';
+      } else {
+        console.warn("No location selected, using default");
+        eventLocation = {
+          type: 'Point',
+          coordinates: [8.5417, 47.3769]
+        };
       }
+
+      const eventSlug = formData.title
+        .toLowerCase()
+        .trim()
+        .replace(/[^\w\s-]/g, '')
+        .replace(/[\s_-]+/g, '-')
+        .replace(/^-+|-+$/g, '') + '-' + Math.random().toString(36).substring(2, 7);
+
+      console.log("Final payload for event insert:", {
+        title: formData.title,
+        venue_id: selectedVenueId,
+        location: eventLocation,
+        starts_at: formData.startTime
+      });
 
       const { data, error } = await (supabase.from('events') as any).insert({
         title: formData.title,
@@ -100,17 +135,23 @@ export default function CreateEvent({ isOpen, onClose, onSuccess, venueId: initi
         starts_at: new Date(formData.startTime).toISOString(),
         ends_at: formData.endTime ? new Date(formData.endTime).toISOString() : null,
         ticket_price: formData.price,
-        slug: formData.title.toLowerCase().replace(/ /g, '-') + '-' + Date.now(),
+        slug: eventSlug,
         location: eventLocation,
-        address: selectedVenueId ? null : finalAddress
+        address: finalAddress || 'Address not specified',
+        cover_url: formData.coverUrl
       }).select().single();
 
-      if (error) throw error;
+      if (error) {
+        console.error("Supabase insert error:", error);
+        throw error;
+      }
 
+      console.log("Event created successfully:", data);
       showToast(t('success'), 'success', '🎉');
       if (onSuccess) onSuccess();
       onClose();
     } catch (err: any) {
+      console.error("Caught error in handleSubmit:", err);
       showToast(err instanceof Error ? err.message : t('errorUnexpected'), 'error');
     } finally {
       setIsLoading(false);
@@ -129,7 +170,7 @@ export default function CreateEvent({ isOpen, onClose, onSuccess, venueId: initi
               {step > s ? '✓' : s}
             </div>
             <span className={`text-[10px] uppercase font-bold tracking-widest ${step >= s ? 'text-white' : 'text-white/20'}`}>
-              {s === 1 ? 'Info' : s === 2 ? 'Media' : 'Pricing'}
+              {s === 1 ? t('stepInfo') : s === 2 ? t('stepMedia') : t('stepPricing')}
             </span>
           </div>
         ))}
@@ -147,13 +188,13 @@ export default function CreateEvent({ isOpen, onClose, onSuccess, venueId: initi
                     value={selectedVenueId || ''}
                     onChange={(e) => setSelectedVenueId(e.target.value)}
                   >
-                    <option value="">Nessuna Venue (Usa indirizzo personalizzato)</option>
+                    <option value="">{t('noVenue')}</option>
                     {userVenues.map(v => (
                       <option key={v.id} value={v.id}>{v.name}</option>
                     ))}
                   </select>
                 ) : (
-                  <div className="mt-1.5 text-xs text-white/40 italic">Nessuna venue posseduta. Inserisci un indirizzo qui sotto.</div>
+                  <div className="mt-1.5 text-xs text-white/40 italic">{t('noVenuesOwned')}</div>
                 )}
               </div>
             )}
@@ -180,7 +221,7 @@ export default function CreateEvent({ isOpen, onClose, onSuccess, venueId: initi
             </div>
             
             <div>
-              <label className="text-[10px] font-bold uppercase text-vibe-text-secondary tracking-widest mb-2 block">Categoria</label>
+              <label className="text-[10px] font-bold uppercase text-vibe-text-secondary tracking-widest mb-2 block">{t('category')}</label>
               <div className="grid grid-cols-5 gap-2">
                 {categories.map(cat => (
                   <button
@@ -212,7 +253,7 @@ export default function CreateEvent({ isOpen, onClose, onSuccess, venueId: initi
             </div>
 
             <Button type="button" variant="primary" className="w-full mt-4" onClick={() => setStep(2)} disabled={!formData.title || !formData.description}>
-              Avanti
+              {t('next')}
             </Button>
           </motion.div>
         )}
@@ -236,8 +277,8 @@ export default function CreateEvent({ isOpen, onClose, onSuccess, venueId: initi
             </div>
 
             <div className="flex gap-3">
-              <Button type="button" variant="secondary" className="flex-1" onClick={() => setStep(1)}>Indietro</Button>
-              <Button type="button" variant="primary" className="flex-1" onClick={() => setStep(3)} disabled={!formData.coverUrl}>Avanti</Button>
+              <Button type="button" variant="secondary" className="flex-1" onClick={() => setStep(1)}>{t('back')}</Button>
+              <Button type="button" variant="primary" className="flex-1" onClick={() => setStep(3)} disabled={!formData.coverUrl}>{t('next')}</Button>
             </div>
           </motion.div>
         )}
@@ -271,23 +312,23 @@ export default function CreateEvent({ isOpen, onClose, onSuccess, venueId: initi
             </div>
 
             <div className="bg-white/5 p-4 rounded-2xl border border-white/10 space-y-3">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-vibe-purple">Riepilogo</h4>
+              <h4 className="text-xs font-bold uppercase tracking-wider text-vibe-purple">{t('summary')}</h4>
               <div className="flex justify-between text-sm">
-                <span className="text-white/60">Evento:</span>
+                <span className="text-white/60">{t('summaryEvent')}:</span>
                 <span className="text-white font-medium">{formData.title}</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-white/60">Data:</span>
+                <span className="text-white/60">{t('summaryDate')}:</span>
                 <span className="text-white font-medium">{formData.startTime ? new Date(formData.startTime).toLocaleString() : '-'}</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-white/60">Prezzo:</span>
+                <span className="text-white/60">{t('summaryPrice')}:</span>
                 <span className="text-vibe-cyan font-bold">{formData.price} CHF</span>
               </div>
             </div>
 
             <div className="flex gap-3">
-              <Button type="button" variant="secondary" className="flex-1" onClick={() => setStep(2)}>Indietro</Button>
+              <Button type="button" variant="secondary" className="flex-1" onClick={() => setStep(2)}>{t('back')}</Button>
               <Button 
                 type="submit" 
                 variant="primary" 

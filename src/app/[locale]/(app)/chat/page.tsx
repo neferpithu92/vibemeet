@@ -128,8 +128,8 @@ export default function ChatPage() {
             >
               <Avatar src={conv.other_user?.avatar_url || ''} fallback={conv.other_user?.username?.[0] || 'U'} size="md" hasStory={true} border={activeConversationId === conv.id} />
               <div className="flex-1 text-left min-w-0">
-                <p className="font-bold text-sm text-white truncate">{conv.other_user?.display_name || 'Utente'}</p>
-                <p className="text-xs text-white/50 truncate">Messaggio crittografato</p>
+                <p className="font-bold text-sm text-white truncate">{conv.other_user?.display_name || t('userFallback')}</p>
+                <p className="text-xs text-white/50 truncate">{t('encryptedMessage')}</p>
               </div>
               <p className="text-[10px] text-white/30 font-medium">{format(new Date(conv.last_message_at), 'HH:mm')}</p>
             </button>
@@ -149,7 +149,7 @@ export default function ChatPage() {
                   <p className="font-bold text-sm text-white">{activeConv?.other_user?.display_name}</p>
                   <p className="text-[10px] text-vibe-cyan/80 font-bold uppercase tracking-widest flex items-center gap-1.5">
                     <span className="w-1.5 h-1.5 rounded-full bg-vibe-cyan animate-pulse" />
-                    Crittografato
+                    {t('encrypted')}
                   </p>
                 </div>
               </div>
@@ -199,7 +199,7 @@ export default function ChatPage() {
                 <input
                   value={newMessage}
                   onChange={(e) => setNewMessage(e.target.value)}
-                  placeholder="Scrivi un messaggio..."
+                  placeholder={t('typePlaceholder')}
                   className="flex-1 bg-transparent border-none focus:ring-0 text-sm px-2 text-white outline-none"
                 />
                 <motion.button type="submit" whileTap={{ scale: 0.9 }} className="w-10 h-10 rounded-full bg-vibe-purple flex items-center justify-center text-white shadow-lg shadow-vibe-purple/30">
@@ -217,9 +217,9 @@ export default function ChatPage() {
               </div>
               <div className="absolute -top-4 -right-4 w-12 h-12 rounded-2xl bg-vibe-pink flex items-center justify-center text-xl shadow-xl animate-pulse">🔒</div>
             </div>
-            <h2 className="text-3xl font-display font-black text-white mb-3">VIBE MESSAGES</h2>
-            <p className="text-white/50 max-w-sm mb-10 leading-relaxed">Le tue conversazioni sono protette dalla crittografia end-to-end.<br/>Solo tu e il destinatario potete leggere i messaggi.</p>
-            <Button onClick={() => setShowList(true)} variant="outline" className="lg:hidden border-white/10 text-white hover:bg-white/5">Vai alle chat</Button>
+            <h2 className="text-3xl font-display font-black text-white mb-3">{t('title')}</h2>
+            <p className="text-white/50 max-w-sm mb-10 leading-relaxed">{t('e2eDescription')}</p>
+            <Button onClick={() => setShowList(true)} variant="outline" className="lg:hidden border-white/10 text-white hover:bg-white/5">{t('showChats')}</Button>
           </div>
         )}
       </div>

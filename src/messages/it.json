@@ -129,7 +129,10 @@
     "layers": "Livelli mappa",
     "crowd": "Densità folla",
     "enableLocation": "Abilita la posizione per vedere eventi vicini",
-    "saved": "Eventi Salvati"
+    "saved": "Eventi Salvati",
+    "liveActivity": "Attività Live",
+    "addressNotAvailable": "Indirizzo non disponibile",
+    "vibeScore": "Vibe Score"
   },
   "events": {
     "title": "Eventi",
@@ -155,6 +158,8 @@
     "gallery": "Galleria",
     "comments": "Commenti",
     "noEvents": "Nessun evento trovato",
+    "noEventsFound": "Prova a cambiare i filtri per trovare altri eventi.",
+    "resetFilters": "Resetta Filtri",
     "filters": {
       "city": "Città",
       "date": "Data",
@@ -324,7 +329,25 @@
       "private": "Privato",
       "dark": "Scuro",
       "light": "Chiaro"
-    }
+    },
+    "linkCopied": "Link copiato negli appunti! 🔗",
+    "noPosts": "Ancora nessun post",
+    "postsDescription": "Le tue foto appariranno qui.",
+    "createPost": "Crea Post",
+    "noVibes": "Nessun Vibe",
+    "vibesDescription": "I tuoi video verticali appariranno qui.",
+    "registerVibe": "Registra Vibe",
+    "noCheckIns": "Nessun check-in",
+    "checkInsDescription": "Esplora i locali intorno a te.",
+    "openMap": "Apri Mappa",
+    "noTickets": "Nessun biglietto",
+    "ticketsDescription": "I tuoi pass per gli eventi appariranno qui.",
+    "discoverEvents": "Scopri Eventi",
+    "userNotFound": "Utente non trovato",
+    "followingStatus": "Seguito",
+    "followAction": "Segui",
+    "message": "Messaggio",
+    "requestSent": "Richiesta inviata"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -667,6 +690,18 @@
     "errorNoVenue": "Seleziona un locale per l'evento",
     "errorUnauthorized": "Non autorizzato",
     "errorUnexpected": "Errore imprevisto",
+    "stepInfo": "Info",
+    "stepMedia": "Media",
+    "stepPricing": "Prezzo",
+    "noVenue": "Nessuna Venue (Indirizzo personalizzato)",
+    "noVenuesOwned": "Non possiedi alcuna venue. Inserisci un indirizzo qui sotto.",
+    "category": "Categoria",
+    "next": "Avanti",
+    "back": "Indietro",
+    "summary": "Riepilogo",
+    "summaryEvent": "Evento",
+    "summaryDate": "Data",
+    "summaryPrice": "Prezzo",
     "mutualFriends": "Amici in comune",
     "friendRequests": "Richieste di Amicizia",
     "sendRequest": "Invia Richiesta",
@@ -681,6 +716,15 @@
     "endToEndEncrypted": "Criptato E2E",
     "chatSecurityWarning": "I messaggi sono protetti dalla crittografia end-to-end VIBE (VEL)."
   },
+  "social": {
+    "checkIn": "Check-in",
+    "checkInSuccess": "Check-in completato!",
+    "loginRequired": "Devi essere loggato per fare il check-in",
+    "checkInError": "Errore durante il check-in",
+    "connectionError": "Errore di connessione",
+    "follow": "Segui",
+    "following": "Seguito"
+  },
   "chat": {
     "title": "Messaggi",
     "e2e": "Protetto da E2E",
@@ -692,7 +736,12 @@
     "securityTitle": "Sicurezza Fort Knox",
     "securityDescription": "Tutti i messaggi su VIBE sono protetti dalla cifratura asimmetrica Curve25519. Solo tu e il destinatario avete le chiavi per decifrare i contenuti.",
     "seeConversations": "Vedi conversazioni",
-    "encrypted": "[Cifratura in corso...]"
+    "encrypted": "Crittografato",
+    "userFallback": "Utente",
+    "encryptedMessage": "Messaggio crittografato",
+    "typePlaceholder": "Scrivi un messaggio...",
+    "e2eDescription": "Le tue conversazioni sono protette dalla crittografia end-to-end. Solo tu e il destinatario potete leggere i messaggi.",
+    "showChats": "Vai alle chat"
   },
   "messages": {
     "title": "Messaggi",

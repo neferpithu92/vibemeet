@@ -125,7 +125,10 @@
     "layers": "Kartenebenen",
     "crowd": "Menschenmenge",
     "enableLocation": "Standort aktivieren, um Events in der Nähe zu sehen",
-    "saved": "Gespeicherte Events"
+    "saved": "Gespeicherte Events",
+    "liveActivity": "Live-Aktivität",
+    "addressNotAvailable": "Adresse nicht verfügbar",
+    "vibeScore": "Vibe Score"
   },
   "events": {
     "title": "Events",
@@ -151,6 +154,8 @@
     "gallery": "Galerie",
     "comments": "Kommentare",
     "noEvents": "Keine Events gefunden",
+    "noEventsFound": "Versuche die Filter zu ändern, um weitere Events zu finden.",
+    "resetFilters": "Filter zurücksetzen",
     "filters": {
       "city": "Stadt",
       "date": "Datum",
@@ -286,7 +291,25 @@
       "private": "Privat",
       "dark": "Dunkel",
       "light": "Hell"
-    }
+    },
+    "linkCopied": "Link in die Zwischenablage kopiert! 🔗",
+    "noPosts": "Noch keine Beiträge",
+    "postsDescription": "Deine Fotos werden hier erscheinen.",
+    "createPost": "Beitrag erstellen",
+    "noVibes": "Keine Vibes",
+    "vibesDescription": "Deine vertikalen Videos werden hier erscheinen.",
+    "registerVibe": "Vibe aufnehmen",
+    "noCheckIns": "Keine Check-ins",
+    "checkInsDescription": "Entdecke Venues in deiner Nähe.",
+    "openMap": "Karte öffnen",
+    "noTickets": "Keine Tickets",
+    "ticketsDescription": "Deine Event-Pässe werden hier erscheinen.",
+    "discoverEvents": "Events entdecken",
+    "userNotFound": "Benutzer nicht gefunden",
+    "followingStatus": "Folge ich",
+    "followAction": "Folgen",
+    "message": "Nachricht",
+    "requestSent": "Anfrage gesendet"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -573,6 +596,18 @@
     "errorNoVenue": "Wähle eine Location für das Event aus",
     "errorUnauthorized": "Nicht autorisiert",
     "errorUnexpected": "Unerwarteter Fehler",
+    "stepInfo": "Info",
+    "stepMedia": "Medien",
+    "stepPricing": "Preis",
+    "noVenue": "Keine Venue (Benutzerdefinierte Adresse)",
+    "noVenuesOwned": "Du besitzt keine Venues. Gib unten eine Adresse ein.",
+    "category": "Kategorie",
+    "next": "Weiter",
+    "back": "Zurück",
+    "summary": "Zusammenfassung",
+    "summaryEvent": "Event",
+    "summaryDate": "Datum",
+    "summaryPrice": "Preis",
     "mutualFriends": "Gemeinsame Freunde",
     "friendRequests": "Freundschaftsanfragen",
     "sendRequest": "Anfrage senden",
@@ -587,6 +622,15 @@
     "endToEndEncrypted": "E2E verschlüsselt",
     "chatSecurityWarning": "Nachrichten sind durch die VIBE End-to-End-Verschlüsselung (VEL) gesichert."
   },
+  "social": {
+    "checkIn": "Check-in",
+    "checkInSuccess": "Check-in erfolgreich!",
+    "loginRequired": "Sie müssen eingeloggt sein, um einzuchecken",
+    "checkInError": "Fehler beim Check-in",
+    "connectionError": "Verbindungsfehler",
+    "follow": "Folgen",
+    "following": "Folge ich"
+  },
   "chat": {
     "title": "Nachrichten",
     "e2e": "E2E geschützt",
@@ -598,7 +642,12 @@
     "securityTitle": "Fort Knox Sicherheit",
     "securityDescription": "Alle Nachrichten auf VIBE sind durch Curve25519 asymmetrische Verschlüsselung geschützt. Nur Sie und der Empfänger haben die Schlüssel zum Entschlüsseln der Inhalte.",
     "seeConversations": "Konversationen ansehen",
-    "encrypted": "[Verschlüsselung läuft...]"
+    "encrypted": "Verschlüsselt",
+    "userFallback": "Benutzer",
+    "encryptedMessage": "Verschlüsselte Nachricht",
+    "typePlaceholder": "Nachricht schreiben...",
+    "e2eDescription": "Deine Konversationen sind durch End-to-End-Verschlüsselung geschützt. Nur du und der Empfänger können die Nachrichten lesen.",
+    "showChats": "Zu den Chats"
   },
   "messages": {
     "title": "Nachrichten",

@@ -32,7 +32,7 @@ const MAX_DURATIONS: Record<CameraMode, number> = {
 
 export interface CaptureResult {
   url: string;
-  type: 'photo' | 'video';
+  type: 'photo' | 'video' | 'reel' | 'story';
   caption?: string;
   hashtags?: string[];
   filter?: string;

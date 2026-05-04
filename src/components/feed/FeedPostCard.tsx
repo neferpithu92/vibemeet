@@ -11,6 +11,9 @@ import { ShareModal } from '@/components/social/ShareModal';
 import Image from 'next/image';
 import { useInView } from 'react-intersection-observer';
 import { createClient } from '@/lib/supabase/client';
+import { cn } from '@/lib/utils';
+import { Link } from '@/lib/i18n/navigation';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface FeedPostCardProps {
   post: {
@@ -23,12 +26,13 @@ interface FeedPostCardProps {
       username: string;
       display_name: string | null;
       avatar_url: string | null;
-    } | {
-      username: string;
-      display_name: string | null;
-      avatar_url: string | null;
-    }[];
+    };
+    author_username?: string;
+    author_display_name?: string | null;
+    author_avatar?: string | null;
+    author_is_verified?: boolean;
     like_count?: number;
+    comment_count?: number;
     view_count?: number;
   };
   isLiked?: boolean;
@@ -36,37 +40,19 @@ interface FeedPostCardProps {
   onLike: (id: string) => void;
   onSave: (id: string) => void;
   onComment: (id: string) => void;
+  hover?: boolean;
+  shining?: boolean;
+  padding?: 'none' | 'sm' | 'md' | 'lg';
+  onClick?: () => void;
 }
 
-const FeedPostCard = memo(({ post, isLiked, isSaved, onLike, onSave, onComment }: FeedPostCardProps) => {
+const FeedPostCard = memo(({ post, isLiked, isSaved, onLike, onSave, onComment, hover, shining, padding = 'none', onClick }: FeedPostCardProps) => {
   const t = useTranslations('feed');
-  const [showHeartAnimation, setShowHeartAnimation] = useState(false);
   const [isShareOpen, setIsShareOpen] = useState(false);
-
-  const profile = Array.isArray(post.profiles) ? post.profiles[0] : post.profiles;
 
   const handleLike = async (e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
     onLike(post.id);
-    
-    if (!isLiked) {
-      setShowHeartAnimation(true);
-      setTimeout(() => setShowHeartAnimation(false), 800);
-    }
-  };
-
-  const handleDoubleTap = () => {
-    handleLike();
-  };
-
-  const handleSave = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    onSave(post.id);
-  };
-
-  const handleComment = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    onComment(post.id);
   };
 
   const [hasTrackedView, setHasTrackedView] = useState(false);
@@ -91,7 +77,7 @@ const FeedPostCard = memo(({ post, isLiked, isSaved, onLike, onSave, onComment }
               interactions: [{
                 user_id: user.id,
                 post_id: post.id,
-                author_id: (profile as any)?.id || post.id,
+                author_id: post.id,
                 type: 'view',
                 watch_time: 0,
                 affinity_inc: 0.1
@@ -104,123 +90,100 @@ const FeedPostCard = memo(({ post, isLiked, isSaved, onLike, onSave, onComment }
       };
       trackView();
     }
-  }, [inView, hasTrackedView, post.id, profile]);
+  }, [inView, hasTrackedView, post.id]);
 
   return (
-    <Card ref={viewRef} className="overflow-hidden bg-vibe-dark/40 border-white/5 shadow-2xl rounded-[2rem] gpu-accelerated mb-6">
+    <Card 
+      ref={viewRef} 
+      onClick={onClick}
+      className={cn(
+        "overflow-hidden transition-all duration-500 hover:translate-y-[-4px]",
+        shining ? 'vibe-shining-border' : (hover ? 'glass-card-hover' : 'glass-card')
+      )}
+    >
+      {/* Header — Author Info */}
       <div className="flex items-center justify-between p-4">
-        <div className="flex items-center gap-3">
-          <Avatar 
-            size="md" 
-            src={profile?.avatar_url} 
-            fallback={profile?.username?.[0] || 'U'} 
-            hasStory={true}
-            className="gpu-accelerated"
-          />
+        <Link href={`/u/${post.author_username}`} className="flex items-center gap-3 group tap-bounce">
+          <div className="w-10 h-10 rounded-full story-ring p-[2px] transition-transform group-hover:scale-105">
+            <div className="w-full h-full rounded-full bg-vibe-surface border border-vibe-border overflow-hidden">
+              <img 
+                src={post.author_avatar || `https://ui-avatars.com/api/?name=${post.author_username}&background=random`} 
+                alt={post.author_username}
+                className="w-full h-full object-cover"
+              />
+            </div>
+          </div>
           <div>
             <div className="flex items-center gap-1.5">
-              <span className="font-bold text-sm tracking-tight">{profile?.display_name || profile?.username}</span>
-              <Badge variant="verified" className="scale-75 origin-left">✓</Badge>
+              <p className="font-bold text-sm text-vibe-text group-hover:text-vibe-purple transition-colors">
+                {post.author_display_name || post.author_username}
+              </p>
+              {post.author_is_verified && (
+                <span className="text-[10px] bg-vibe-cyan/20 text-vibe-cyan px-1.5 py-0.5 rounded font-black uppercase tracking-tighter">V</span>
+              )}
             </div>
-            <p className="text-[10px] text-vibe-text-secondary uppercase font-black tracking-widest opacity-60">
-               {profile?.username}
+            <p className="text-[10px] text-vibe-text-secondary uppercase tracking-widest font-bold opacity-60">
+              {new Date(post.created_at).toLocaleDateString()}
             </p>
           </div>
-        </div>
-        <button className="p-3 text-vibe-text-secondary hover:text-white transition-all interactive-hover rounded-2xl active:scale-90">
-          <MoreHorizontal className="w-5 h-5" />
+        </Link>
+        <button className="p-2 text-vibe-text-secondary hover:text-vibe-text tap-bounce">
+          <span className="text-xl">⋯</span>
         </button>
       </div>
 
+      {/* Main Media Content */}
       <div 
-        className="relative aspect-square bg-black flex items-center justify-center overflow-hidden cursor-pointer gpu-accelerated group"
-        onDoubleClick={handleDoubleTap}
+        className="relative aspect-square bg-vibe-dark/40 overflow-hidden cursor-pointer"
+        onDoubleClick={() => !isLiked && handleLike()}
       >
-        {showHeartAnimation && (
-          <div className="absolute z-10 pointer-events-none animate-scale-heart">
-            <Heart className="w-28 h-28 text-white fill-white drop-shadow-[0_0_30px_rgba(236,72,153,0.9)]" />
-          </div>
-        )}
-
-        {post.type === 'video' || post.type === 'reel' ? (
-          <video 
-            src={post.url} 
-            className="w-full h-full object-cover"
-            loop
-            muted
-            playsInline
-            autoPlay
-          />
-        ) : (
-          <Image 
-            src={post.url} 
-            alt="Content" 
-            fill
-            sizes="(max-width: 768px) 100vw, 640px"
-            className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
-            priority={false}
-          />
-        )}
+        <div className="absolute inset-0 shimmer opacity-20" />
+        <img 
+          src={post.url} 
+          alt={post.caption || ''}
+          className="w-full h-full object-cover transition-transform duration-700 hover:scale-110"
+          loading="lazy"
+        />
+        
+        {/* Double Tap Heart Overlay */}
+        <AnimatePresence>
+          {isLiked && (
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <span className="text-6xl animate-pulse">❤️</span>
+            </div>
+          )}
+        </AnimatePresence>
       </div>
 
-      <div className="p-5 space-y-5">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-6">
-            <button 
-              onClick={handleLike}
-              className={`tap-scale active:scale-125 transition-transform ${isLiked ? 'text-vibe-pink' : 'text-vibe-text-secondary hover:text-white'}`}
-            >
-              <Heart className={`w-7 h-7 ${isLiked ? 'fill-vibe-pink' : ''}`} />
-            </button>
-            <button 
-              onClick={handleComment}
-              className="text-vibe-text-secondary hover:text-vibe-cyan tap-scale active:scale-125 transition-transform"
-            >
-              <MessageCircle className="w-7 h-7" />
-            </button>
-            <button 
-              onClick={(e) => { e.stopPropagation(); setIsShareOpen(true); }}
-              className="text-vibe-text-secondary hover:text-vibe-purple tap-scale active:scale-125 transition-transform"
-            >
-              <Share2 className="w-7 h-7" />
-            </button>
-          </div>
+      {/* Action Buttons */}
+      <div className="px-4 py-3 flex items-center justify-between">
+        <div className="flex items-center gap-4">
           <button 
-            onClick={handleSave}
-            className={`tap-scale active:scale-125 transition-transform ${isSaved ? 'text-vibe-purple' : 'text-vibe-text-secondary hover:text-white'}`}
+            onClick={handleLike}
+            className={cn(
+              "flex items-center gap-2 px-3 py-1.5 rounded-full transition-all tap-bounce",
+              isLiked ? "bg-red-500/20 text-red-500" : "bg-white/5 text-vibe-text-secondary hover:bg-white/10"
+            )}
           >
-            <Bookmark className={`w-7 h-7 ${isSaved ? 'fill-vibe-purple' : ''}`} />
+            <span className="text-lg">{isLiked ? '❤️' : '🤍'}</span>
+            <span className="text-xs font-black">{(post.like_count || 0) + (isLiked ? 1 : 0)}</span>
+          </button>
+          
+          <button 
+            onClick={() => onComment(post.id)}
+            className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 text-vibe-text-secondary hover:bg-white/10 transition-all tap-bounce"
+          >
+            <span className="text-lg">💬</span>
+            <span className="text-xs font-black">{post.comment_count || 0}</span>
           </button>
         </div>
-
-        <div className="space-y-2">
-          <p className="font-black text-sm uppercase tracking-widest">
-            {post.like_count || 0} Likes
-          </p>
-          
-          <div className="text-sm leading-relaxed">
-            <span className="font-black mr-2 uppercase tracking-tighter vibe-gradient-text">@{profile?.username}</span>
-            <span className="text-vibe-text/90 font-medium">{post.caption}</span>
-          </div>
-
-          <div className="flex items-center gap-4 pt-1">
-            {(post.view_count ?? 0) > 0 && (
-              <p className="text-[10px] text-vibe-text-secondary font-black uppercase tracking-widest opacity-60">
-                {post.view_count?.toLocaleString()} Views
-              </p>
-            )}
-            <button 
-              onClick={() => onComment(post.id)}
-              className="text-[10px] text-vibe-purple font-black uppercase tracking-widest hover:underline transition-all"
-            >
-              {t('addComment')}
-            </button>
-          </div>
-
-          <p className="text-[9px] text-vibe-text-secondary uppercase font-black tracking-[0.2em] pt-2 opacity-40">
-             {new Date(post.created_at).toLocaleDateString()}
-          </p>
-        </div>
+        
+        <button 
+          onClick={() => onSave(post.id)}
+          className="p-2 bg-white/5 rounded-full text-vibe-text-secondary hover:text-vibe-purple tap-bounce"
+        >
+          <span className="text-lg">🔖</span>
+        </button>
       </div>
 
       <ShareModal 
