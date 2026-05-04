@@ -45,12 +45,10 @@ export function GlobalSearch() {
         const res = await fetch(`/api/discovery/search?q=${encodeURIComponent(query)}`);
         const data = await res.json();
         
-        // Filter out Mapbox results (only keep internal users/artists and some events/venues)
+        // Filter out everything except users and artists
         const combined = [
           ...(data.users || []),
-          ...(data.artists || []),
-          ...(data.venues || []),
-          ...(data.events || [])
+          ...(data.artists || [])
         ].map(item => ({
           ...item,
           displayName: item.displayName || item.display_name || item.name || item.title || 'Unknown',
@@ -88,7 +86,7 @@ export function GlobalSearch() {
       <div className="relative">
         <input
           type="text"
-          placeholder={t('search')}
+          placeholder="Cerca account..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           className="input-field w-64 md:w-80 pl-10 h-10 text-sm bg-vibe-dark/60 backdrop-blur-md border-white/5 focus:border-vibe-purple/50 transition-all"

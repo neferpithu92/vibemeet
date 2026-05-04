@@ -45,16 +45,67 @@ export default function FeedPostCard({ post, isLiked, isSaved, onLike, onSave, o
 
   const profile = Array.isArray(post.profiles) ? post.profiles[0] : post.profiles;
 
-  const handleDoubleTap = () => {
+  const handleLike = async (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    onLike(post.id);
+    
+    // Immediate UI feedback for heart animation on click (not just double tap)
     if (!isLiked) {
-      onLike(post.id);
+      setShowHeartAnimation(true);
+      setTimeout(() => setShowHeartAnimation(false), 800);
     }
-    setShowHeartAnimation(true);
-    setTimeout(() => setShowHeartAnimation(false), 800);
   };
 
+  const handleSave = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onSave(post.id);
+  };
+
+  const handleComment = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onComment(post.id);
+  };
+
+  // Interaction Tracking (View)
+  const [hasTrackedView, setHasTrackedView] = useState(false);
+  const { ref: viewRef, inView } = require('react-intersection-observer').useInView({
+    threshold: 0.7,
+    triggerOnce: true
+  });
+
+  useEffect(() => {
+    if (inView && !hasTrackedView) {
+      setHasTrackedView(true);
+      // Log view to batch API
+      const trackView = async () => {
+        try {
+          const { data: { user } } = await require('@/lib/supabase/client').createClient().auth.getUser();
+          if (!user) return;
+          
+          await fetch('/api/social/batch-interactions', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              interactions: [{
+                user_id: user.id,
+                post_id: post.id,
+                author_id: (Array.isArray(post.profiles) ? post.profiles[0] : post.profiles)?.id || post.id,
+                type: 'view',
+                watch_time: 0,
+                affinity_inc: 0.1
+              }]
+            })
+          });
+        } catch (err) {
+          console.warn('[Feed] View tracking failed:', err);
+        }
+      };
+      trackView();
+    }
+  }, [inView, hasTrackedView, post.id, post.profiles]);
+
   return (
-    <Card className="overflow-hidden bg-vibe-dark/40 border-white/5 shadow-2xl backdrop-blur-sm rounded-3xl">
+    <Card ref={viewRef} className="overflow-hidden bg-vibe-dark/40 border-white/5 shadow-2xl backdrop-blur-sm rounded-3xl">
       {/* Header */}
       <div className="flex items-center justify-between p-4">
         <div className="flex items-center gap-3">
@@ -122,26 +173,26 @@ export default function FeedPostCard({ post, isLiked, isSaved, onLike, onSave, o
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-5">
             <button 
-              onClick={() => onLike(post.id)}
+              onClick={handleLike}
               className={`transition-all active:scale-125 ${isLiked ? 'text-vibe-pink' : 'text-vibe-text-secondary hover:text-white'}`}
             >
               <Heart className={`w-6 h-6 ${isLiked ? 'fill-vibe-pink' : ''}`} />
             </button>
             <button 
-              onClick={() => onComment(post.id)}
+              onClick={handleComment}
               className="text-vibe-text-secondary hover:text-vibe-cyan transition-all active:scale-125"
             >
               <MessageCircle className="w-6 h-6" />
             </button>
             <button 
-              onClick={() => setIsShareOpen(true)}
+              onClick={(e) => { e.stopPropagation(); setIsShareOpen(true); }}
               className="text-vibe-text-secondary hover:text-vibe-purple transition-all active:scale-125"
             >
               <Share2 className="w-6 h-6" />
             </button>
           </div>
           <button 
-            onClick={() => onSave(post.id)}
+            onClick={handleSave}
             className={`transition-all active:scale-125 ${isSaved ? 'text-vibe-purple' : 'text-vibe-text-secondary hover:text-white'}`}
           >
             <Bookmark className={`w-6 h-6 ${isSaved ? 'fill-vibe-purple' : ''}`} />

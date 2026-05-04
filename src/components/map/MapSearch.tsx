@@ -32,7 +32,6 @@ export default function MapSearch() {
   const { current: map } = useMap();
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<any[]>([]);
-  const [users, setUsers] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
 
   useEffect(() => {
@@ -48,9 +47,6 @@ export default function MapSearch() {
         
         const res = await fetch(`/api/discovery/search?q=${encodeURIComponent(query)}`);
         const data = await res.json();
-        
-        // Users results
-        setUsers(data.users || []);
 
         const internalResults = [
           ...(data.venues || []), 
@@ -110,7 +106,7 @@ export default function MapSearch() {
       <div className="relative">
         <input
           type="text"
-          placeholder={t('nearby')}
+          placeholder="Cerca luoghi ed eventi..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           className="input-field pl-10 h-10 text-sm bg-vibe-dark/60 backdrop-blur-md"
@@ -125,30 +121,10 @@ export default function MapSearch() {
         )}
       </div>
 
-      {(results.length > 0 || users.length > 0) && (
+      {results.length > 0 && (
         <Card className="absolute top-12 left-0 right-0 z-50 max-h-80 overflow-y-auto p-2 bg-vibe-dark/95 backdrop-blur-2xl border-white/10 shadow-2xl space-y-4">
-          {/* Section Users */}
-          {users.length > 0 && (
-            <div className="space-y-1">
-              <p className="text-[10px] font-bold text-vibe-text-secondary px-2 uppercase tracking-widest mb-1">Persone</p>
-              {users.map((user) => (
-                <div key={user.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-white/5 transition-colors">
-                  <Avatar src={user.avatar_url} fallback={user.username[0]} size="sm" />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold truncate">{user.display_name || user.username}</p>
-                    <p className="text-[10px] text-vibe-text-secondary">@{user.username}</p>
-                  </div>
-                  <Link href={`/u/${user.username}`} onClick={() => { setQuery(''); setUsers([]); setResults([]); }}>
-                    <Button size="xs" variant="secondary" className="text-[10px] py-1 h-auto">Vedi profilo</Button>
-                  </Link>
-                </div>
-              ))}
-            </div>
-          )}
-
           {/* Section Map Results */}
-          {results.length > 0 && (
-            <div className="space-y-1">
+          <div className="space-y-1">
               <p className="text-[10px] font-bold text-vibe-text-secondary px-2 uppercase tracking-widest mb-1">Luoghi ed Eventi</p>
               {results.map((item) => (
                 <button

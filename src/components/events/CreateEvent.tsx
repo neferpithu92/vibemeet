@@ -8,6 +8,7 @@ import { useToast } from '@/components/ui/ToastProvider';
 import { createClient } from '@/lib/supabase/client';
 import MediaUpload from '@/components/ui/MediaUpload';
 import { motion, AnimatePresence } from 'framer-motion';
+import { LocationPicker } from '@/components/ui/LocationPicker';
 
 interface CreateEventProps {
   isOpen: boolean;
@@ -39,7 +40,8 @@ export default function CreateEvent({ isOpen, onClose, onSuccess, venueId: initi
     coverUrl: '',
     price: 0,
     ticketLimit: 100,
-    address: ''
+    address: '',
+    locationData: null as { lat: number; lng: number; name?: string; venue_id?: string } | null
   });
 
   const categories = [
@@ -79,9 +81,14 @@ export default function CreateEvent({ isOpen, onClose, onSuccess, venueId: initi
       if (!user) throw new Error(t('errorUnauthorized'));
 
       let eventLocation = 'POINT(8.5417 47.3769)'; // Default to Zurich if no venue is selected
+      let finalAddress = formData.address;
+
       if (selectedVenueId) {
         const { data: venueData } = await (supabase.from('venues') as any).select('location').eq('id', selectedVenueId).single();
         if (venueData?.location) eventLocation = venueData.location;
+      } else if (formData.locationData) {
+        eventLocation = `POINT(${formData.locationData.lng} ${formData.locationData.lat})`;
+        finalAddress = formData.locationData.name || 'Custom Location';
       }
 
       const { data, error } = await (supabase.from('events') as any).insert({
@@ -95,7 +102,7 @@ export default function CreateEvent({ isOpen, onClose, onSuccess, venueId: initi
         ticket_price: formData.price,
         slug: formData.title.toLowerCase().replace(/ /g, '-') + '-' + Date.now(),
         location: eventLocation,
-        address: selectedVenueId ? null : formData.address
+        address: selectedVenueId ? null : finalAddress
       }).select().single();
 
       if (error) throw error;
@@ -152,15 +159,11 @@ export default function CreateEvent({ isOpen, onClose, onSuccess, venueId: initi
             )}
             
             {!selectedVenueId && (
-              <div>
-                <label className="text-[10px] font-bold uppercase text-vibe-text-secondary tracking-widest">Indirizzo Custom</label>
-                <input
-                  type="text"
-                  required
-                  value={formData.address}
-                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                  className="input-field mt-1.5"
-                  placeholder="Es: Via Roma 1, Milano"
+              <div className="mt-2">
+                <LocationPicker 
+                  value={formData.locationData} 
+                  onChange={(loc) => setFormData({ ...formData, locationData: loc })} 
+                  required 
                 />
               </div>
             )}

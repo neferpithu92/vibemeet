@@ -27,6 +27,17 @@ export async function POST(request: Request) {
   };
 
   if (action === 'follow') {
+    // Check if target user is private
+    let isPrivate = false;
+    if (entityType === 'user') {
+      const { data: targetUser } = await supabase
+        .from('users')
+        .select('account_type')
+        .eq('id', targetId)
+        .single();
+      isPrivate = targetUser?.account_type === 'private';
+    }
+
     // Upsert with conflict on composite PK columns
     const { error } = await (supabase
       .from('followers') as any)
@@ -39,9 +50,23 @@ export async function POST(request: Request) {
       console.error('[Follow] Error following:', error.message);
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
+
+    // If private, manage friendship
+    if (isPrivate) {
+      const { error: friendError } = await (supabase
+        .from('friendships') as any)
+        .upsert({
+          requester_id: user.id,
+          addressee_id: targetId,
+          status: 'pending'
+        }, { onConflict: 'requester_id,addressee_id' });
+      
+      if (friendError) console.error('[Follow] Friendship Error:', friendError.message);
+    }
     
-    return NextResponse.json({ success: true, message: 'Follow aggiunto' });
+    return NextResponse.json({ success: true, message: isPrivate ? 'Richiesta inviata' : 'Follow aggiunto' });
   } else if (action === 'unfollow') {
+    // Delete from followers
     const { error } = await (supabase
       .from('followers') as any)
       .delete()
@@ -50,6 +75,14 @@ export async function POST(request: Request) {
     if (error) {
       console.error('[Follow] Error unfollowing:', error.message);
       return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    // Also remove friendship if it exists
+    if (entityType === 'user') {
+      await (supabase
+        .from('friendships') as any)
+        .delete()
+        .match({ requester_id: user.id, addressee_id: targetId });
     }
 
     return NextResponse.json({ success: true, message: 'Follow rimosso' });

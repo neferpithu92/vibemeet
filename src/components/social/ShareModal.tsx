@@ -42,7 +42,7 @@ export function ShareModal({ isOpen, onClose, entityId, entityType, title, url }
 
     const { data } = await supabase
       .from('users')
-      .select('id, username, display_name, avatar_url')
+      .select('id, username, display_name, avatar_url, public_key')
       .neq('id', user.id)
       .limit(20);
 
@@ -50,12 +50,22 @@ export function ShareModal({ isOpen, onClose, entityId, entityType, title, url }
     setIsLoading(false);
   };
 
-  const handleForward = async (friendId: string) => {
+  const handleForward = async (friendId: string, friendPublicKey: string) => {
     setSendingId(friendId);
     try {
-      // Future: Logic to send a DM via useChatStore
-      setTimeout(() => setSendingId(null), 1000);
+      const { sendMessage } = require('@/stores/useChatStore').useChatStore.getState();
+      
+      // Construct a special share message
+      const shareText = `Shared ${entityType}: ${fullUrl}${title ? ` - ${title}` : ''}`;
+      
+      await sendMessage(shareText, friendId, friendPublicKey, {
+        url: fullUrl,
+        type: 'link' // Custom type for shared links
+      });
+
+      setTimeout(() => setSendingId(null), 1500);
     } catch (err) {
+      console.error('[Share] Forward failed:', err);
       setSendingId(null);
     }
   };
@@ -139,7 +149,7 @@ export function ShareModal({ isOpen, onClose, entityId, entityType, title, url }
                   </div>
                 </div>
                 <button 
-                  onClick={() => handleForward(friend.id)}
+                  onClick={() => handleForward(friend.id, friend.public_key)}
                   disabled={sendingId === friend.id}
                   className={`w-9 h-9 rounded-full flex items-center justify-center transition-all ${
                     sendingId === friend.id ? 'bg-vibe-cyan/20 text-vibe-cyan' : 'bg-vibe-purple/10 text-vibe-purple hover:bg-vibe-purple hover:text-white'
