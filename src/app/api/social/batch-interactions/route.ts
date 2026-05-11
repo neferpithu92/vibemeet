@@ -1,32 +1,38 @@
-import { createClient } from '@/lib/supabase/server';
-import { NextResponse } from 'next/server';
+import { withApi, ok, Errors } from '@/lib/api';
+import { batchInteractionsSchema } from '@/lib/api/schemas';
 
 /**
  * POST /api/social/batch-interactions
- * Receives a list of interaction events and processed them via Supabase RPC.
+ * Processa eventi di interazione (view, like, skip...) per il FYP.
+ * Rate: 120 req/min — chiamata frequente dal client.
  */
-export async function POST(req: Request) {
-  try {
-    const { interactions } = await req.json();
-    const supabase = await createClient();
+export const POST = withApi(
+  'social/batch-interactions',
+  async (ctx, body) => {
+    const { supabase, user } = ctx;
+    const { interactions } = body;
 
-    if (!interactions || !Array.isArray(interactions)) {
-      return NextResponse.json({ error: 'Interazioni non valide' }, { status: 400 });
-    }
+    // Arricchisce ogni interazione con lo user_id server-side
+    const enriched = interactions.map((item: any) => ({
+      ...item,
+      user_id: user.id,
+    }));
 
-    // Call the RPC defined in Migration 035
     const { error } = await (supabase as any).rpc('process_batch_interactions', {
-      p_interactions: interactions
+      p_interactions: enriched,
     });
 
     if (error) {
-      console.error('[BatchInteractions] RPC Error:', error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      // Non è critico — fallback silenzioso per non bloccare il client
+      console.warn('[batch-interactions] RPC error:', error.message);
+      return ok({ success: false, processed: 0, message: 'FYP tracking temporaneamente non disponibile' });
     }
 
-    return NextResponse.json({ success: true, processed: interactions.length });
-  } catch (err: any) {
-    console.error('[BatchInteractions] Server Error:', err);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return ok({ success: true, processed: enriched.length });
+  },
+  {
+    auth:       true,
+    bodySchema: batchInteractionsSchema,
+    rateLimit:  [120, '1m'],
   }
-}
+);

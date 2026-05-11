@@ -40,10 +40,7 @@ export default function NotificationsPage() {
   }, []);
 
   const handleMarkAllRead = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      await markAllAsRead(user.id);
-    }
+    await markAllAsRead();
   };
 
   const getDateLocale = () => {

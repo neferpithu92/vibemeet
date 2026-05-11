@@ -1,95 +1,125 @@
-import { createClient } from '@/lib/supabase/server';
-import { NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
+import { withApi, ok, Errors } from '@/lib/api';
+import { feedQuerySchema } from '@/lib/api/schemas';
 
 /**
  * GET /api/feed/foryou
- * Algoritmo FYP: recupera i post ordinati per interazioni recenti.
- * Fallback robusto — query diretta se la RPC non è disponibile.
+ * Algoritmo FYP con RPC Supabase + fallback robusto.
+ * Rate: 60 req/min.
  */
-export async function GET(req: Request) {
-  try {
-    const { searchParams } = new URL(req.url);
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized - Login required' }, { status: 401 });
-    }
+export const GET = withApi(
+  'feed/foryou',
+  async (ctx, _body, query) => {
+    const { supabase, user } = ctx;
+    const { limit, offset, type } = query as { limit: number; offset: number; type?: string };
 
-    const limit = Math.min(Number(searchParams.get('limit')) || 10, 50);
-    const offset = Number(searchParams.get('offset')) || 0;
-    const type = searchParams.get('type'); // 'posts' or 'reels'
-    
-    // Map 'posts' to 'photo' and 'reels' to 'reel' for the RPC
-    const dbType = type === 'reels' ? 'reel' : type === 'posts' ? 'photo' : null;
+    // Mappa i tipi UI ai media_type del DB
+    const dbType =
+      type === 'reels'  ? 'reel'  :
+      type === 'posts'  ? 'photo' :
+      type === 'stories'? 'story' :
+      null;
 
-    // Try the RPC for intelligent ranking first
-    const { data: feed, error } = await (supabase as any).rpc('get_fyp_algo_feed', {
+    // ── 1. Tenta RPC intelligente ──────────────────────────
+    const { data: feed, error: rpcError } = await (supabase as any).rpc('get_fyp_algo_feed', {
       p_user_id: user.id,
-      p_limit: limit,
-      p_offset: offset,
-      p_type: dbType
+      p_limit:   limit,
+      p_offset:  offset,
+      p_type:    dbType,
     });
 
-    if (error) {
-      console.warn('[FYP] RPC unavailable, falling back to direct query:', error.message);
-
-      // Fallback: direct query with basic ranking
-      let query = (supabase.from('media') as any)
-        .select(`
-          id,
-          media_url,
-          media_type,
-          caption,
-          created_at,
-          like_count,
-          view_count,
-          user_id,
-          profiles:users!user_id(id, username, display_name, avatar_url)
-        `)
-        .order('created_at', { ascending: false })
-        .range(offset, offset + limit - 1);
-
-      if (dbType) {
-        query = query.eq('media_type', dbType);
-      }
-
-      const { data: fallbackFeed, error: fallbackError } = await query;
-
-      if (fallbackError) {
-        console.error('[FYP] Fallback query error:', fallbackError.message);
-        return NextResponse.json({ items: [], nextCursor: null });
-      }
-
-      const items = (fallbackFeed || []).map((item: any) => ({
-        ...item,
-        url: item.media_url,
-        type: item.media_type,
-        profiles: Array.isArray(item.profiles) ? item.profiles[0] : item.profiles,
-      }));
-
-      const nextCursor = items.length === limit ? (offset + limit).toString() : null;
-      return NextResponse.json({ items, nextCursor });
+    if (!rpcError && feed) {
+      const items = (feed as any[]).map(normalizeRpcItem);
+      return ok({
+        items,
+        nextCursor: items.length === limit ? String(offset + limit) : null,
+      });
     }
 
-    // Map RPC result for frontend expectations
-    const items = (feed || []).map((item: any) => ({
-      ...item,
-      url: item.media_url || item.url,
-      type: item.media_type || item.type,
-      profiles: {
-        id: item.user_id || item.author_id,
-        username: item.author_username,
-        avatar_url: item.author_avatar,
-        display_name: item.author_display_name
-      }
-    }));
+    // ── 2. Fallback: query diretta ─────────────────────────
+    console.warn('[feed/foryou] RPC fallback:', rpcError?.message);
 
-    const nextCursor = items.length === limit ? (offset + limit).toString() : null;
+    let query2 = (supabase.from('media') as any)
+      .select(`
+        id,
+        media_url,
+        media_type,
+        caption,
+        created_at,
+        like_count,
+        comment_count,
+        view_count,
+        user_id,
+        profiles:users!user_id (id, username, display_name, avatar_url, is_verified)
+      `)
+      .eq('visibility', 'public')
+      .order('created_at', { ascending: false })
+      .range(offset, offset + limit - 1);
 
-    return NextResponse.json({ items, nextCursor });
-  } catch (err: any) {
-    console.error('[FYP] Fatal error:', err);
-    return NextResponse.json({ items: [], nextCursor: null });
+    if (dbType) query2 = query2.eq('media_type', dbType);
+
+    const { data: fallbackFeed, error: fallbackError } = await query2;
+
+    if (fallbackError) {
+      console.error('[feed/foryou] Fallback error:', fallbackError.message);
+      return ok({ items: [], nextCursor: null });
+    }
+
+    const items = (fallbackFeed ?? []).map(normalizeFallbackItem);
+
+    return ok({
+      items,
+      nextCursor: items.length === limit ? String(offset + limit) : null,
+    });
+  },
+  {
+    auth:        true,
+    querySchema: feedQuerySchema,
+    rateLimit:   [60, '1m'],
   }
+);
+
+// ─────────────────────────────────────────────────────────────
+// Normalizzatori
+// ─────────────────────────────────────────────────────────────
+function normalizeRpcItem(item: any) {
+  return {
+    id:                   item.id,
+    url:                  item.media_url ?? item.url,
+    type:                 item.media_type ?? item.type,
+    caption:              item.caption,
+    created_at:           item.created_at,
+    like_count:           item.like_count ?? 0,
+    comment_count:        item.comment_count ?? 0,
+    view_count:           item.view_count ?? 0,
+    author_username:      item.author_username,
+    author_display_name:  item.author_display_name,
+    author_avatar:        item.author_avatar,
+    author_is_verified:   item.author_is_verified ?? false,
+    profiles: {
+      id:           item.user_id ?? item.author_id,
+      username:     item.author_username,
+      display_name: item.author_display_name,
+      avatar_url:   item.author_avatar,
+    },
+  };
+}
+
+function normalizeFallbackItem(item: any) {
+  const profile = Array.isArray(item.profiles) ? item.profiles[0] : item.profiles;
+  return {
+    id:                   item.id,
+    url:                  item.media_url,
+    type:                 item.media_type,
+    caption:              item.caption,
+    created_at:           item.created_at,
+    like_count:           item.like_count ?? 0,
+    comment_count:        item.comment_count ?? 0,
+    view_count:           item.view_count ?? 0,
+    author_username:      profile?.username,
+    author_display_name:  profile?.display_name,
+    author_avatar:        profile?.avatar_url,
+    author_is_verified:   profile?.is_verified ?? false,
+    profiles:             profile,
+  };
 }

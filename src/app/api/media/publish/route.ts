@@ -1,89 +1,85 @@
-import { createClient } from '@/lib/supabase/server';
-import { NextResponse } from 'next/server';
+import { withApi, ok, Errors } from '@/lib/api';
+import { mediaPublishSchema } from '@/lib/api/schemas';
 
 /**
  * POST /api/media/publish
- * Inserisce un record nel DB media dopo che il file è stato caricato su Storage.
- * Supporta foto, video, reel, story.
+ * Inserisce un record media nel DB dopo il caricamento su Storage.
+ * Supporta: photo, video, reel, story.
+ * Rate: 20 pubblicazioni/min.
  */
-export async function POST(request: Request) {
-  try {
-    const body = await request.json();
+export const POST = withApi(
+  'media/publish',
+  async (ctx, body) => {
+    const { supabase, user } = ctx;
     const {
       url,
-      type,            // 'photo' | 'video' | 'reel' | 'story'
+      type,
       caption,
       hashtags,
       filter,
-      visibility = 'public',
+      visibility,
       location_lat,
       location_lng,
       location_name,
     } = body;
 
-    if (!url || !type) {
-      return NextResponse.json({ error: 'url e type sono obbligatori' }, { status: 400 });
-    }
-
-    const supabase = await createClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 });
-    }
-
-    // Mappa reel/story su video per compatibilità col campo media_type
-    const mediaType = (type === 'reel' || type === 'story') ? type : (type === 'video' ? 'video' : 'photo');
-
-    const insertPayload: Record<string, any> = {
-      user_id: user.id,
-      entity_id: user.id,
-      entity_type: 'user',
-      media_url: url,
-      media_type: mediaType,
-      caption: caption || null,
+    // Costruisci il payload
+    const payload: Record<string, unknown> = {
+      user_id:        user.id,
+      entity_id:      user.id,
+      entity_type:    'user',
+      media_url:      url,
+      media_type:     type,
+      caption:        caption ?? null,
       visibility,
-      filter_applied: filter || null,
+      filter_applied: filter ?? null,
     };
 
-    if (location_lat && location_lng) {
-      insertPayload.location = `POINT(${Number(location_lng)} ${Number(location_lat)})`;
-      insertPayload.location_name = location_name || null;
+    if (location_lat !== undefined && location_lng !== undefined) {
+      payload.location      = `POINT(${location_lng} ${location_lat})`;
+      payload.location_name = location_name ?? null;
     }
 
     const { data: media, error: insertError } = await (supabase.from('media') as any)
-      .insert(insertPayload)
+      .insert(payload)
       .select()
       .single();
 
     if (insertError) {
-      console.error('[Media Publish] Insert error:', insertError.message);
-      return NextResponse.json({ error: insertError.message }, { status: 500 });
+      throw Errors.internal(`Errore pubblicazione: ${insertError.message}`);
     }
 
-    // Inserisci hashtags se presenti
-    if (hashtags && hashtags.length > 0 && media) {
-      for (const tag of hashtags) {
-        const cleanTag = tag.replace(/^#/, '').toLowerCase();
-        if (!cleanTag) continue;
-        
-        const { data: hashtagRec } = await (supabase.from('hashtags') as any)
-          .upsert({ tag: cleanTag }, { onConflict: 'tag' })
-          .select('id')
-          .single();
+    // ── Hashtags (fire-and-forget) ─────────────────────────
+    if (hashtags && hashtags.length > 0 && media?.id) {
+      const processHashtags = async () => {
+        for (const rawTag of hashtags) {
+          const tag = rawTag.replace(/^#/, '').toLowerCase().trim();
+          if (!tag || tag.length > 100) continue;
 
-        if (hashtagRec) {
-          await (supabase.from('post_hashtags') as any).insert({
-            post_id: media.id,
-            post_type: 'media',
-            hashtag_id: hashtagRec.id,
-          }).on('conflict', () => {});
+          const { data: hashtagRec } = await (supabase.from('hashtags') as any)
+            .upsert({ tag }, { onConflict: 'tag', ignoreDuplicates: false })
+            .select('id')
+            .single();
+
+          if (hashtagRec?.id) {
+            await (supabase.from('post_hashtags') as any)
+              .upsert(
+                { post_id: media.id, post_type: 'media', hashtag_id: hashtagRec.id },
+                { onConflict: 'post_id,hashtag_id', ignoreDuplicates: true }
+              );
+          }
         }
-      }
+      };
+      processHashtags().catch((e) =>
+        console.warn('[media/publish] hashtag processing error:', e.message)
+      );
     }
 
-    return NextResponse.json({ success: true, media });
-  } catch (err: any) {
-    console.error('[Media Publish] Fatal:', err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    return ok({ media }, 201);
+  },
+  {
+    auth:       true,
+    bodySchema: mediaPublishSchema,
+    rateLimit:  [20, '1m'],
   }
-}
+);

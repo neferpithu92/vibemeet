@@ -1,134 +1,131 @@
-import { createClient } from '@/lib/supabase/server';
-import { NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
+import { withApi, ok, Errors } from '@/lib/api';
+import { followSchema } from '@/lib/api/schemas';
 
 /**
- * API Route per gestire i Follow (utenti, locali, artisti).
- * Usa upsert con onConflict per operazioni idempotenti.
- * Genera notifiche per i nuovi follow.
+ * POST /api/social/follow
+ * Follow/unfollow utente, venue o artista.
+ * Genera notifiche e aggiorna follower_count via trigger DB.
+ * Rate: 30 req/min.
  */
-export async function POST(request: Request) {
-  try {
-    const { targetId, entityType, action } = await request.json();
-    const supabase = await createClient();
+export const POST = withApi(
+  'social/follow',
+  async (ctx, body) => {
+    const { targetId, entityType, action } = body;
+    const { supabase, user } = ctx;
 
-    // Recupera l'utente corrente
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 });
-    }
-
-    if (!targetId || !action) {
-      return NextResponse.json({ error: 'targetId e action sono obbligatori' }, { status: 400 });
-    }
-
-    // Prevent self-follow
-    if (user.id === targetId) {
-      return NextResponse.json({ error: 'Non puoi seguire te stesso' }, { status: 400 });
+    // Prevenzione self-follow
+    if (entityType === 'user' && user.id === targetId) {
+      throw Errors.badRequest('Non puoi seguire te stesso');
     }
 
     const followRecord = {
-      follower_id: user.id,
+      follower_id:  user.id,
       following_id: targetId,
-      entity_type: entityType || 'user'
+      entity_type:  entityType,
     };
 
     if (action === 'follow') {
-      // Check if target user is private
-      let isPrivate = false;
-      let targetUserName = '';
-      if (entityType === 'user' || !entityType) {
-        const { data: targetUser } = await (supabase
-          .from('users') as any)
-          .select('account_type, display_name, username')
-          .eq('id', targetId)
-          .single();
-        isPrivate = targetUser?.account_type === 'private';
-        targetUserName = targetUser?.display_name || targetUser?.username || 'Utente';
-      }
-
-      // Get follower display name for notification
-      const { data: followerProfile } = await (supabase
-        .from('users') as any)
-        .select('display_name, username')
-        .eq('id', user.id)
-        .single();
-      const followerName = followerProfile?.display_name || followerProfile?.username || 'Qualcuno';
-
-      // Check for duplicate follow
-      const { data: existing } = await (supabase
-        .from('followers') as any)
+      // Controlla duplicato
+      const { data: existing } = await (supabase.from('followers') as any)
         .select('follower_id')
         .match(followRecord)
         .maybeSingle();
 
-      if (!existing) {
-        // Insert follow record
-        const { error } = await (supabase
-          .from('followers') as any)
-          .insert(followRecord);
+      if (existing) {
+        return ok({ following: true, message: 'Già seguito' });
+      }
 
-        if (error) {
-          console.error('[Follow] Error following:', error.message);
-          return NextResponse.json({ error: error.message }, { status: 500 });
-        }
+      // Controlla se l'account target è privato
+      let isPrivate = false;
+      let targetName = '';
 
-        // Send follow notification (fire-and-forget)
-        if (entityType === 'user' || !entityType) {
-          (supabase.from('notifications') as any).insert({
-            user_id: targetId,
-            actor_id: user.id,
-            type: 'follow',
+      if (entityType === 'user') {
+        const { data: targetUser } = await (supabase.from('users') as any)
+          .select('account_type, display_name, username')
+          .eq('id', targetId)
+          .single();
+
+        if (!targetUser) throw Errors.notFound('Utente non trovato');
+        isPrivate  = targetUser.account_type === 'private';
+        targetName = targetUser.display_name || targetUser.username;
+      }
+
+      // Inserisci follow
+      const { error: insertErr } = await (supabase.from('followers') as any)
+        .insert(followRecord);
+      if (insertErr) throw Errors.internal('Impossibile aggiungere il follow');
+
+      // Recupera nome del follower per la notifica
+      const { data: follower } = await (supabase.from('users') as any)
+        .select('display_name, username')
+        .eq('id', user.id)
+        .single();
+
+      const followerName = follower?.display_name || follower?.username || 'Qualcuno';
+
+      // Notifica — fire-and-forget
+      if (entityType === 'user') {
+        (supabase.from('notifications') as any)
+          .insert({
+            user_id:     targetId,
+            actor_id:    user.id,
+            type:        'follow',
             entity_type: 'user',
-            entity_id: user.id,
-            message: `${followerName} ha iniziato a seguirti`,
-            read_at: null,
-          }).then(({ error: notifError }: any) => {
-            if (notifError) console.error('[Follow] Notification error:', notifError.message);
+            entity_id:   user.id,
+            message:     `${followerName} ha iniziato a seguirti 👋`,
+          })
+          .then(({ error }: any) => {
+            if (error) console.warn('[follow] notif error:', error.message);
           });
-        }
       }
 
-      // If private, manage friendship request
+      // Se privato, crea friendship pending
       if (isPrivate) {
-        const { error: friendError } = await (supabase
-          .from('friendships') as any)
-          .upsert({
-            requester_id: user.id,
-            addressee_id: targetId,
-            status: 'pending'
-          }, { onConflict: 'requester_id,addressee_id' });
-        
-        if (friendError) console.error('[Follow] Friendship Error:', friendError.message);
-      }
-      
-      return NextResponse.json({ success: true, message: isPrivate ? 'Richiesta inviata' : 'Follow aggiunto' });
-    } else if (action === 'unfollow') {
-      // Delete from followers
-      const { error } = await (supabase
-        .from('followers') as any)
-        .delete()
-        .match(followRecord);
-
-      if (error) {
-        console.error('[Follow] Error unfollowing:', error.message);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        await (supabase.from('friendships') as any)
+          .upsert(
+            { requester_id: user.id, addressee_id: targetId, status: 'pending' },
+            { onConflict: 'requester_id,addressee_id' }
+          );
       }
 
-      // Also remove friendship if it exists
-      if (entityType === 'user' || !entityType) {
-        await (supabase
-          .from('friendships') as any)
-          .delete()
-          .or(`requester_id.eq.${user.id}.and.addressee_id.eq.${targetId},requester_id.eq.${targetId}.and.addressee_id.eq.${user.id}`);
-      }
-
-      return NextResponse.json({ success: true, message: 'Follow rimosso' });
+      return ok({
+        following: true,
+        pending:   isPrivate,
+        message:   isPrivate ? 'Richiesta di follow inviata' : `Ora segui ${targetName || targetId}`,
+      });
     }
 
-    return NextResponse.json({ error: 'Azione non valida. Usa "follow" o "unfollow"' }, { status: 400 });
-  } catch (err: any) {
-    console.error('[Follow] Fatal error:', err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    // ── Unfollow ────────────────────────────────────────────
+    const { data: existing } = await (supabase.from('followers') as any)
+      .select('follower_id')
+      .match(followRecord)
+      .maybeSingle();
+
+    if (!existing) {
+      return ok({ following: false, message: 'Non stavi seguendo' });
+    }
+
+    const { error: delErr } = await (supabase.from('followers') as any)
+      .delete()
+      .match(followRecord);
+    if (delErr) throw Errors.internal('Impossibile rimuovere il follow');
+
+    // Rimuovi eventuale friendship
+    if (entityType === 'user') {
+      await (supabase.from('friendships') as any)
+        .delete()
+        .or(
+          `requester_id.eq.${user.id}.and.addressee_id.eq.${targetId},` +
+          `requester_id.eq.${targetId}.and.addressee_id.eq.${user.id}`
+        );
+    }
+
+    return ok({ following: false, message: 'Non segui più' });
+  },
+  {
+    auth:       true,
+    bodySchema: followSchema,
+    rateLimit:  [30, '1m'],
   }
-}
+);

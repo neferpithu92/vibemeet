@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/Button';
 import { useToast } from '@/components/ui/ToastProvider';
 import { createClient } from '@/lib/supabase/client';
+import { api, ClientApiError } from '@/hooks/useApi';
 import { UserPlus, UserCheck, Clock } from 'lucide-react';
 
 interface FollowButtonProps {
@@ -105,32 +106,28 @@ export default function FollowButton({
     const action = isFollowing ? 'unfollow' : 'follow';
 
     try {
-      const res = await fetch('/api/social/follow', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ targetId, entityType, action }),
-      });
+      const result = await api.social.follow(targetId, action, entityType);
 
-      const data = await res.json();
+      setIsFollowing(result.following);
+      setIsPending(result.pending ?? false);
 
-      if (res.ok) {
-        const newFollowing = !isFollowing;
-        setIsFollowing(newFollowing);
-        setIsPending(data.message === 'Richiesta inviata');
-        
-        const emoji = isFollowing ? '👋' : (data.message === 'Richiesta inviata' ? '🕐' : '✨');
-        const msg = isFollowing ? 'Non segui più' : (data.message || 'Ora segui!');
-        showToast(msg, 'success', emoji);
-        
-        if (onFollowChange) {
-          onFollowChange(newFollowing);
+      const emoji = !result.following ? '👋' : (result.pending ? '🕐' : '✨');
+      showToast(result.message, 'success', emoji);
+
+      if (onFollowChange) onFollowChange(result.following);
+    } catch (err) {
+      if (err instanceof ClientApiError) {
+        if (err.isRateLimited) {
+          showToast('Stai andando troppo veloce! Riprova tra poco.', 'error', '⏱️');
+        } else if (err.isUnauthorized) {
+          showToast('Sessione scaduta — effettua di nuovo il login', 'error', '🔒');
+        } else {
+          showToast(err.message, 'error');
         }
       } else {
-        showToast(data.error || 'Errore nel follow', 'error');
+        showToast('Errore di connessione', 'error');
+        console.error('[FollowButton] Error:', err);
       }
-    } catch (err) {
-      console.error('Follow Error:', err);
-      showToast('Errore di connessione', 'error');
     } finally {
       setIsLoading(false);
     }

@@ -82,10 +82,7 @@ export function NotificationDropdown() {
   const toggleDropdown = () => setIsOpen(!isOpen);
 
   const handleMarkAllRead = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      await markAllAsRead(user.id);
-    }
+    await markAllAsRead();
   };
 
   const getIcon = (type: Notification['type']) => {

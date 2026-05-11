@@ -1,18 +1,19 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslations } from 'next-intl';
 import dynamic from 'next/dynamic';
 import { Avatar } from '@/components/ui/Avatar';
 import { useToast } from '@/components/ui/ToastProvider';
 import { createClient } from '@/lib/supabase/client';
+import { api, ClientApiError } from '@/hooks/useApi';
 import FeedPostCard from './FeedPostCard';
-import { useIntersectionObserver } from '@/hooks/useIntersectionObserver';
 import { PostSkeleton } from './FeedSkeleton';
 import { cn } from '@/lib/utils';
-import { Bell, MessageCircle, Plus, RefreshCw } from 'lucide-react';
+import { Plus, RefreshCw } from 'lucide-react';
 import { useNotificationStore } from '@/stores/useNotificationStore';
+import { useIntersectionObserver } from '@/hooks/useIntersectionObserver';
 
 // Lazy load heavy modals
 const CreateStory = dynamic(() => import('./CreateStory'), { ssr: false });
@@ -150,13 +151,11 @@ export default function FeedClient({ initialPosts, stories }: FeedClientProps) {
     if (isLoadingMore || !hasMore) return;
     setIsLoadingMore(true);
     try {
-      const response = await fetch(`/api/feed/foryou?limit=10&offset=${currentOffset}`);
-      if (!response.ok) throw new Error('Network error');
-      const data = await response.json();
+      const data = await api.feed.forYou({ limit: 10, offset: currentOffset });
       if (data.items && data.items.length > 0) {
         setPosts(prev => {
           const existingIds = new Set(prev.map(p => p.id));
-          const newPosts = data.items.filter((p: FeedPost) => !existingIds.has(p.id));
+          const newPosts = data.items.filter((p: any) => !existingIds.has(p.id));
           return [...prev, ...newPosts];
         });
         setCurrentOffset(prev => prev + data.items.length);
@@ -165,19 +164,20 @@ export default function FeedClient({ initialPosts, stories }: FeedClientProps) {
         setHasMore(false);
       }
     } catch (e) {
-      console.error('[Feed] Load more error:', e);
+      if (e instanceof ClientApiError && e.isRateLimited) {
+        console.warn('[Feed] Rate limited, pausing load more');
+      } else {
+        console.error('[Feed] Load more error:', e);
+      }
     } finally {
       setIsLoadingMore(false);
     }
   }, [isLoadingMore, hasMore, currentOffset]);
 
-  // Refresh feed
   const handleRefresh = async () => {
     setIsRefreshing(true);
     try {
-      const response = await fetch('/api/feed/foryou?limit=10&offset=0');
-      if (!response.ok) return;
-      const data = await response.json();
+      const data = await api.feed.forYou({ limit: 10, offset: 0 });
       if (data.items) {
         setPosts(data.items);
         setCurrentOffset(data.items.length);
@@ -250,19 +250,21 @@ export default function FeedClient({ initialPosts, stories }: FeedClientProps) {
       return next;
     });
     // Persist save in DB
-    const action = savedPosts.has(postId) ? 'unsave' : 'save';
+    const isSaved = savedPosts.has(postId);
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
-      if (action === 'save') {
-        await (supabase.from('saved_posts') as any).upsert({ user_id: user.id, post_id: postId }, { onConflict: 'user_id,post_id' });
+      if (!isSaved) {
+        await (supabase.from('saved_posts') as any)
+          .upsert({ user_id: user.id, post_id: postId }, { onConflict: 'user_id,post_id' });
       } else {
-        await (supabase.from('saved_posts') as any).delete().match({ user_id: user.id, post_id: postId });
+        await (supabase.from('saved_posts') as any)
+          .delete().match({ user_id: user.id, post_id: postId });
       }
     } catch (e) {
       console.error('[Feed] Save error:', e);
     }
-  }, [savedPosts]);
+  }, [savedPosts, supabase]);
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-4 mb-20">

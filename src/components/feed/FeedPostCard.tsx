@@ -2,14 +2,13 @@
 
 import { useState, useEffect, memo } from 'react';
 import { useTranslations } from 'next-intl';
-import { Avatar } from '@/components/ui/Avatar';
 import { Card } from '@/components/ui/Card';
 import { ShareModal } from '@/components/social/ShareModal';
 import { cn } from '@/lib/utils';
 import { Link } from '@/lib/i18n/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
-import { createClient } from '@/lib/supabase/client';
+import { api, ClientApiError } from '@/hooks/useApi';
 
 interface FeedPostCardProps {
   post: {
@@ -63,19 +62,13 @@ const FeedPostCard = memo(({ post, isLiked, isSaved, onLike, onSave, onComment, 
   useEffect(() => {
     if (inView && !hasTrackedView) {
       setHasTrackedView(true);
-      // Track view in background
-      fetch('/api/social/batch-interactions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          interactions: [{
-            post_id: post.id,
-            type: 'view',
-            watch_time: 0,
-            affinity_inc: 0.05
-          }]
-        })
-      }).catch(() => {});
+      // Track view fire-and-forget tramite api tipizzata
+      api.social.batchInteractions([{
+        post_id:     post.id,
+        type:        'view',
+        watch_time:  0,
+        affinity_inc: 0.05,
+      }]).catch(() => {});
     }
   }, [inView, hasTrackedView, post.id]);
 
@@ -83,6 +76,7 @@ const FeedPostCard = memo(({ post, isLiked, isSaved, onLike, onSave, onComment, 
     if (e) e.stopPropagation();
     
     const newLiked = !localIsLiked;
+    // Aggiornamento ottimistico immediato
     setLocalIsLiked(newLiked);
     setLocalLikeCount(prev => newLiked ? prev + 1 : Math.max(0, prev - 1));
     
@@ -92,21 +86,24 @@ const FeedPostCard = memo(({ post, isLiked, isSaved, onLike, onSave, onComment, 
     }
 
     try {
-      await fetch('/api/social/like', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          entityId: post.id,
-          entityType: 'media',
-          action: newLiked ? 'like' : 'unlike',
-        }),
-      });
+      const result = await api.social.like(
+        post.id,
+        'media',
+        newLiked ? 'like' : 'unlike'
+      );
+      // Sincronizza col contatore reale dal server
+      setLocalLikeCount(result.likeCount);
+      setLocalIsLiked(result.liked);
       onLike(post.id);
     } catch (err) {
-      // Rollback ottimistico in caso di errore
+      // Rollback ottimistico
       setLocalIsLiked(!newLiked);
       setLocalLikeCount(prev => newLiked ? Math.max(0, prev - 1) : prev + 1);
-      console.error('[FeedPostCard] Like error:', err);
+      if (err instanceof ClientApiError && err.isRateLimited) {
+        console.warn('[FeedPostCard] Like rate limited');
+      } else {
+        console.error('[FeedPostCard] Like error:', err);
+      }
     }
   };
 
