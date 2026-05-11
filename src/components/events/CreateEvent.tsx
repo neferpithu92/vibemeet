@@ -85,61 +85,30 @@ export default function CreateEvent({ isOpen, onClose, onSuccess, venueId: initi
         throw new Error(t('errorUnauthorized'));
       }
 
-      let eventLocation = 'POINT(8.5417 47.3769)'; // Default to Zurich
-      let finalAddress = formData.address;
-
-      if (selectedVenueId) {
-        console.log("Selected venue ID:", selectedVenueId);
-        const { data: venueData, error: venueError } = await (supabase.from('venues') as any).select('location, address').eq('id', selectedVenueId).single();
-        if (venueError) {
-          console.error("Error fetching venue data:", venueError);
-        }
-        if (venueData?.location) eventLocation = venueData.location;
-        if (venueData?.address) finalAddress = venueData.address;
-      } else if (formData.locationData) {
-        console.log("Using custom location data:", formData.locationData);
-        eventLocation = `POINT(${formData.locationData.lng} ${formData.locationData.lat})`;
-        finalAddress = formData.locationData.name || 'Custom Location';
-      } else {
-        console.warn("No location selected, using default");
-        eventLocation = 'POINT(8.5417 47.3769)';
+      let lat, lng;
+      if (formData.locationData) {
+         lat = formData.locationData.lat;
+         lng = formData.locationData.lng;
       }
 
-      const eventSlug = formData.title
-        .toLowerCase()
-        .trim()
-        .replace(/[^\w\s-]/g, '')
-        .replace(/[\s_-]+/g, '-')
-        .replace(/^-+|-+$/g, '') + '-' + Math.random().toString(36).substring(2, 7);
-
-      console.log("Final payload for event insert:", {
-        title: formData.title,
-        venue_id: selectedVenueId,
-        location: eventLocation,
-        starts_at: formData.startTime
-      });
-
-      const { data, error } = await (supabase.from('events') as any).insert({
+      console.log("Submitting to API...");
+      const apiMod = await import('@/hooks/useApi');
+      const { event } = await apiMod.api.events.create({
         title: formData.title,
         description: formData.description,
         category: formData.category,
-        venue_id: selectedVenueId || null,
-        organizer_id: user.id,
+        venue_id: selectedVenueId || undefined,
         starts_at: new Date(formData.startTime).toISOString(),
-        ends_at: formData.endTime ? new Date(formData.endTime).toISOString() : null,
+        ends_at: formData.endTime ? new Date(formData.endTime).toISOString() : undefined,
+        cover_url: formData.coverUrl || undefined,
         ticket_price: formData.price,
-        slug: eventSlug,
-        location: eventLocation,
-        address: finalAddress || 'Address not specified',
-        cover_url: formData.coverUrl
-      }).select().single();
+        max_attendees: formData.ticketLimit,
+        address: formData.address || (formData.locationData?.name) || undefined,
+        location_lat: lat,
+        location_lng: lng
+      });
 
-      if (error) {
-        console.error("Supabase insert error:", error);
-        throw error;
-      }
-
-      console.log("Event created successfully:", data);
+      console.log("Event created successfully:", event);
       showToast(t('success'), 'success', '🎉');
       if (onSuccess) onSuccess();
       onClose();

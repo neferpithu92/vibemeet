@@ -1,41 +1,35 @@
 'use client';
 
-import { useState, useEffect, memo } from 'react';
+import { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import { useTranslations } from 'next-intl';
-import { useRouter, usePathname, Link } from '@/lib/i18n/navigation';
+import { useRouter, usePathname } from '@/lib/i18n/navigation';
 import { useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
-import { Button } from '@/components/ui/Button';
-import { Card } from '@/components/ui/Card';
 import { Switch } from '@/components/ui/Switch';
-import { Avatar } from '@/components/ui/Avatar';
 import { locales, localeNames } from '@/lib/i18n/config';
 import { useToast } from '@/components/ui/ToastProvider';
-import { SettingRow } from '@/components/ui/SettingRow';
 import { 
-  ChevronLeft, 
-  Bell, 
-  Lock, 
-  Hourglass, 
-  Globe, 
-  Palette, 
-  Gem, 
-  LogOut,
-  HelpCircle,
-  Shield,
-  X,
-  User
+  ChevronLeft, Bell, Lock, Hourglass, Globe, Palette, Gem, LogOut,
+  HelpCircle, Shield, User, ChevronRight, Check
 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
-// Lazy load heavy settings components
-const SubscriptionManager = dynamic(() => import('@/components/profile/SubscriptionManager').then(mod => mod.SubscriptionManager), { 
-  ssr: false,
-  loading: () => <div className="h-40 w-full animate-pulse bg-white/5 rounded-3xl" />
-});
-const AccountCenter = dynamic(() => import('@/components/settings/AccountCenter').then(mod => mod.AccountCenter), { 
-  ssr: false 
-});
+const SubscriptionManager = dynamic(() => import('@/components/profile/SubscriptionManager').then(m => m.SubscriptionManager), { ssr: false });
+const AccountCenter = dynamic(() => import('@/components/settings/AccountCenter').then(m => m.AccountCenter), { ssr: false });
+
+type TabId = 'account' | 'privacy' | 'notifiche' | 'tempo' | 'media' | 'abbonamento' | 'tema' | 'info';
+
+const TABS = [
+  { id: 'account', icon: User, label: 'Centro gestione account' },
+  { id: 'notifiche', icon: Bell, label: 'Notifiche' },
+  { id: 'tempo', icon: Hourglass, label: 'Tempo di utilizzo' },
+  { id: 'privacy', icon: Lock, label: 'Privacy dell\'account' },
+  { id: 'media', icon: Globe, label: 'Lingua' },
+  { id: 'tema', icon: Palette, label: 'Tema' },
+  { id: 'abbonamento', icon: Gem, label: 'Abbonamento' },
+  { id: 'info', icon: HelpCircle, label: 'Assistenza e info' },
+];
 
 export default function SettingsPage() {
   const t = useTranslations('settings');
@@ -45,328 +39,319 @@ export default function SettingsPage() {
   const supabase = createClient();
   const { showToast } = useToast();
   
-  const [activeTab, setActiveTab] = useState<string | null>(searchParams.get('tab'));
+  const initialTab = searchParams.get('tab') as TabId | null;
+  const [activeTab, setActiveTab] = useState<TabId | null>(initialTab);
+  
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   
   const [settings, setSettings] = useState<any>({
-    language: 'it',
-    theme: 'dark',
-    is_private: false,
-    show_activity: true,
-    location_radius: '500m',
-    push_notifications: true,
-    anon_mode: false,
-    usage_limit: 0,
-    daily_usage: 0,
-    weekly_usage: 0,
-    allow_replies: true,
-    location_sharing: true
+    language: 'it', is_private: false, show_activity: true, push_notifications: true,
+    daily_usage: 0, usage_limit: 0
   });
 
-  const [profileData, setProfileData] = useState<any>({
-    username: '',
-    display_name: '',
-    email: '',
-    bio: '',
-    avatar_url: ''
+  const [profileData, setProfileData] = useState({
+    username: '', display_name: '', bio: '', avatar_url: '', email: ''
   });
+
+  useEffect(() => {
+    setActiveTab((searchParams.get('tab') as TabId) || null);
+  }, [searchParams]);
 
   useEffect(() => {
     async function loadData() {
       const { data: { user: authUser } } = await supabase.auth.getUser();
-      if (!authUser) {
-        setLoading(false);
-        router.push('/login');
-        return;
-      }
+      if (!authUser) return router.push('/login');
       setUser(authUser);
 
-      const { data: profile } = await supabase.from('users').select('*').eq('id', authUser.id).single();
-
-      if (profile) {
-        const p = profile as any;
-        setProfileData({
-          username: p.username || '',
-          display_name: p.display_name || '',
-          email: authUser.email || '',
-          bio: p.bio || '',
-          avatar_url: p.avatar_url || ''
-        });
-        setSettings((prev: any) => ({
-          ...prev,
-          language: p.language || 'it',
-          is_private: p.account_type === 'private'
-        }));
-      }
-
-      const [privResult, notifResult, usageResult] = await Promise.allSettled([
-        supabase.from('privacy_settings').select('*').eq('user_id', authUser.id).single(),
-        supabase.from('notification_settings').select('*').eq('user_id', authUser.id).single(),
-        supabase.from('usage_stats').select('*').eq('user_id', authUser.id).order('date', { ascending: false }).limit(7),
+      const [profileRes, privRes, notifRes, usageRes] = await Promise.all([
+        supabase.from('users').select('*').eq('id', authUser.id).single(),
+        supabase.from('privacy_settings').select('*').eq('user_id', authUser.id).maybeSingle(),
+        supabase.from('notification_settings').select('*').eq('user_id', authUser.id).maybeSingle(),
+        supabase.from('usage_stats').select('*').eq('user_id', authUser.id).order('date', { ascending: false }).limit(1).maybeSingle()
       ]);
 
-      const priv = privResult.status === 'fulfilled' ? privResult.value.data : null;
-      const notif = notifResult.status === 'fulfilled' ? notifResult.value.data : null;
-      const usage = usageResult.status === 'fulfilled' ? usageResult.value.data : null;
-
-      if (priv) {
-        setSettings((prev: any) => ({
-          ...prev,
-          show_activity: (priv as any).show_activity_status,
-          anon_mode: (priv as any).anon_mode || false
-        }));
+      if (profileRes.data) {
+        setProfileData({
+          username: profileRes.data.username || '',
+          display_name: profileRes.data.display_name || '',
+          bio: profileRes.data.bio || '',
+          avatar_url: profileRes.data.avatar_url || '',
+          email: authUser.email || ''
+        });
+        setSettings((s: any) => ({ ...s, language: profileRes.data!.language || 'it', is_private: profileRes.data!.account_type === 'private' }));
       }
-      if (notif) {
-        setSettings((prev: any) => ({ ...prev, push_notifications: (notif as any).push_enabled }));
-      }
-      if (usage && Array.isArray(usage)) {
-        const uItems = usage as any[];
-        const daily = uItems.find((u: any) => u.date === new Date().toISOString().split('T')[0]);
-        const weekly = uItems.reduce((acc: number, u: any) => acc + (u.minutes_used || 0), 0);
-        setSettings((prev: any) => ({
-          ...prev,
-          daily_usage: daily ? daily.minutes_used : 0,
-          weekly_usage: weekly,
-          usage_limit: daily ? daily.daily_limit_minutes : 0
-        }));
-      }
-
+      if (privRes.data) setSettings((s: any) => ({ ...s, show_activity: privRes.data!.show_activity_status }));
+      if (notifRes.data) setSettings((s: any) => ({ ...s, push_notifications: notifRes.data!.push_enabled }));
+      if (usageRes.data) setSettings((s: any) => ({ ...s, daily_usage: usageRes.data!.minutes_used || 0, usage_limit: usageRes.data!.daily_limit_minutes || 0 }));
+      
       setLoading(false);
     }
     loadData();
   }, [supabase, router]);
-
-  useEffect(() => {
-    setActiveTab(searchParams.get('tab'));
-  }, [searchParams]);
 
   const saveToDB = async (type: string, newData: any) => {
     if (!user) return;
     setIsSaving(true);
     try {
       if (type === 'profile') {
-        const { error } = await (supabase as any).from('users').update({
+        await supabase.from('users').update({
           username: newData.username ?? profileData.username,
           display_name: newData.display_name ?? profileData.display_name,
           bio: newData.bio ?? profileData.bio,
           language: newData.language ?? settings.language,
           account_type: (newData.is_private ?? settings.is_private) ? 'private' : 'public'
         }).eq('id', user.id);
-        if (error) throw error;
       } else if (type === 'privacy') {
-        await (supabase as any).from('privacy_settings').upsert({
+        await supabase.from('privacy_settings').upsert({
           user_id: user.id,
           show_activity_status: newData.show_activity ?? settings.show_activity,
           account_type: (newData.is_private ?? settings.is_private) ? 'private' : 'public'
         });
       } else if (type === 'notifications') {
-        await (supabase as any).from('notification_settings').upsert({
+        await supabase.from('notification_settings').upsert({
           user_id: user.id,
           push_enabled: newData.push_notifications ?? settings.push_notifications
         });
       }
-      showToast(t('saveSuccess'), 'success');
-    } catch (err) {
-      showToast(t('saveError'), 'error');
+      showToast('Impostazioni salvate', 'success');
+    } catch {
+      showToast('Errore durante il salvataggio', 'error');
     } finally {
       setIsSaving(false);
     }
   };
 
   const updateSettings = async (newData: any) => {
-    const updatedSettings = { ...settings, ...newData };
-    setSettings(updatedSettings);
-    
-    if (updatedSettings.language !== settings.language) {
-      router.replace(pathname, { locale: updatedSettings.language });
-    }
-    
+    const next = { ...settings, ...newData };
+    setSettings(next);
+    if (newData.language) router.replace(pathname, { locale: newData.language });
     if ('is_private' in newData || 'show_activity' in newData) await saveToDB('privacy', newData);
     if ('push_notifications' in newData) await saveToDB('notifications', newData);
   };
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    router.push('/login');
-    router.refresh();
+  const navigateTo = (id: TabId | null) => {
+    if (id) router.push(`${pathname}?tab=${id}`);
+    else router.push(pathname);
   };
 
-  const navigateToTab = (id: string | null) => {
-    setActiveTab(id);
-    if (id) {
-      router.push(`${pathname}?tab=${id}`);
-    } else {
-      router.push(pathname);
+  if (loading) return <div className="p-20 text-center animate-pulse text-vibe-text-secondary">Caricamento...</div>;
+
+  const renderContent = () => {
+    switch (activeTab) {
+      case 'account':
+        return (
+          <div className="space-y-6">
+            <h2 className="text-2xl font-bold mb-6">Modifica profilo</h2>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-vibe-text-secondary mb-1">Nome</label>
+                <input type="text" value={profileData.display_name} onChange={e => setProfileData({...profileData, display_name: e.target.value})} onBlur={() => saveToDB('profile', {})} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-vibe-purple transition-colors" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-vibe-text-secondary mb-1">Nome utente</label>
+                <input type="text" value={profileData.username} onChange={e => setProfileData({...profileData, username: e.target.value})} onBlur={() => saveToDB('profile', {})} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-vibe-purple transition-colors" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-vibe-text-secondary mb-1">Bio</label>
+                <textarea value={profileData.bio} onChange={e => setProfileData({...profileData, bio: e.target.value})} onBlur={() => saveToDB('profile', {})} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-vibe-purple transition-colors min-h-[100px]" />
+              </div>
+            </div>
+          </div>
+        );
+      case 'privacy':
+        return (
+          <div className="space-y-6">
+            <h2 className="text-2xl font-bold mb-6">Privacy dell'account</h2>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5">
+                <div>
+                  <h4 className="font-medium">Account Privato</h4>
+                  <p className="text-sm text-vibe-text-secondary">Solo chi approvi può vedere i tuoi post</p>
+                </div>
+                <Switch checked={settings.is_private} onChange={() => updateSettings({ is_private: !settings.is_private })} />
+              </div>
+              <div className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5">
+                <div>
+                  <h4 className="font-medium">Stato di attività</h4>
+                  <p className="text-sm text-vibe-text-secondary">Permetti agli altri di vedere quando sei online</p>
+                </div>
+                <Switch checked={settings.show_activity} onChange={() => updateSettings({ show_activity: !settings.show_activity })} />
+              </div>
+            </div>
+          </div>
+        );
+      case 'notifiche':
+        return (
+          <div className="space-y-6">
+            <h2 className="text-2xl font-bold mb-6">Notifiche</h2>
+            <div className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5">
+              <div>
+                <h4 className="font-medium">Notifiche Push</h4>
+                <p className="text-sm text-vibe-text-secondary">Ricevi avvisi sul dispositivo</p>
+              </div>
+              <Switch checked={settings.push_notifications} onChange={() => updateSettings({ push_notifications: !settings.push_notifications })} />
+            </div>
+          </div>
+        );
+      case 'media':
+        return (
+          <div className="space-y-6">
+            <h2 className="text-2xl font-bold mb-6">Lingua</h2>
+            <div className="space-y-2">
+              {locales.map(l => (
+                <button
+                  key={l}
+                  onClick={() => updateSettings({ language: l })}
+                  className="w-full flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5 hover:bg-white/10 transition-colors"
+                >
+                  <span className={settings.language === l ? 'font-bold' : ''}>{localeNames[l]}</span>
+                  {settings.language === l && <Check className="w-5 h-5 text-vibe-purple" />}
+                </button>
+              ))}
+            </div>
+          </div>
+        );
+      case 'tempo':
+        return (
+          <div className="space-y-6">
+            <h2 className="text-2xl font-bold mb-6">Tempo di utilizzo</h2>
+            <div className="text-center p-8 bg-white/5 rounded-3xl border border-white/5">
+              <div className="text-4xl font-black text-vibe-purple mb-2">{settings.daily_usage}m</div>
+              <p className="text-vibe-text-secondary">Tempo trascorso oggi</p>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-vibe-text-secondary mb-2">Limite giornaliero</label>
+              <select 
+                value={settings.usage_limit} 
+                onChange={e => updateSettings({ usage_limit: parseInt(e.target.value) })} 
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-vibe-purple transition-colors"
+              >
+                <option value="0">Nessun limite</option>
+                <option value="15">15 minuti</option>
+                <option value="30">30 minuti</option>
+                <option value="60">1 ora</option>
+                <option value="120">2 ore</option>
+              </select>
+            </div>
+          </div>
+        );
+      case 'abbonamento':
+        return <SubscriptionManager />;
+      case 'tema':
+        return (
+           <div className="space-y-6">
+             <h2 className="text-2xl font-bold mb-6">Tema</h2>
+             <div className="p-4 bg-white/5 rounded-2xl border border-white/5 flex items-center justify-between">
+                <span>Modalità Scura</span>
+                <Switch checked={true} onChange={() => {}} />
+             </div>
+           </div>
+        );
+      case 'info':
+        return (
+           <div className="space-y-6">
+             <h2 className="text-2xl font-bold mb-6">Assistenza e info</h2>
+             <div className="space-y-2">
+               <button className="w-full text-left p-4 bg-white/5 rounded-2xl border border-white/5 hover:bg-white/10 transition-colors">Centro assistenza</button>
+               <button className="w-full text-left p-4 bg-white/5 rounded-2xl border border-white/5 hover:bg-white/10 transition-colors">Privacy Policy</button>
+               <button className="w-full text-left p-4 bg-white/5 rounded-2xl border border-white/5 hover:bg-white/10 transition-colors">Termini di servizio</button>
+             </div>
+           </div>
+        );
+      default:
+        return (
+          <div className="flex flex-col items-center justify-center h-full text-vibe-text-secondary">
+             <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mb-4">
+               <Shield className="w-10 h-10 opacity-50" />
+             </div>
+             <p>Seleziona un'opzione dal menu per visualizzare le impostazioni</p>
+          </div>
+        );
     }
   };
 
-  if (loading) return <div className="p-20 text-center animate-pulse text-vibe-text-secondary font-black uppercase tracking-widest">Caricamento Impostazioni...</div>;
-
   return (
-    <div className="max-w-2xl mx-auto px-4 py-6 min-h-screen gpu-accelerated">
-        {!activeTab ? (
-          <div className="space-y-6 animate-fade-in">
-            <div className="flex items-center gap-4 mb-8">
-               <button onClick={() => router.back()} className="p-3 -ml-3 rounded-2xl hover:bg-white/5 active:scale-90 transition-all tap-scale">
-                 <ChevronLeft className="w-6 h-6" />
-               </button>
-               <h1 className="text-3xl font-black uppercase tracking-tighter vibe-gradient-text">Impostazioni</h1>
-            </div>
-
-            <AccountCenter user={profileData} />
-
-            <div className="space-y-1 mt-8">
-               <h2 className="text-[10px] font-black text-vibe-text-secondary uppercase tracking-[0.2em] pl-3 mb-3 opacity-60">Preferenze e Contenuti</h2>
-               <div className="glass-card-static rounded-3xl overflow-hidden divide-y divide-white/5 border border-white/10">
-                 <SettingRow icon={<Bell className="w-5 h-5 text-vibe-cyan" />} label="Notifiche" description="Avvisi, email, messaggi" href="/settings?tab=notifiche" value={settings.push_notifications ? 'Attive' : 'Disattivate'} />
-                 <SettingRow icon={<Hourglass className="w-5 h-5 text-orange-400" />} label="Tempo trascorso" description="Gestisci i tuoi limiti giornalieri" href="/settings?tab=tempo" value={`${settings.daily_usage}m`} />
-                 <SettingRow icon={<Lock className="w-5 h-5 text-vibe-purple" />} label="Privacy" description="Chi può vedere i tuoi contenuti" href="/settings?tab=privacy" value={settings.is_private ? 'Privato' : 'Pubblico'} />
-               </div>
-            </div>
-
-            <div className="space-y-1 pt-6">
-               <h2 className="text-[10px] font-black text-vibe-text-secondary uppercase tracking-[0.2em] pl-3 mb-3 opacity-60">Visualizzazione</h2>
-               <div className="glass-card-static rounded-3xl overflow-hidden divide-y divide-white/5 border border-white/10">
-                 <SettingRow icon={<Palette className="w-5 h-5 text-vibe-pink" />} label="Tema" description="Colori, sfondi, aspetto" href="/settings/theme" value="Neon" />
-                 <SettingRow icon={<Globe className="w-5 h-5 text-blue-400" />} label="Lingua" description="Cambia lingua dell'interfaccia" href="/settings?tab=media" value={localeNames[settings.language as keyof typeof localeNames]} />
-               </div>
-            </div>
-
-            <div className="space-y-1 pt-6">
-               <h2 className="text-[10px] font-black text-vibe-text-secondary uppercase tracking-[0.2em] pl-3 mb-3 opacity-60">Business</h2>
-               <div className="glass-card-static rounded-3xl overflow-hidden divide-y divide-white/5 border border-white/10">
-                 <SettingRow icon={<Gem className="w-5 h-5 text-amber-300" />} label="Abbonamento" description="Gestisci Vibe Premium" href="/settings?tab=abbonamento" value="Pro" />
-               </div>
-            </div>
-
-            <div className="space-y-1 pt-6">
-               <h2 className="text-[10px] font-black text-vibe-text-secondary uppercase tracking-[0.2em] pl-3 mb-3 opacity-60">Altro</h2>
-               <div className="glass-card-static rounded-3xl overflow-hidden divide-y divide-white/5 border border-white/10">
-                 <SettingRow icon={<HelpCircle className="w-5 h-5 text-gray-400" />} label="Aiuto e Assistenza" description="Centro assistenza e FAQ" href="/settings?tab=info" />
-                 <SettingRow icon={<Shield className="w-5 h-5 text-gray-400" />} label="Privacy Policy" description="Dati e termini di servizio" href="/settings?tab=info" />
-                 <SettingRow icon={<LogOut className="w-5 h-5 text-red-500" />} label="Esci" description="Termina la sessione corrente" onClick={handleLogout} dangerous />
-               </div>
-            </div>
-
-            <div className="py-16 text-center opacity-20">
-               <p className="text-[10px] font-black uppercase tracking-[0.3em] text-vibe-text-secondary">Vibe v4.0.0 Enterprise</p>
-               <p className="text-[9px] mt-2 text-vibe-text-secondary">Performance Mode: ON 🦾</p>
-            </div>
+    <div className="flex max-w-5xl mx-auto min-h-[calc(100vh-80px)] bg-vibe-dark md:py-8 px-0 md:px-4">
+      {/* Sidebar (Nascosta su mobile se c'è un tab attivo) */}
+      <div className={cn(
+        "w-full md:w-80 flex-shrink-0 border-r border-white/10 flex flex-col transition-all",
+        activeTab ? "hidden md:flex" : "flex"
+      )}>
+        <div className="p-4 md:p-6 pb-2">
+          <h1 className="text-2xl font-bold">Impostazioni</h1>
+        </div>
+        
+        <div className="flex-1 overflow-y-auto px-2 pb-20 md:pb-4 space-y-1">
+          <div className="p-2 mb-2">
+             <AccountCenter user={profileData} />
           </div>
-        ) : (
-          <div className="space-y-6 animate-slide-in-right">
-            <div className="flex items-center gap-4 py-2">
-               <button onClick={() => navigateToTab(null)} className="p-3 -ml-3 rounded-2xl hover:bg-white/5 active:scale-90 transition-all tap-scale">
-                 <ChevronLeft className="w-6 h-6 text-white" />
-               </button>
-               <h2 className="text-2xl font-black uppercase tracking-tighter">{activeTab}</h2>
-            </div>
 
-            <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-8 min-h-[400px] shadow-2xl backdrop-blur-xl">
-              {activeTab === 'account' && (
-                <div className="space-y-8">
-                   <div className="space-y-4">
-                      <h3 className="text-[10px] font-black text-vibe-text-secondary uppercase tracking-[0.2em]">Dettagli Profilo</h3>
-                      <input type="text" value={profileData.display_name} onChange={e => setProfileData({...profileData, display_name: e.target.value})} onBlur={() => saveToDB('profile', {})} className="input-field h-14" placeholder="Nome Visualizzato" />
-                      <input type="text" value={profileData.username} onChange={e => setProfileData({...profileData, username: e.target.value})} onBlur={() => saveToDB('profile', {})} className="input-field h-14" placeholder="Username" />
-                      <textarea value={profileData.bio} onChange={e => setProfileData({...profileData, bio: e.target.value})} onBlur={() => saveToDB('profile', {})} className="input-field min-h-[120px] py-4" placeholder="Bio..." />
-                   </div>
-                </div>
-              )}
-
-              {activeTab === 'privacy' && (
-                <div className="space-y-8">
-                   <div className="flex items-center justify-between p-4 rounded-2xl hover:bg-white/5 transition-colors">
-                     <div>
-                       <h4 className="font-bold">Account Privato</h4>
-                       <p className="text-xs text-vibe-text-secondary">Solo chi approvi può vedere i tuoi post</p>
-                     </div>
-                     <Switch checked={settings.is_private} onChange={() => updateSettings({ is_private: !settings.is_private })} />
-                   </div>
-                   <div className="flex items-center justify-between p-4 rounded-2xl hover:bg-white/5 transition-colors">
-                     <div>
-                       <h4 className="font-bold">Status Attività</h4>
-                       <p className="text-xs text-vibe-text-secondary">Mostra quando sei online</p>
-                     </div>
-                     <Switch checked={settings.show_activity} onChange={() => updateSettings({ show_activity: !settings.show_activity })} />
-                   </div>
-                </div>
-              )}
-
-              {activeTab === 'notifiche' && (
-                <div className="space-y-8">
-                   <div className="flex items-center justify-between p-6 rounded-3xl bg-vibe-purple/10 border border-vibe-purple/20 shadow-lg shadow-vibe-purple/5">
-                     <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-2xl bg-vibe-purple/20 flex items-center justify-center">
-                          <Bell className="w-5 h-5 text-vibe-purple" />
-                        </div>
-                        <span className="font-black uppercase tracking-tighter text-lg">Notifiche Push</span>
-                     </div>
-                     <Switch checked={settings.push_notifications} onChange={() => updateSettings({ push_notifications: !settings.push_notifications })} />
-                   </div>
-                   <div className="space-y-4 pt-4">
-                      <h4 className="text-[10px] font-black text-vibe-text-secondary uppercase tracking-[0.2em] mb-4">Personalizza</h4>
-                      {['Messaggi', 'Nuovi Follower', 'Mi Piace', 'Eventi Vicini'].map(it => (
-                        <div key={it} className="flex items-center justify-between p-4 rounded-2xl hover:bg-white/5 transition-colors">
-                           <span className="text-sm font-bold">{it}</span>
-                           <Switch checked={true} onChange={() => {}} />
-                        </div>
-                      ))}
-                   </div>
-                </div>
-              )}
-
-              {activeTab === 'abbonamento' && <SubscriptionManager />}
-
-              {activeTab === 'media' && (
-                <div className="space-y-8">
-                   <h4 className="text-[10px] font-black text-vibe-text-secondary uppercase tracking-[0.2em]">Lingua App</h4>
-                   <div className="grid grid-cols-2 gap-3">
-                     {locales.map(l => (
-                       <button
-                         key={l}
-                         onClick={() => updateSettings({ language: l })}
-                         className={`h-16 rounded-2xl border transition-all text-sm font-black uppercase tracking-widest tap-scale ${
-                           settings.language === l ? 'bg-vibe-purple border-vibe-purple text-white shadow-lg shadow-vibe-purple/20' : 'border-white/10 hover:bg-white/5 text-vibe-text-secondary'
-                         }`}
-                       >
-                         {localeNames[l]}
-                       </button>
-                     ))}
-                   </div>
-                </div>
-              )}
-
-              {activeTab === 'tempo' && (
-                <div className="space-y-8 text-center py-4">
-                   <div className="w-32 h-32 rounded-full border-4 border-vibe-purple flex items-center justify-center mx-auto mb-6 bg-vibe-purple/10 shadow-2xl shadow-vibe-purple/10">
-                      <span className="text-3xl font-black">{settings.daily_usage}m</span>
-                   </div>
-                   <h3 className="text-xl font-black tracking-tighter uppercase">Utilizzo Oggi</h3>
-                   <p className="text-xs text-vibe-text-secondary">Il tuo limite giornaliero è <span className="text-white font-bold">{settings.usage_limit > 0 ? `${settings.usage_limit}m` : 'Illimitato'}</span></p>
-                   <div className="pt-8">
-                      <label className="text-[10px] font-black uppercase block mb-4 tracking-[0.2em] opacity-60">Imposta Limite</label>
-                      <select value={settings.usage_limit} onChange={e => updateSettings({ usage_limit: parseInt(e.target.value) })} className="input-field h-14 font-bold text-center">
-                         <option value="0">Nessun Limite</option>
-                         <option value="30">30 Minuti</option>
-                         <option value="60">1 Ora</option>
-                         <option value="120">2 Ore</option>
-                      </select>
-                   </div>
-                </div>
-              )}
-
-              {isSaving && (
-                <div className="flex items-center justify-center gap-3 mt-12 text-vibe-text-secondary text-[10px] font-black uppercase tracking-[0.2em] animate-pulse">
-                  <div className="w-2 h-2 rounded-full bg-vibe-purple" />
-                  Sincronizzazione Cloud...
-                </div>
-              )}
-            </div>
+          <div className="px-3 pb-2 pt-4">
+             <span className="text-xs font-semibold text-vibe-text-secondary uppercase tracking-wider">Preferenze</span>
           </div>
-        )}
+          
+          {TABS.map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => navigateTo(tab.id as TabId)}
+              className={cn(
+                "w-full flex items-center justify-between p-4 rounded-xl transition-all",
+                activeTab === tab.id 
+                  ? "bg-white/10 font-medium" 
+                  : "hover:bg-white/5"
+              )}
+            >
+              <div className="flex items-center gap-4">
+                <tab.icon className={cn("w-6 h-6", activeTab === tab.id ? "text-vibe-purple" : "text-vibe-text-secondary")} />
+                <span>{tab.label}</span>
+              </div>
+              <ChevronRight className="w-5 h-5 text-vibe-text-secondary opacity-50" />
+            </button>
+          ))}
+
+          <div className="mt-8 px-2">
+            <button 
+              onClick={() => {
+                supabase.auth.signOut();
+                router.push('/login');
+              }}
+              className="w-full flex items-center gap-4 p-4 text-red-500 hover:bg-red-500/10 rounded-xl transition-all"
+            >
+              <LogOut className="w-6 h-6" />
+              <span className="font-medium">Esci</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content Area (Visibile su mobile solo se c'è un tab attivo) */}
+      <div className={cn(
+        "flex-1 flex flex-col bg-vibe-dark transition-all min-h-screen md:min-h-0",
+        !activeTab ? "hidden md:flex" : "flex"
+      )}>
+        {/* Mobile Header per il back */}
+        <div className="md:hidden flex items-center gap-4 p-4 border-b border-white/10 sticky top-0 bg-vibe-dark z-10">
+          <button onClick={() => navigateTo(null)} className="p-2 -ml-2 hover:bg-white/10 rounded-full">
+            <ChevronLeft className="w-6 h-6" />
+          </button>
+          <h2 className="font-bold text-lg">{TABS.find(t => t.id === activeTab)?.label}</h2>
+          {isSaving && <div className="ml-auto w-4 h-4 rounded-full border-2 border-vibe-purple border-t-transparent animate-spin" />}
+        </div>
+        
+        {/* Contenuto Tab */}
+        <div className="flex-1 overflow-y-auto p-4 md:p-10 pb-24 md:pb-10 relative">
+          {/* Header Desktop (opzionale) */}
+          <div className="hidden md:flex absolute top-10 right-10">
+            {isSaving && <div className="w-5 h-5 rounded-full border-2 border-vibe-purple border-t-transparent animate-spin" />}
+          </div>
+          
+          <div className="max-w-2xl mx-auto w-full">
+            {renderContent()}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

@@ -250,6 +250,28 @@ export const api = {
         params: { q, ...params } as any,
       }),
   },
+
+  // ── Events ────────────────────────────────────────────────
+  events: {
+    create: (data: {
+      title: string;
+      description: string;
+      category: string;
+      venue_id?: string;
+      starts_at: string;
+      ends_at?: string;
+      cover_url?: string;
+      ticket_price?: number;
+      address?: string;
+      location_lat?: number;
+      location_lng?: number;
+      max_attendees?: number;
+    }) =>
+      apiFetch<{ event: Record<string, unknown> }>('/api/events/create', {
+        method: 'POST',
+        body: data,
+      }),
+  },
 };
 
 // ─────────────────────────────────────────────────────────────
