@@ -46,11 +46,12 @@ export default function UserProfilePage() {
   const [profile, setProfile] = useState<UserProfileData | null>(null);
   const [posts, setPosts] = useState<MediaPost[]>([]);
   const [reels, setReels] = useState<MediaPost[]>([]);
+  const [highlights, setHighlights] = useState<MediaPost[]>([]);
   const [isFollowing, setIsFollowing] = useState(false);
   const [isOwnProfile, setIsOwnProfile] = useState(false);
   const [isPrivate, setIsPrivate] = useState(false);
-  const [activeTab, setActiveTab] = 
-    useState<'posts' | 'reels' | 'tagged'>('posts');
+  const [canViewContent, setCanViewContent] = useState(false);
+  const [activeTab, setActiveTab] = useState<'posts' | 'reels' | 'tagged'>('posts');
   const [loading, setLoading] = useState(true);
   const [followerCount, setFollowerCount] = useState(0);
   const [followingCount, setFollowingCount] = useState(0);
@@ -60,89 +61,37 @@ export default function UserProfilePage() {
 
   useEffect(() => {
     async function load() {
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      // Fetch profile by username
-      const { data: profileData } = await supabase
-        .from('users')
-        .select('*')
-        .eq('username', username)
-        .single();
+      try {
+        const { api } = await import('@/hooks/useApi');
+        const data = await api.profile.get(username);
+        
+        if (data && data.profile) {
+          const p = data.profile;
+          setProfile(p);
+          setFollowerCount(p.follower_count || 0);
+          setFollowingCount(p.following_count || 0);
+          setPostCount(p.post_count || 0);
+          setIsFollowing(data.is_following);
+          setCanViewContent(data.can_view_content);
+          setIsPrivate(p.account_type === 'private');
+          
+          const { data: { user } } = await supabase.auth.getUser();
+          setIsOwnProfile(user?.id === p.id);
 
-      if (!profileData) {
-        setLoading(false);
-        return;
-      }
-
-      const p = profileData as UserProfileData;
-      setProfile(p);
-      setIsOwnProfile(user?.id === p.id);
-      setIsPrivate(p.account_type === 'private');
-
-      // Fetch counts
-      const [
-        { count: followers },
-        { count: following },
-        { count: posts }
-      ] = await Promise.all([
-        supabase.from('followers')
-          .select('*', { count: 'exact', head: true })
-          .eq('following_id', p.id)
-          .eq('entity_type', 'user'),
-        supabase.from('followers')
-          .select('*', { count: 'exact', head: true })
-          .eq('follower_id', p.id)
-          .eq('entity_type', 'user'),
-        (supabase.from('media') as any)
-          .select('*', { count: 'exact', head: true })
-          .eq('user_id', p.id)
-      ]);
-
-      setFollowerCount(followers || 0);
-      setFollowingCount(following || 0);
-      setPostCount(posts || 0);
-
-      // Check if following — use a local var to avoid stale closure
-      let currentlyFollowing = false;
-      if (user) {
-        const { data: followData } = await supabase
-          .from('followers')
-          .select('follower_id')
-          .match({
-            follower_id: user.id,
-            following_id: p.id,
-            entity_type: 'user'
-          })
-          .maybeSingle();
-        currentlyFollowing = !!followData;
-        setIsFollowing(currentlyFollowing);
-      }
-
-      // Fetch media (only if public or own profile or following)
-      const canView = p.account_type === 'public'
-        || user?.id === p.id 
-        || currentlyFollowing;
-
-      if (canView) {
-        const { data: mediaData } = await (supabase
-          .from('media') as any)
-          .select('id, media_url, thumbnail_url, media_type, like_count, created_at')
-          .eq('user_id', p.id)
-          .order('created_at', { ascending: false });
-
-        if (mediaData) {
-          const mItems = mediaData as any[];
-          setPosts(mItems.filter((m: any) => 
-            m.media_type === 'photo' || m.media_type === 'image'));
-          setReels(mItems.filter((m: any) => 
-            m.media_type === 'video' || m.media_type === 'reel'));
+          if (data.media) {
+            setPosts(data.media.filter(m => m.type === 'photo' || m.type === 'image'));
+            setReels(data.media.filter(m => m.type === 'video' || m.type === 'reel'));
+            setHighlights(data.media.filter(m => m.type === 'story' && m.is_featured));
+          }
         }
+      } catch (err) {
+        console.error('[Public Profile] Fetch error:', err);
+      } finally {
+        setLoading(false);
       }
-
-      setLoading(false);
     }
     load();
-  }, [username, supabase]);
+  }, [username]);
 
   const handleFollow = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -312,8 +261,26 @@ export default function UserProfilePage() {
           </div>
         </div>
 
+        {/* Highlights Section */}
+        {canViewContent && highlights.length > 0 && (
+          <div className="mb-6 w-full overflow-x-auto hide-scrollbar">
+            <div className="flex gap-4 min-w-max px-2">
+              {highlights.map((h, i) => (
+                <div key={h.id || i} className="flex flex-col items-center gap-1 cursor-pointer tap-bounce">
+                  <div className="w-16 h-16 rounded-full border border-white/20 overflow-hidden flex items-center justify-center p-[2px]">
+                     <div className="w-full h-full rounded-full overflow-hidden bg-vibe-dark">
+                        <img src={h.thumbnail_url || h.media_url || '/placeholder.png'} className="w-full h-full object-cover" alt="highlight" />
+                     </div>
+                  </div>
+                  <span className="text-[10px] font-bold mt-1 text-white/90">{`High ${i+1}`}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Private account check */}
-        {isPrivate && !isOwnProfile && !isFollowing ? (
+        {!canViewContent ? (
           <EmptyState
             icon={Lock}
             title={t('privateAccount')}

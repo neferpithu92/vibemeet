@@ -272,6 +272,25 @@ export const api = {
         body: data,
       }),
   },
+
+  // ── Profile ───────────────────────────────────────────────
+  profile: {
+    me: () => 
+      apiFetch<{
+        profile: any;
+        media: any[];
+        check_ins: any[];
+        tickets: any[];
+      }>('/api/profile/me'),
+      
+    get: (username: string) =>
+      apiFetch<{
+        profile: any;
+        is_following: boolean;
+        can_view_content: boolean;
+        media: any[];
+      }>(`/api/profile/${username}`),
+  },
 };
 
 // ─────────────────────────────────────────────────────────────

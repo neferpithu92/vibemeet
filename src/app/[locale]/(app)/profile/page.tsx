@@ -92,6 +92,7 @@ export default function ProfilePage() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [posts, setPosts] = useState<UserPost[]>([]);
   const [vibe, setVibe] = useState<UserPost[]>([]);
+  const [highlights, setHighlights] = useState<UserPost[]>([]);
   const [checkIns, setCheckIns] = useState<UserCheckIn[]>([]);
   const [ticketsData, setTickets] = useState<UserTicket[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -100,7 +101,6 @@ export default function ProfilePage() {
   const [isCropperOpen, setIsCropperOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedPost, setSelectedPost] = useState<UserPost | null>(null);
-  const [privacy, setPrivacy] = useState<'friends' | 'public' | 'private'>('friends');
   const { showToast } = useToast();
   
   const t = useTranslations('profile');
@@ -109,91 +109,33 @@ export default function ProfilePage() {
 
   useEffect(() => {
     const loadProfile = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-
-      if (!user) {
-        setIsLoading(false);
-        router.push('/login');
-        return;
-      }
-
       try {
-        const { data: profileData } = await supabase
-          .from('users')
-          .select('display_name, username, bio, avatar_url, is_verified, map_visibility, vibe_points')
-          .eq('id', user.id)
-          .single();
-
-        if (profileData) {
-          setProfile(profileData as any);
+        const { api } = await import('@/hooks/useApi');
+        const data = await api.profile.me();
+        
+        if (data && data.profile) {
+          setProfile(data.profile);
+          setFollowerCount(data.profile.follower_count || 0);
+          setFollowingCount(data.profile.following_count || 0);
+          
+          if (data.media) {
+            setPosts(data.media.filter(m => m.type === 'photo' || m.type === 'image'));
+            setVibe(data.media.filter(m => m.type === 'video' || m.type === 'reel'));
+            setHighlights(data.media.filter(m => m.type === 'story' && m.is_featured));
+          }
+          
+          if (data.check_ins) setCheckIns(data.check_ins);
+          if (data.tickets) setTickets(data.tickets);
         }
       } catch (err) {
-        console.error('[Profile] Fetch profile exception:', err);
+        console.error('[Profile] API Fetch error:', err);
+      } finally {
+        setIsLoading(false);
       }
-
-      // 2. Carica Post (Media)
-      const { data: mediaData } = await (supabase.from('media') as any)
-        .select('*, venue:venues(name)')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
-      
-      if (mediaData) {
-        const photoPosts = mediaData.filter((m: any) => m.media_type === 'photo');
-        const videoPosts = mediaData.filter((m: any) => m.media_type === 'video' || m.media_type === 'reel');
-        setPosts(photoPosts as any);
-        setVibe(videoPosts as any);
-      }
-
-      // 4. Carica Check-ins
-      const { data: checkInData } = await supabase
-        .from('check_ins')
-        .select(`
-          *,
-          venue:venues(name, address, slug)
-        `)
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
-      
-      if (checkInData) setCheckIns(checkInData);
-
-      // 5. Conta follower/seguiti
-      const { count: followersCount } = await supabase
-        .from('followers')
-        .select('*', { count: 'exact', head: true })
-        .eq('following_id', user.id)
-        .eq('entity_type', 'user');
-
-      const { count: followingCount } = await supabase
-        .from('followers')
-        .select('*', { count: 'exact', head: true })
-        .eq('follower_id', user.id)
-        .eq('entity_type', 'user');
-
-      setFollowerCount(followersCount || 0);
-      setFollowingCount(followingCount || 0);
-
-      // 6. Carica Biglietti
-      const { data: ticketsData } = await supabase
-        .from('tickets')
-        .select(`
-          *,
-          event:events (
-            id,
-            title,
-            starts_at,
-            venue:venues ( name, city )
-          )
-        `)
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
-
-      if (ticketsData) setTickets(ticketsData);
-
-      setIsLoading(false);
     };
 
     loadProfile();
-  }, [router, supabase]);
+  }, [router]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -286,6 +228,33 @@ export default function ProfilePage() {
               )}
             </div>
           </div>
+          
+          {/* Highlights Section (Instagram Style) */}
+          <div className="mt-8 relative z-10 w-full overflow-x-auto hide-scrollbar pb-2">
+            <div className="flex gap-4 min-w-max px-2">
+              <div 
+                className="flex flex-col items-center gap-1 cursor-pointer tap-bounce"
+                onClick={() => { /* Apri modale creazione highlight */ }}
+              >
+                <div className="w-16 h-16 rounded-full border border-white/20 flex items-center justify-center bg-white/5 hover:bg-white/10 transition-colors">
+                  <span className="text-2xl text-white/50">+</span>
+                </div>
+                <span className="text-[10px] font-bold mt-1 text-white/70">Nuovo</span>
+              </div>
+              
+              {highlights.map((h, i) => (
+                <div key={h.id || i} className="flex flex-col items-center gap-1 cursor-pointer tap-bounce">
+                  <div className="w-16 h-16 rounded-full border border-white/20 overflow-hidden flex items-center justify-center p-[2px]">
+                     <div className="w-full h-full rounded-full overflow-hidden bg-vibe-dark">
+                        <img src={h.media_url || '/placeholder.png'} className="w-full h-full object-cover" alt="highlight" />
+                     </div>
+                  </div>
+                  <span className="text-[10px] font-bold mt-1 text-white/90">{h.caption || `High ${i+1}`}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
           
           {/* Stats Bar */}
           <div className="grid grid-cols-3 gap-4 mt-8 pt-6 border-t border-white/5 relative z-10">
