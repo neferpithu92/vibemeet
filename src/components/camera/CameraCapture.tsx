@@ -347,6 +347,10 @@ export default function CameraCapture({
 
   // ── Upload ────────────────────────────────────────────────────────────────
   const uploadMedia = async (url: string, type: 'photo' | 'video'): Promise<string> => {
+    // Se è già un URL pubblico (da Storage), ritornalo direttamente
+    if (url.startsWith('http') && !url.startsWith('blob:') && !url.startsWith('data:')) {
+      return url;
+    }
     const res   = await fetch(url);
     const blob  = await res.blob();
     const ext   = type === 'photo' ? 'jpg' : 'webm';
@@ -355,6 +359,10 @@ export default function CameraCapture({
     form.append('file', blob, name);
     form.append('bucket', 'media');
     const r     = await fetch('/api/media/upload', { method: 'POST', body: form });
+    if (!r.ok) {
+      const errData = await r.json().catch(() => ({}));
+      throw new Error(errData.error || `Upload fallito: ${r.status}`);
+    }
     const data  = await r.json();
     return data.url || data.data?.url || url;
   };
@@ -363,6 +371,26 @@ export default function CameraCapture({
     setIsUploading(true);
     try {
       const uploadedUrl = await uploadMedia(media.url, media.type);
+      
+      // Pubblica nel DB tramite API
+      const publishRes = await fetch('/api/media/publish', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          url: uploadedUrl,
+          type: media.type,
+          caption: media.caption || '',
+          hashtags: media.hashtags || [],
+          filter: media.filter || null,
+          visibility: media.visibility || 'public',
+        }),
+      });
+      
+      if (!publishRes.ok) {
+        const errData = await publishRes.json().catch(() => ({}));
+        throw new Error(errData.error || 'Pubblicazione fallita');
+      }
+
       onCapture({
         url: uploadedUrl,
         type: media.type,
@@ -372,7 +400,9 @@ export default function CameraCapture({
         visibility: media.visibility,
       });
     } catch (err) {
-      console.error('[Camera] upload error:', err);
+      console.error('[Camera] upload/publish error:', err);
+      // Mostra errore all'utente
+      alert(`Errore pubblicazione: ${err instanceof Error ? err.message : 'Errore sconosciuto'}`);
     } finally {
       setIsUploading(false);
     }
@@ -382,6 +412,25 @@ export default function CameraCapture({
     setIsUploading(true);
     try {
       const uploadedUrl = await uploadMedia(reel.url, 'video');
+      
+      // Pubblica reel nel DB
+      const publishRes = await fetch('/api/media/publish', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          url: uploadedUrl,
+          type: 'reel',
+          caption: reel.caption || '',
+          hashtags: reel.hashtags || [],
+          visibility: 'public',
+        }),
+      });
+      
+      if (!publishRes.ok) {
+        const errData = await publishRes.json().catch(() => ({}));
+        throw new Error(errData.error || 'Pubblicazione reel fallita');
+      }
+
       onCapture({
         url: uploadedUrl,
         type: 'reel',
@@ -390,6 +439,7 @@ export default function CameraCapture({
       });
     } catch (err) {
       console.error('[Camera] reel upload error:', err);
+      alert(`Errore pubblicazione reel: ${err instanceof Error ? err.message : 'Errore sconosciuto'}`);
     } finally {
       setIsUploading(false);
     }

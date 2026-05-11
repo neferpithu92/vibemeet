@@ -25,13 +25,15 @@ interface Comment {
 interface CommentsDrawerProps {
   isOpen: boolean;
   onClose: () => void;
-  entityId: string;
+  entityId?: string;
+  postId?: string; // alias per compatibilità
   entityType?: 'media' | 'event';
 }
 
 const dateLocales: Record<string, any> = { it, en: enUS };
 
-export default function CommentsDrawer({ isOpen, onClose, entityId, entityType = 'media' }: CommentsDrawerProps) {
+export default function CommentsDrawer({ isOpen, onClose, entityId, postId, entityType = 'media' }: CommentsDrawerProps) {
+  const resolvedEntityId = entityId || postId || '';
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -42,7 +44,7 @@ export default function CommentsDrawer({ isOpen, onClose, entityId, entityType =
   const locale = useLocale();
 
   const fetchComments = useCallback(async () => {
-    if (!entityId) return;
+    if (!resolvedEntityId) return;
     setIsLoading(true);
     
     const { data, error } = await (supabase
@@ -52,14 +54,14 @@ export default function CommentsDrawer({ isOpen, onClose, entityId, entityType =
         author:users(username, avatar_url, display_name)
       `)
       .eq('entity_type', entityType)
-      .eq('entity_id', entityId)
+      .eq('entity_id', resolvedEntityId)
       .order('created_at', { ascending: false });
 
     if (!error && data) {
       setComments(data as any[]);
     }
     setIsLoading(false);
-  }, [entityId, entityType, supabase]);
+  }, [resolvedEntityId, entityType, supabase]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -67,14 +69,13 @@ export default function CommentsDrawer({ isOpen, onClose, entityId, entityType =
     fetchComments();
     supabase.auth.getUser().then(({ data }) => setUser(data.user));
 
-    // Realtime subscription
     const channel = (supabase as any)
-      .channel(`comments:${entityId}`)
+      .channel(`comments:${resolvedEntityId}`)
       .on('postgres_changes', { 
         event: 'INSERT', 
         schema: 'public', 
         table: 'comments',
-        filter: `entity_id=eq.${entityId}`
+        filter: `entity_id=eq.${resolvedEntityId}`
       }, () => {
         fetchComments(); 
       })
@@ -83,7 +84,7 @@ export default function CommentsDrawer({ isOpen, onClose, entityId, entityType =
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [isOpen, entityId, fetchComments, supabase]);
+  }, [isOpen, resolvedEntityId, fetchComments, supabase]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -97,12 +98,44 @@ export default function CommentsDrawer({ isOpen, onClose, entityId, entityType =
       .insert({
         author_id: (user as any).id,
         entity_type: entityType,
-        entity_id: entityId,
+        entity_id: resolvedEntityId,
         body: content
       });
 
     if (error) {
       console.error("Errore nell'invio del commento:", error);
+    } else {
+      // Aggiorna comment_count nel media
+      const { data: mediaRow } = await (supabase.from('media') as any)
+        .select('comment_count, user_id')
+        .eq('id', resolvedEntityId)
+        .maybeSingle();
+      
+      if (mediaRow) {
+        await (supabase.from('media') as any)
+          .update({ comment_count: (mediaRow.comment_count || 0) + 1 })
+          .eq('id', resolvedEntityId);
+        
+        // Notifica al proprietario del post
+        if (mediaRow.user_id && mediaRow.user_id !== (user as any).id) {
+          const { data: commenterProfile } = await (supabase.from('users') as any)
+            .select('display_name, username')
+            .eq('id', (user as any).id)
+            .single();
+          
+          const commenterName = commenterProfile?.display_name || commenterProfile?.username || 'Qualcuno';
+          
+          await (supabase.from('notifications') as any).insert({
+            user_id: mediaRow.user_id,
+            actor_id: (user as any).id,
+            type: 'comment',
+            entity_type: entityType,
+            entity_id: resolvedEntityId,
+            message: `${commenterName} ha commentato il tuo post: "${content.slice(0, 50)}..."`,
+            read_at: null,
+          });
+        }
+      }
     }
   };
 

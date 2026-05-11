@@ -242,7 +242,7 @@ export default function MapPage() {
               key={story.id}
               longitude={coords[0]}
               latitude={coords[1]}
-              avatarUrl={story.profiles?.avatar_url}
+              avatarUrl={story.profiles?.avatar_url ?? undefined}
               username={story.profiles?.username}
               isActive={selectedItem?.id === story.id}
               onClick={() => setSelectedItem({ ...story, type: 'story' })}
@@ -256,7 +256,7 @@ export default function MapPage() {
             longitude={user.longitude}
             latitude={user.latitude}
             username={user.username}
-            avatarUrl={user.avatar_url}
+            avatarUrl={user.avatar_url ?? undefined}
             onClick={() => setSelectedItem({ ...user, type: 'user' })}
           />
         ))}

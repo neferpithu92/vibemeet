@@ -98,18 +98,11 @@ export default function CreateEvent({ isOpen, onClose, onSuccess, venueId: initi
         if (venueData?.address) finalAddress = venueData.address;
       } else if (formData.locationData) {
         console.log("Using custom location data:", formData.locationData);
-        // PostGIS geography expects WKT or GeoJSON. PostgREST handles both, but GeoJSON is safer for JS.
-        eventLocation = {
-          type: 'Point',
-          coordinates: [formData.locationData.lng, formData.locationData.lat]
-        };
+        eventLocation = `POINT(${formData.locationData.lng} ${formData.locationData.lat})`;
         finalAddress = formData.locationData.name || 'Custom Location';
       } else {
         console.warn("No location selected, using default");
-        eventLocation = {
-          type: 'Point',
-          coordinates: [8.5417, 47.3769]
-        };
+        eventLocation = 'POINT(8.5417 47.3769)';
       }
 
       const eventSlug = formData.title
